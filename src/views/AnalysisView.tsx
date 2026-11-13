@@ -11,6 +11,7 @@ import {
   ArrowUpRight,
   Mountain,
   Compass,
+  BarChart3,
 } from 'lucide-react';
 import type { Site, Scenario, View } from '@/types';
 import { sites } from '@/data/sites';
@@ -34,11 +35,11 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
   onNavigate,
 }) => {
   const summary = getSummary(site, scenario);
-  const [visualMode, setVisualMode] = useState<'3d-terrain' | 'sky-model'>('3d-terrain');
+  const [activeTab, setActiveTab] = useState<'charts' | 'terrain'>('charts');
 
   return (
     <div className="view-stack">
-      {/* Analysis Header */}
+      {/* ── 1. Analysis Header with Site Switcher ────────────────── */}
       <div className="analysis-header">
         <div>
           <span className="eyebrow">SITE ANALYSIS / 03</span>
@@ -67,7 +68,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
         </div>
       </div>
 
-      {/* 4 Metrics */}
+      {/* ── 2. Top 4 Telemetry Metric Cards ─────────────────────── */}
       <div className="analysis-metrics">
         <MetricCard
           label="Solar visibility"
@@ -103,48 +104,72 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
         />
       </div>
 
-      {/* Visual Mode Selector Tabs */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #22303a', paddingBottom: 12 }}>
+      {/* ── 3. Mode Toggle: Charts vs Full 3D Terrain ───────────── */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #22303a',
+          paddingBottom: 12,
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
         <div style={{ display: 'flex', gap: 8 }}>
           <button
-            className={`quiet-button ${visualMode === '3d-terrain' ? 'active' : ''}`}
-            onClick={() => setVisualMode('3d-terrain')}
-            style={visualMode === '3d-terrain' ? { background: '#15252a', borderColor: '#65d5d0', color: '#65d5d0' } : {}}
+            className={`quiet-button ${activeTab === 'charts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('charts')}
+            style={
+              activeTab === 'charts'
+                ? { background: '#15252a', borderColor: '#65d5d0', color: '#65d5d0' }
+                : {}
+            }
+          >
+            <BarChart3 size={14} />
+            <span>Telemetry &amp; Polar Horizon Charts</span>
+          </button>
+
+          <button
+            className={`quiet-button ${activeTab === 'terrain' ? 'active' : ''}`}
+            onClick={() => setActiveTab('terrain')}
+            style={
+              activeTab === 'terrain'
+                ? { background: '#15252a', borderColor: '#65d5d0', color: '#65d5d0' }
+                : {}
+            }
           >
             <Mountain size={14} />
             <span>3D LOLA Terrain Altimetry</span>
           </button>
-          <button
-            className={`quiet-button ${visualMode === 'sky-model' ? 'active' : ''}`}
-            onClick={() => setVisualMode('sky-model')}
-            style={visualMode === 'sky-model' ? { background: '#15252a', borderColor: '#65d5d0', color: '#65d5d0' } : {}}
-          >
-            <Compass size={14} />
-            <span>Polar Horizon Sky Model</span>
-          </button>
         </div>
-        <span className="eyebrow">HIGH RESOLUTION TELEMETRY</span>
+
+        <span className="eyebrow" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Compass size={12} />
+          <span>{activeTab === 'charts' ? 'REFERENCE SPHERE MODEL' : 'NASA LOLA 20M ELEVATION'}</span>
+        </span>
       </div>
 
-      {/* Main Visuals & Chart Grid */}
-      {visualMode === '3d-terrain' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(290px, 0.65fr)', gap: 12 }}>
-          <SiteTerrain3D
-            site={site}
-            scenario={scenario}
-            onBack={() => onNavigate('globe')}
-            onSelectSite={onSelectSite}
-          />
-          <ChartPanel site={site} scenario={scenario} />
-        </div>
-      ) : (
+      {/* ── 4. Main Visualization Section ───────────────────────── */}
+      {activeTab === 'charts' ? (
+        /* Original Bolt Layout: Illumination Time Series + Polar Horizon Sky Model side-by-side */
         <div className="analysis-grid">
           <ChartPanel site={site} scenario={scenario} />
           <AstroReadout site={site} scenario={scenario} />
         </div>
+      ) : (
+        /* Full-Width 3D Terrain Altimetry Viewer with top & bottom HUD */
+        <div style={{ width: '100%', minHeight: 580 }}>
+          <SiteTerrain3D
+            site={site}
+            scenario={scenario}
+            onBack={() => setActiveTab('charts')}
+            onSelectSite={onSelectSite}
+          />
+        </div>
       )}
 
-      {/* Lower Panels: Detailed Catalog Record & Limitation Notice */}
+      {/* ── 5. Lower Panels: Detailed Site Record & Limitations ─── */}
       <div className="analysis-lower">
         <div className="panel detail-panel">
           <div className="panel-heading">
@@ -198,8 +223,18 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
           )}
 
           {site.funFact && (
-            <div style={{ marginTop: 14, background: '#111b22', padding: '10px 14px', borderRadius: 6, border: '1px solid #23343d' }}>
-              <span className="eyebrow" style={{ color: '#f0a970' }}>DID YOU KNOW?</span>
+            <div
+              style={{
+                marginTop: 14,
+                background: '#111b22',
+                padding: '10px 14px',
+                borderRadius: 6,
+                border: '1px solid #23343d',
+              }}
+            >
+              <span className="eyebrow" style={{ color: '#f0a970' }}>
+                DID YOU KNOW?
+              </span>
               <p style={{ margin: '4px 0 0', color: '#cad8db', fontSize: 10, lineHeight: 1.55 }}>
                 {site.funFact}
               </p>
@@ -238,4 +273,3 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
 };
 
 export default AnalysisView;
-

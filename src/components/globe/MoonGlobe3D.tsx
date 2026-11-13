@@ -1,28 +1,84 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { sites } from '@/data/sites';
 import { SITE_COLORS } from '@/lib/scenarioCalculations';
-import { Move3d, RotateCcw, Globe, Sun as SunIcon, Orbit } from 'lucide-react';
+import { getSubPoints, computePositions } from '@/lib/ephemeris';
+import { Globe, ArrowRight, Info, RotateCcw } from 'lucide-react';
 
 interface MoonGlobe3DProps {
   selectedSiteId: string;
   onSelectSite: (id: string) => void;
+  onVisitTerrain?: () => void;
   compact?: boolean;
+  date?: string;
 }
+
+// NASA Physical Dimensions
+const NASA = {
+  MOON_R_KM: 1737.4,
+  EARTH_R_KM: 6371.0,
+  SUN_R_KM: 696340.0,
+  EARTH_DIST_KM: 384400.0,
+  SUN_DIST_KM: 149597870.0,
+  EARTH_R_RATIO: 3.667, // 6371 / 1737.4
+  SUN_R_RATIO: 400.8, // 696340 / 1737.4
+  EARTH_DIST_RATIO: 221.25, // 384400 / 1737.4
+  SUN_DIST_RATIO: 86105.0, // 149.6M / 1737.4
+};
 
 export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   selectedSiteId,
   onSelectSite,
+  onVisitTerrain,
   compact = false,
+  date = '2026-03-01',
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
-  const [loadingModel, setLoadingModel] = useState(true);
-  const [activeFocus, setActiveFocus] = useState<'moon' | 'earth' | 'sun' | 'system'>('moon');
+
+  // Object references
+  const moonModelRef = useRef<THREE.Object3D | null>(null);
+  const earthModelRef = useRef<THREE.Object3D | null>(null);
+  const sunModelRef = useRef<THREE.Object3D | null>(null);
+  const markersGroupRef = useRef<THREE.Group | null>(null);
+  const dteVectorsGroupRef = useRef<THREE.Group | null>(null);
+  const solarRaysGroupRef = useRef<THREE.Group | null>(null);
+
+  // UI States matching user's screenshot
+  const [scaleMode, setScaleMode] = useState<'proportional' | 'true'>('proportional');
+  const [focusTarget, setFocusTarget] = useState<'moon' | 'earth' | 'sun' | 'system'>('system');
+  const [vectorMode, setVectorMode] = useState<'all' | 'dte' | 'solar' | 'off'>('all');
+  const [showScaleDetails, setShowScaleDetails] = useState(false);
+  const [currentHour] = useState(12);
+
+  // Compute active 3D units based on selected scaleMode
+  const scaleConfig = useMemo(() => {
+    if (scaleMode === 'true') {
+      return {
+        moonRadius: 1.0,
+        earthRadius: NASA.EARTH_R_RATIO,
+        sunRadius: NASA.SUN_R_RATIO,
+        earthDist: NASA.EARTH_DIST_RATIO,
+        sunDist: NASA.SUN_DIST_RATIO,
+        maxCameraDist: 250000,
+      };
+    } else {
+      // Proportional Spaceflight Exploration view:
+      // Earth and colossal glowing Sun prominently visible in celestial space
+      return {
+        moonRadius: 1.0,
+        earthRadius: 2.2,
+        sunRadius: 16.0, // Colossal radiant star
+        earthDist: 16.0,
+        sunDist: 48.0,
+        maxCameraDist: 600,
+      };
+    }
+  }, [scaleMode]);
 
   // Convert lunar latitude & longitude to 3D Cartesian coordinates on sphere
   const latLonToVector3 = (lat: number, lon: number, radius: number): THREE.Vector3 => {
@@ -34,371 +90,236 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     return new THREE.Vector3(x, y, z);
   };
 
+  // 1. Initialize Scene, Renderer, Controls, and Base Celestial Objects
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return;
 
-    const width = mount.clientWidth || 600;
-    const height = mount.clientHeight || 400;
+    const width = mount.clientWidth || 800;
+    const height = mount.clientHeight || 520;
 
-    // 1. Scene
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x060910);
     sceneRef.current = scene;
 
-    // 2. Camera: position targeting lunar South Pole (lat ~ -90 deg)
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, -3.8, 2.2);
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 300000);
+    camera.position.set(0, 40, 110);
     cameraRef.current = camera;
 
-    // 3. Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    renderer.toneMappingExposure = 1.35;
     mount.appendChild(renderer.domElement);
 
-    // 4. Controls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.maxDistance = 120;
+    controls.maxDistance = scaleConfig.maxCameraDist;
     controls.minDistance = 1.4;
     controlsRef.current = controls;
 
-    // 5. Lighting
-    const ambientLight = new THREE.AmbientLight(0x16222f, 0.7);
+    // Ambient light
+    const ambientLight = new THREE.AmbientLight(0x16222f, 0.65);
     scene.add(ambientLight);
 
-    // Starfield particles in the background
+    // Starfield particles in deep space
     const starGeometry = new THREE.BufferGeometry();
-    const starCount = 900;
+    const starCount = 1200;
     const starPositions = new Float32Array(starCount * 3);
     for (let i = 0; i < starCount * 3; i += 3) {
-      starPositions[i] = (Math.random() - 0.5) * 160;
-      starPositions[i + 1] = (Math.random() - 0.5) * 160;
-      starPositions[i + 2] = (Math.random() - 0.5) * 160;
+      starPositions[i] = (Math.random() - 0.5) * 600;
+      starPositions[i + 1] = (Math.random() - 0.5) * 600;
+      starPositions[i + 2] = (Math.random() - 0.5) * 600;
     }
     starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
     const starMaterial = new THREE.PointsMaterial({
       color: 0x99ccff,
-      size: 0.12,
+      size: 0.15,
       transparent: true,
       opacity: 0.75,
     });
     const starField = new THREE.Points(starGeometry, starMaterial);
     scene.add(starField);
 
-    // 6. Moon Mesh / GLB Loader
-    const moonGroup = new THREE.Group();
-    scene.add(moonGroup);
+    // Vector Groups
+    const dteGroup = new THREE.Group();
+    scene.add(dteGroup);
+    dteVectorsGroupRef.current = dteGroup;
 
-    const moonRadius = 1.0;
-    const textureLoader = new THREE.TextureLoader();
+    const solarGroup = new THREE.Group();
+    scene.add(solarGroup);
+    solarRaysGroupRef.current = solarGroup;
+
+    const markersGroup = new THREE.Group();
+    scene.add(markersGroup);
+    markersGroupRef.current = markersGroup;
+
+    const texLoader = new THREE.TextureLoader();
     const gltfLoader = new GLTFLoader();
 
-    // Instant Moon sphere with photographic LROC texture
-    const moonGeo = new THREE.SphereGeometry(moonRadius, 64, 64);
+    // ── 1. MOON ──────────────────────────────────────────────
+    const moonTex = texLoader.load('/textures/lroc_color_2k.jpg');
+    moonTex.colorSpace = THREE.SRGBColorSpace;
+    const moonGeo = new THREE.SphereGeometry(1.0, 64, 64);
     const moonMat = new THREE.MeshStandardMaterial({
-      color: 0xc8d2d6,
-      roughness: 0.88,
-      metalness: 0.04,
+      map: moonTex,
+      roughness: 0.92,
+      metalness: 0.05,
     });
+    const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+    scene.add(moonMesh);
+    moonModelRef.current = moonMesh;
 
-    textureLoader.load(
-      '/textures/lroc_color_2k.jpg',
-      (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        moonMat.map = texture;
-        moonMat.needsUpdate = true;
+    gltfLoader.load(
+      '/models/Moon_NASA_LRO_8k_Topo_Small.glb',
+      (gltf) => {
+        scene.remove(moonMesh);
+        const model = gltf.scene;
+        const box = new THREE.Box3().setFromObject(model);
+        const sphere = box.getBoundingSphere(new THREE.Sphere());
+        const scale = 1.0 / (sphere.radius || 1);
+        model.scale.set(scale, scale, scale);
+        scene.add(model);
+        moonModelRef.current = model;
       },
       undefined,
       () => {}
     );
 
-    const fallbackMoonMesh = new THREE.Mesh(moonGeo, moonMat);
-    moonGroup.add(fallbackMoonMesh);
-
-    // Attempt loading NASA Moon GLB model
-    gltfLoader.load(
-      '/models/Moon_NASA_LRO_8k_Topo_Small.glb',
-      (gltf) => {
-        moonGroup.remove(fallbackMoonMesh);
-        const model = gltf.scene;
-        const box = new THREE.Box3().setFromObject(model);
-        const sphere = box.getBoundingSphere(new THREE.Sphere());
-        const scale = moonRadius / (sphere.radius || 1);
-        model.scale.set(scale, scale, scale);
-        moonGroup.add(model);
-        setLoadingModel(false);
-      },
-      undefined,
-      () => {
-        // Try fallback small glb
-        gltfLoader.load(
-          '/models/moon_small.glb',
-          (gltf) => {
-            moonGroup.remove(fallbackMoonMesh);
-            const model = gltf.scene;
-            const box = new THREE.Box3().setFromObject(model);
-            const sphere = box.getBoundingSphere(new THREE.Sphere());
-            const scale = moonRadius / (sphere.radius || 1);
-            model.scale.set(scale, scale, scale);
-            moonGroup.add(model);
-            setLoadingModel(false);
-          },
-          undefined,
-          () => setLoadingModel(false)
-        );
-      }
-    );
-
-    // ───────────────────────────────────────────
-    // 7. 3D SUN MODEL & SOLAR LIGHTING
-    // ───────────────────────────────────────────
-    const sunGroup = new THREE.Group();
-    const sunPos = new THREE.Vector3(26, -5, 16);
-    sunGroup.position.copy(sunPos);
-    scene.add(sunGroup);
-
-    // Directional sunlight shining from the Sun onto the Moon and Earth
-    const sunLight = new THREE.DirectionalLight(0xfffaed, 3.2);
-    sunLight.position.copy(sunPos);
-    scene.add(sunLight);
-
-    const sunGlowLight = new THREE.PointLight(0xffb74d, 2.5, 80);
-    sunGlowLight.position.copy(sunPos);
-    scene.add(sunGlowLight);
-
-    // Instant Sun Photosphere sphere with texture
-    const sunRadius = 3.6;
-    const sunGeo = new THREE.SphereGeometry(sunRadius, 32, 32);
-    const sunMat = new THREE.MeshBasicMaterial({
-      color: 0xffaa33,
-    });
-
-    textureLoader.load('/textures/sun_texture_2k.jpg', (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      sunMat.map = tex;
-      sunMat.needsUpdate = true;
-    });
-
-    const fallbackSunMesh = new THREE.Mesh(sunGeo, sunMat);
-    sunGroup.add(fallbackSunMesh);
-
-    // Sun outer corona glow billboard
-    const coronaGeo = new THREE.SphereGeometry(sunRadius * 1.35, 24, 24);
-    const coronaMat = new THREE.MeshBasicMaterial({
-      color: 0xff8800,
-      transparent: true,
-      opacity: 0.22,
-      side: THREE.BackSide,
-    });
-    const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
-    sunGroup.add(coronaMesh);
-
-    // Load full 3D Sun GLB model
-    gltfLoader.load(
-      '/models/sun.glb',
-      (gltf) => {
-        sunGroup.remove(fallbackSunMesh);
-        const sunScene = gltf.scene;
-        const box = new THREE.Box3().setFromObject(sunScene);
-        const sphere = box.getBoundingSphere(new THREE.Sphere());
-        const s = sunRadius / (sphere.radius || 1);
-        sunScene.scale.set(s, s, s);
-        sunGroup.add(sunScene);
-      },
-      undefined,
-      () => {
-        // Try alternate path if not found
-        gltfLoader.load(
-          '/earth,sun,moon textures and models/Sun_1_1391000.glb',
-          (gltf) => {
-            sunGroup.remove(fallbackSunMesh);
-            const sunScene = gltf.scene;
-            const box = new THREE.Box3().setFromObject(sunScene);
-            const sphere = box.getBoundingSphere(new THREE.Sphere());
-            const s = sunRadius / (sphere.radius || 1);
-            sunScene.scale.set(s, s, s);
-            sunGroup.add(sunScene);
-          },
-          undefined,
-          () => {}
-        );
-      }
-    );
-
-    // ───────────────────────────────────────────
-    // 8. 3D EARTH MODEL & DIRECT-TO-EARTH (DTE) LINK
-    // ───────────────────────────────────────────
-    const earthGroup = new THREE.Group();
-    const earthPos = new THREE.Vector3(-12, -7, -6);
-    earthGroup.position.copy(earthPos);
-    scene.add(earthGroup);
-
-    const earthRadius = 1.7; // ~3.67x Moon radius in proportion
-    const earthGeo = new THREE.SphereGeometry(earthRadius, 48, 48);
+    // ── 2. EARTH ─────────────────────────────────────────────
+    const earthTex = texLoader.load('/textures/earth_2k.jpg');
+    earthTex.colorSpace = THREE.SRGBColorSpace;
+    const earthGeo = new THREE.SphereGeometry(1.0, 48, 48);
     const earthMat = new THREE.MeshStandardMaterial({
-      color: 0x66aacc,
-      roughness: 0.65,
+      map: earthTex,
+      roughness: 0.6,
       metalness: 0.1,
     });
+    const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+    earthMesh.userData.naturalDim = 2.0;
+    scene.add(earthMesh);
+    earthModelRef.current = earthMesh;
 
-    textureLoader.load('/textures/earth_blue_marble.jpg', (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      earthMat.map = tex;
-      earthMat.needsUpdate = true;
-    });
-
-    const fallbackEarthMesh = new THREE.Mesh(earthGeo, earthMat);
-    earthGroup.add(fallbackEarthMesh);
-
-    // Earth atmosphere halo
-    const atmosGeo = new THREE.SphereGeometry(earthRadius * 1.08, 32, 32);
-    const atmosMat = new THREE.MeshBasicMaterial({
-      color: 0x65d5d0,
-      transparent: true,
-      opacity: 0.15,
-      side: THREE.BackSide,
-    });
-    const atmosMesh = new THREE.Mesh(atmosGeo, atmosMat);
-    earthGroup.add(atmosMesh);
-
-    // Load full 3D Earth GLB model
     gltfLoader.load(
       '/models/earth.glb',
       (gltf) => {
-        earthGroup.remove(fallbackEarthMesh);
+        scene.remove(earthMesh);
         const earthScene = gltf.scene;
-        const box = new THREE.Box3().setFromObject(earthScene);
-        const sphere = box.getBoundingSphere(new THREE.Sphere());
-        const s = earthRadius / (sphere.radius || 1);
-        earthScene.scale.set(s, s, s);
-        earthGroup.add(earthScene);
+        earthScene.userData.naturalDim = 2.0;
+        scene.add(earthScene);
+        earthModelRef.current = earthScene;
       },
       undefined,
-      () => {
-        gltfLoader.load(
-          '/earth,sun,moon textures and models/EarthClouds_1_12756.glb',
-          (gltf) => {
-            earthGroup.remove(fallbackEarthMesh);
-            const earthScene = gltf.scene;
-            const box = new THREE.Box3().setFromObject(earthScene);
-            const sphere = box.getBoundingSphere(new THREE.Sphere());
-            const s = earthRadius / (sphere.radius || 1);
-            earthScene.scale.set(s, s, s);
-            earthGroup.add(earthScene);
-          },
-          undefined,
-          () => {}
-        );
-      }
+      () => {}
     );
 
-    // Subtle Earth radio link vector line to Moon
-    const dtePoints = [earthPos, new THREE.Vector3(0, -0.98, 0.05)];
-    const dteGeo = new THREE.BufferGeometry().setFromPoints(dtePoints);
-    const dteMat = new THREE.LineDashedMaterial({
-      color: 0x65d5d0,
-      dashSize: 0.4,
-      gapSize: 0.25,
-      transparent: true,
-      opacity: 0.45,
+    // ── 3. COLOSSAL GLOWING SUN ──────────────────────────────
+    const sunTex = texLoader.load('/textures/sun_texture_2k.jpg');
+    sunTex.colorSpace = THREE.SRGBColorSpace;
+    const sunGeo = new THREE.SphereGeometry(1.0, 48, 48);
+    const sunMat = new THREE.MeshBasicMaterial({
+      map: sunTex,
+      color: 0xffdd44,
     });
-    const dteLine = new THREE.Line(dteGeo, dteMat);
-    dteLine.computeLineDistances();
-    scene.add(dteLine);
+    const sunMesh = new THREE.Mesh(sunGeo, sunMat);
+    sunMesh.userData.naturalDim = 2.0;
+    scene.add(sunMesh);
+    sunModelRef.current = sunMesh;
 
-    // ───────────────────────────────────────────
-    // 9. Site Markers on the Moon
-    // ───────────────────────────────────────────
-    const markersGroup = new THREE.Group();
-    moonGroup.add(markersGroup);
+    // Glowing sun corona billboard
+    const coronaGeo = new THREE.SphereGeometry(1.25, 32, 32);
+    const coronaMat = new THREE.MeshBasicMaterial({
+      color: 0xffaa22,
+      transparent: true,
+      opacity: 0.28,
+      side: THREE.BackSide,
+    });
+    const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
+    sunMesh.add(coronaMesh);
 
+    gltfLoader.load(
+      '/models/sun.glb',
+      (gltf) => {
+        scene.remove(sunMesh);
+        const sunScene = gltf.scene;
+        sunScene.userData.naturalDim = 2.0;
+        sunScene.add(coronaMesh);
+        scene.add(sunScene);
+        sunModelRef.current = sunScene;
+      },
+      undefined,
+      () => {}
+    );
+
+    // Directional sunlight shining from the Sun onto Moon and Earth
+    const sunLight = new THREE.DirectionalLight(0xfffaed, 3.2);
+    scene.add(sunLight);
+
+    // ── 4. SITE MARKERS ──────────────────────────────────────
     const markerMeshes: { id: string; mesh: THREE.Mesh }[] = [];
-
     sites.forEach((site, index) => {
-      const pos = latLonToVector3(site.lat, site.lon, moonRadius * 1.015);
+      const pos = latLonToVector3(site.lat, site.lon, 1.015);
       const colorHex = parseInt(SITE_COLORS[index % SITE_COLORS.length].replace('#', '0x'), 16);
 
-      // Marker pin
-      const markerGeo = new THREE.SphereGeometry(0.026, 16, 16);
-      const markerMat = new THREE.MeshBasicMaterial({
-        color: colorHex,
-      });
+      const markerGeo = new THREE.SphereGeometry(0.028, 16, 16);
+      const markerMat = new THREE.MeshBasicMaterial({ color: colorHex });
       const markerMesh = new THREE.Mesh(markerGeo, markerMat);
       markerMesh.position.copy(pos);
       markerMesh.userData = { siteId: site.id };
       markersGroup.add(markerMesh);
       markerMeshes.push({ id: site.id, mesh: markerMesh });
 
-      // Pulsing beacon ring around marker
-      const ringGeo = new THREE.RingGeometry(0.035, 0.045, 24);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: colorHex,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.8,
-      });
+      const ringGeo = new THREE.RingGeometry(0.038, 0.048, 24);
+      const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
       const ringMesh = new THREE.Mesh(ringGeo, ringMat);
       ringMesh.position.copy(pos);
       ringMesh.lookAt(0, 0, 0);
       markersGroup.add(ringMesh);
     });
 
-    // 10. Raycaster for clicking markers
+    // Raycaster for clicking site beacons
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-
     const handlePointerDown = (event: MouseEvent) => {
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(
-        markerMeshes.map((m) => m.mesh)
-      );
-
-      if (intersects.length > 0) {
-        const hit = intersects[0].object;
-        const siteId = hit.userData.siteId;
-        if (siteId) {
-          onSelectSite(siteId);
-        }
+      const hits = raycaster.intersectObjects(markerMeshes.map((m) => m.mesh));
+      if (hits.length > 0) {
+        const id = hits[0].object.userData.siteId;
+        if (id) onSelectSite(id);
       }
     };
-
     renderer.domElement.addEventListener('pointerdown', handlePointerDown);
 
-    // 11. Resize observer
+    // Resize listener
     const handleResize = () => {
       if (!mount) return;
-      const newWidth = mount.clientWidth;
-      const newHeight = mount.clientHeight;
-      camera.aspect = newWidth / newHeight;
+      const nw = mount.clientWidth;
+      const nh = mount.clientHeight;
+      camera.aspect = nw / nh;
       camera.updateProjectionMatrix();
-      renderer.setSize(newWidth, newHeight);
+      renderer.setSize(nw, nh);
     };
-
     window.addEventListener('resize', handleResize);
 
-    // 12. Animation Loop
+    // Animation Loop
     let animId: number;
     const animate = () => {
       animId = requestAnimationFrame(animate);
       controls.update();
 
-      // Subtle celestial rotations
+      if (earthModelRef.current) earthModelRef.current.rotation.y += 0.003;
+      if (sunModelRef.current) sunModelRef.current.rotation.y += 0.0008;
       starField.rotation.y += 0.0001;
-      earthGroup.rotation.y += 0.003;
-      sunGroup.rotation.y += 0.0008;
 
-      // Pulse selected site marker scale
+      // Pulse selected beacon
       markerMeshes.forEach((item) => {
         if (item.id === selectedSiteId) {
-          const s = 1.3 + Math.sin(Date.now() * 0.006) * 0.25;
+          const s = 1.35 + Math.sin(Date.now() * 0.006) * 0.3;
           item.mesh.scale.set(s, s, s);
         } else {
           item.mesh.scale.set(1, 1, 1);
@@ -418,25 +339,178 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         mount.removeChild(renderer.domElement);
       }
     };
-  }, [selectedSiteId, onSelectSite]);
+  }, []);
 
-  // Camera viewpoint controllers
-  const focusOn = (target: 'moon' | 'earth' | 'sun' | 'system') => {
-    setActiveFocus(target);
+  // 2. Compute Celestial Ephemeris Positions, Vector Sheaf & DTE Lines
+  const updateEphemerisAndVectors = useCallback(() => {
+    if (!sceneRef.current) return;
+    const hourStr = String(currentHour).padStart(2, '0');
+    const time = new Date(`${date}T${hourStr}:00:00Z`);
+
+    const { subsolar, subearth } = getSubPoints(time);
+    const toVector = (p: { lat: number; lon: number }) =>
+      new THREE.Vector3(
+        Math.cos((p.lat * Math.PI) / 180) * Math.sin((p.lon * Math.PI) / 180),
+        Math.sin((p.lat * Math.PI) / 180),
+        Math.cos((p.lat * Math.PI) / 180) * Math.cos((p.lon * Math.PI) / 180)
+      );
+
+    const sunDir = toVector(subsolar);
+    const earthDir = toVector(subearth);
+    const sunMag = subsolar.distKm;
+    const earthMag = subearth.distKm;
+
+    // 1. Earth position & scale
+    const earthPos = earthDir
+      .clone()
+      .multiplyScalar(scaleMode === 'true' ? earthMag / NASA.MOON_R_KM : scaleConfig.earthDist);
+    if (earthModelRef.current) {
+      earthModelRef.current.position.copy(earthPos);
+      const s = (scaleConfig.earthRadius * 2) / (earthModelRef.current.userData?.naturalDim || 2.0);
+      earthModelRef.current.scale.set(s, s, s);
+    }
+
+    // 2. Sun position & scale
+    const sunPos = sunDir
+      .clone()
+      .multiplyScalar(scaleMode === 'true' ? sunMag / NASA.MOON_R_KM : scaleConfig.sunDist);
+    if (sunModelRef.current) {
+      sunModelRef.current.position.copy(sunPos);
+      const s = (scaleConfig.sunRadius * 2) / (sunModelRef.current.userData?.naturalDim || 2.0);
+      sunModelRef.current.scale.set(s, s, s);
+    }
+
+    // 3. Earth Direct-to-Earth (DTE) Lines
+    if (dteVectorsGroupRef.current) {
+      dteVectorsGroupRef.current.clear();
+      const showDTE = vectorMode === 'all' || vectorMode === 'dte';
+
+      if (showDTE) {
+        sites.forEach((site) => {
+          const latRad = (site.lat * Math.PI) / 180;
+          const lonRad = (site.lon * Math.PI) / 180;
+          const siteVec = new THREE.Vector3(
+            Math.cos(latRad) * Math.sin(lonRad),
+            Math.sin(latRad),
+            Math.cos(latRad) * Math.cos(lonRad)
+          );
+
+          const isVisible = computePositions(site.lat, site.lon, time.getTime()).earth.alt > 0;
+          const color = isVisible ? 0x8fd3e8 : 0xef4444;
+          const opacity = isVisible ? (site.id === selectedSiteId ? 0.95 : 0.45) : 0.18;
+
+          const geom = new THREE.BufferGeometry().setFromPoints([siteVec, earthPos]);
+          const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+          dteVectorsGroupRef.current?.add(new THREE.Line(geom, mat));
+        });
+      }
+    }
+
+    // 4. Mathematical Conical Sun Rays Vector Sheaf (From Screenshot)
+    if (solarRaysGroupRef.current) {
+      solarRaysGroupRef.current.clear();
+      const showSolar = vectorMode === 'all' || vectorMode === 'solar';
+
+      if (showSolar) {
+        // Construct orthonormal basis on the sunlit hemisphere of the Moon
+        const w = sunDir.clone().normalize();
+        const arbitrary = Math.abs(w.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+        const u = new THREE.Vector3().crossVectors(arbitrary, w).normalize();
+        const v = new THREE.Vector3().crossVectors(w, u).normalize();
+
+        const linePositions: number[] = [];
+        const lineColors: number[] = [];
+
+        // Concentric linear rings covering the illuminated surface from subsolar point to terminator
+        const rings = [
+          { thetaDeg: 0, count: 1 },
+          { thetaDeg: 12, count: 6 },
+          { thetaDeg: 24, count: 10 },
+          { thetaDeg: 36, count: 14 },
+          { thetaDeg: 48, count: 18 },
+          { thetaDeg: 60, count: 22 },
+          { thetaDeg: 72, count: 26 },
+          { thetaDeg: 84, count: 30 },
+        ];
+
+        rings.forEach(({ thetaDeg, count }) => {
+          const theta = (thetaDeg * Math.PI) / 180;
+          const sinT = Math.sin(theta);
+          const cosT = Math.cos(theta);
+
+          for (let i = 0; i < count; i++) {
+            const phi = count === 1 ? 0 : (i / count) * Math.PI * 2;
+            const cosP = Math.cos(phi);
+            const sinP = Math.sin(phi);
+
+            // Vector Head on Moon's surface
+            const headX = (sinT * cosP * u.x + sinT * sinP * v.x + cosT * w.x) * 1.003;
+            const headY = (sinT * cosP * u.y + sinT * sinP * v.y + cosT * w.y) * 1.003;
+            const headZ = (sinT * cosP * u.z + sinT * sinP * v.z + cosT * w.z) * 1.003;
+
+            // Vector Tail on the Sun disk facing the Moon
+            const discRadius = Math.min(scaleConfig.sunRadius * 0.38, 12.0);
+            const tailX = sunPos.x + (sinT * cosP * u.x + sinT * sinP * v.x) * discRadius;
+            const tailY = sunPos.y + (sinT * cosP * u.y + sinT * sinP * v.y) * discRadius;
+            const tailZ = sunPos.z + (sinT * cosP * u.z + sinT * sinP * v.z) * discRadius;
+
+            linePositions.push(tailX, tailY, tailZ, headX, headY, headZ);
+
+            // Radiant amber color gradient
+            const alpha = 0.25 + cosT * 0.55;
+            lineColors.push(1.0, 0.72, 0.42, alpha * 0.4); // Tail at Sun
+            lineColors.push(1.0, 0.88, 0.58, alpha); // Head on Moon
+          }
+        });
+
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+        geom.setAttribute('color', new THREE.Float32BufferAttribute(lineColors, 4));
+
+        const mat = new THREE.LineBasicMaterial({
+          vertexColors: true,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        });
+
+        solarRaysGroupRef.current.add(new THREE.LineSegments(geom, mat));
+      }
+    }
+  }, [date, currentHour, vectorMode, selectedSiteId, scaleConfig, scaleMode]);
+
+  useEffect(() => {
+    updateEphemerisAndVectors();
+  }, [updateEphemerisAndVectors]);
+
+  // 3. Camera Focus Targets
+  const handleFocus = (target: 'moon' | 'earth' | 'sun' | 'system') => {
     if (!cameraRef.current || !controlsRef.current) return;
+    setFocusTarget(target);
 
     if (target === 'moon') {
       controlsRef.current.target.set(0, 0, 0);
-      cameraRef.current.position.set(0, -3.8, 2.2);
+      cameraRef.current.position.set(0, 0.8, 3.2);
     } else if (target === 'earth') {
-      controlsRef.current.target.set(-12, -7, -6);
-      cameraRef.current.position.set(-8, -4, -1);
+      if (earthModelRef.current) {
+        const ep = earthModelRef.current.position;
+        controlsRef.current.target.copy(ep);
+        cameraRef.current.position.set(ep.x + 8, ep.y + 4, ep.z + 8);
+      }
     } else if (target === 'sun') {
-      controlsRef.current.target.set(26, -5, 16);
-      cameraRef.current.position.set(26, -2, 28);
+      if (sunModelRef.current) {
+        const sp = sunModelRef.current.position;
+        controlsRef.current.target.copy(sp);
+        const offset = scaleConfig.sunRadius * 2.5;
+        cameraRef.current.position.set(sp.x, sp.y + offset * 0.3, sp.z + offset);
+      }
     } else if (target === 'system') {
-      controlsRef.current.target.set(4, -4, 4);
-      cameraRef.current.position.set(12, -22, 34);
+      controlsRef.current.target.set(0, 0, 0);
+      if (scaleMode === 'true') {
+        cameraRef.current.position.set(0, 25000, 75000);
+      } else {
+        cameraRef.current.position.set(0, 45, 120);
+      }
     }
     controlsRef.current.update();
   };
@@ -444,128 +518,275 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   return (
     <div
       className={`globe-scene ${compact ? 'globe-compact' : ''}`}
-      style={{ position: 'relative', width: '100%', height: '100%', minHeight: compact ? 340 : 500 }}
+      style={{ position: 'relative', width: '100%', height: '100%', minHeight: compact ? 340 : 540 }}
     >
-      <div ref={mountRef} style={{ width: '100%', height: '100%', minHeight: compact ? 340 : 500 }} />
+      <div ref={mountRef} style={{ width: '100%', height: '100%', minHeight: compact ? 340 : 540 }} />
 
-      {/* Target Focus Pills */}
+      {/* ────────────────────────────────────────────────────────── */}
+      {/* TOP HEADER CONTROLS (EXACT LAYOUT FROM USER'S SCREENSHOT)   */}
+      {/* ────────────────────────────────────────────────────────── */}
       <div
         style={{
           position: 'absolute',
           top: 14,
           left: 14,
+          right: 14,
           display: 'flex',
-          gap: 6,
-          zIndex: 10,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 10,
+          zIndex: 20,
+          pointerEvents: 'none',
         }}
       >
-        <button
-          className={`icon-pill ${activeFocus === 'moon' ? 'active' : ''}`}
-          onClick={() => focusOn('moon')}
-          title="Focus on Lunar South Pole"
+        {/* Title */}
+        <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 5,
-            padding: '4px 10px',
-            fontSize: 11,
-            borderRadius: 6,
-            background: activeFocus === 'moon' ? '#65d5d0' : '#101920dd',
-            color: activeFocus === 'moon' ? '#071516' : '#91a2a9',
-            border: '1px solid #293944',
-            cursor: 'pointer',
-            fontFamily: "'DM Mono', monospace",
+            gap: 8,
+            color: '#f0ebe1',
+            fontSize: 13,
+            fontWeight: 600,
+            fontFamily: "'Manrope', sans-serif",
+            textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+            pointerEvents: 'auto',
           }}
         >
-          <Orbit size={13} />
-          <span>Moon</span>
-        </button>
+          <Globe size={16} color="#f0a970" />
+          <span>Interactive 3D Moon Globe · Click any beacon to explore</span>
+        </div>
 
-        <button
-          className={`icon-pill ${activeFocus === 'earth' ? 'active' : ''}`}
-          onClick={() => focusOn('earth')}
-          title="View 3D Earth Model"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '4px 10px',
-            fontSize: 11,
-            borderRadius: 6,
-            background: activeFocus === 'earth' ? '#65d5d0' : '#101920dd',
-            color: activeFocus === 'earth' ? '#071516' : '#91a2a9',
-            border: '1px solid #293944',
-            cursor: 'pointer',
-            fontFamily: "'DM Mono', monospace",
-          }}
-        >
-          <Globe size={13} />
-          <span>3D Earth</span>
-        </button>
-
-        <button
-          className={`icon-pill ${activeFocus === 'sun' ? 'active' : ''}`}
-          onClick={() => focusOn('sun')}
-          title="View 3D Sun Model"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '4px 10px',
-            fontSize: 11,
-            borderRadius: 6,
-            background: activeFocus === 'sun' ? '#f0a970' : '#101920dd',
-            color: activeFocus === 'sun' ? '#120e07' : '#91a2a9',
-            border: '1px solid #293944',
-            cursor: 'pointer',
-            fontFamily: "'DM Mono', monospace",
-          }}
-        >
-          <SunIcon size={13} />
-          <span>3D Sun</span>
-        </button>
-
-        <button
-          className={`icon-pill ${activeFocus === 'system' ? 'active' : ''}`}
-          onClick={() => focusOn('system')}
-          title="View Full Sun-Earth-Moon Celestial System"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 5,
-            padding: '4px 10px',
-            fontSize: 11,
-            borderRadius: 6,
-            background: activeFocus === 'system' ? '#9aaeff' : '#101920dd',
-            color: activeFocus === 'system' ? '#09101d' : '#91a2a9',
-            border: '1px solid #293944',
-            cursor: 'pointer',
-            fontFamily: "'DM Mono', monospace",
-          }}
-        >
-          <span>All 3 Bodies</span>
-        </button>
+        {/* Visit 3D Terrain Button */}
+        {onVisitTerrain && (
+          <button
+            onClick={onVisitTerrain}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '6px 14px',
+              background: '#f5cca0',
+              border: '1px solid #f0a970',
+              borderRadius: 8,
+              color: '#120e07',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: "'Manrope', sans-serif",
+              boxShadow: '0 4px 14px rgba(240, 169, 112, 0.35)',
+              pointerEvents: 'auto',
+            }}
+          >
+            <span>Visit 3D Terrain</span>
+            <ArrowRight size={14} />
+          </button>
+        )}
       </div>
 
-      <div className="scene-caption">
-        <Move3d size={14} />
-        <span>drag to rotate · click a 3D marker · zoom out to view Earth &amp; Sun</span>
-      </div>
-
+      {/* ────────────────────────────────────────────────────────── */}
+      {/* SECOND ROW OPTIONS TOOLBAR (EXACT PILLS FROM SCREENSHOT)  */}
+      {/* ────────────────────────────────────────────────────────── */}
       <div
         style={{
           position: 'absolute',
-          top: 14,
-          right: 14,
+          top: 52,
+          left: 14,
           display: 'flex',
-          gap: 6,
-          zIndex: 10,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          gap: 10,
+          zIndex: 20,
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 11,
         }}
       >
+        {/* Scale Mode Group: Proportional | 1:1 NASA | Info */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            background: '#0a0e17ee',
+            padding: '3px 4px',
+            borderRadius: 10,
+            border: '1px solid #23333e',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <button
+            onClick={() => setScaleMode('proportional')}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 7,
+              background: scaleMode === 'proportional' ? '#91c6d4' : 'transparent',
+              color: scaleMode === 'proportional' ? '#060910' : '#8899a6',
+              border: 'none',
+              fontWeight: scaleMode === 'proportional' ? 700 : 500,
+              cursor: 'pointer',
+            }}
+          >
+            Proportional
+          </button>
+          <button
+            onClick={() => setScaleMode('true')}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 7,
+              background: scaleMode === 'true' ? '#f0a970' : 'transparent',
+              color: scaleMode === 'true' ? '#120e07' : '#8899a6',
+              border: 'none',
+              fontWeight: scaleMode === 'true' ? 700 : 500,
+              cursor: 'pointer',
+            }}
+          >
+            1:1 NASA
+          </button>
+          <button
+            onClick={() => setShowScaleDetails(!showScaleDetails)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#8899a6',
+              padding: '2px 6px',
+              cursor: 'pointer',
+              display: 'grid',
+              placeItems: 'center',
+            }}
+            title="Toggle NASA scientific dimensions specification"
+          >
+            <Info size={14} />
+          </button>
+        </div>
+
+        {/* Target Focus Group: Target: Moon | Earth | Sun | System */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 3,
+            background: '#0a0e17ee',
+            padding: '3px 8px',
+            borderRadius: 10,
+            border: '1px solid #23333e',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <span style={{ color: '#687a86', paddingRight: 4, fontSize: 10 }}>Target:</span>
+          {(['moon', 'earth', 'sun', 'system'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => handleFocus(t)}
+              style={{
+                padding: '3px 9px',
+                borderRadius: 6,
+                background: focusTarget === t ? '#ffffff22' : 'transparent',
+                color: focusTarget === t ? '#ffffff' : '#8899a6',
+                border: 'none',
+                fontWeight: focusTarget === t ? 700 : 500,
+                cursor: 'pointer',
+                textTransform: 'capitalize',
+              }}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {/* Vectors Mode Group: Vectors: All | Earth LOS | Sun Rays | Off */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 3,
+            background: '#0a0e17ee',
+            padding: '3px 8px',
+            borderRadius: 10,
+            border: '1px solid #23333e',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <span style={{ color: '#687a86', paddingRight: 4, fontSize: 10 }}>Vectors:</span>
+          {[
+            { id: 'all', label: 'All', activeColor: '#f0a970', textColor: '#120e07' },
+            { id: 'dte', label: 'Earth LOS', activeColor: '#91c6d4', textColor: '#060910' },
+            { id: 'solar', label: 'Sun Rays', activeColor: '#f0a970', textColor: '#120e07' },
+            { id: 'off', label: 'Off', activeColor: '#ffffff25', textColor: '#ffffff' },
+          ].map((v) => (
+            <button
+              key={v.id}
+              onClick={() => setVectorMode(v.id as any)}
+              style={{
+                padding: '3px 9px',
+                borderRadius: 6,
+                background: vectorMode === v.id ? v.activeColor : 'transparent',
+                color: vectorMode === v.id ? v.textColor : '#8899a6',
+                border: 'none',
+                fontWeight: vectorMode === v.id ? 700 : 500,
+                cursor: 'pointer',
+              }}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ────────────────────────────────────────────────────────── */}
+      {/* SCIENTIFIC DIMENSIONS MODAL                                */}
+      {/* ────────────────────────────────────────────────────────── */}
+      {showScaleDetails && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 96,
+            left: 14,
+            maxWidth: 320,
+            background: '#0e1520f5',
+            border: '1px solid #283946',
+            borderRadius: 10,
+            padding: 14,
+            zIndex: 30,
+            fontSize: 11,
+            fontFamily: "'DM Mono', monospace",
+            color: '#d6e4e4',
+            boxShadow: '0 12px 30px rgba(0,0,0,0.8)',
+          }}
+        >
+          <div style={{ color: '#f0a970', fontWeight: 700, marginBottom: 6 }}>NASA Physical Scale Calibrations</div>
+          <div style={{ display: 'grid', gap: 4, lineHeight: 1.5, fontSize: 10, color: '#9bb0ba' }}>
+            <div>• Moon Radius: 1,737.4 km (1.0x baseline)</div>
+            <div>• Earth Radius: 6,371.0 km (3.67x Moon, 49.3x volume)</div>
+            <div>• Sun Radius: 696,340 km (400.8x Moon, 64.3M x volume)</div>
+            <div>• Earth Distance: 384,400 km (221.25x Moon radius)</div>
+            <div>• Sun Distance: 149.6M km (86,105x Moon radius)</div>
+          </div>
+          <button
+            onClick={() => setShowScaleDetails(false)}
+            style={{
+              marginTop: 10,
+              width: '100%',
+              padding: '4px 0',
+              background: '#192834',
+              border: '1px solid #2e4352',
+              borderRadius: 6,
+              color: '#d6e4e4',
+              cursor: 'pointer',
+              fontSize: 10,
+            }}
+          >
+            Close Specification
+          </button>
+        </div>
+      )}
+
+      {/* Reset Camera Button */}
+      <div style={{ position: 'absolute', bottom: 14, right: 14, zIndex: 10 }}>
         <button
           className="icon-button"
-          onClick={() => focusOn('moon')}
-          title="Reset South Polar Camera"
+          onClick={() => handleFocus('system')}
+          title="Reset to Full Celestial System View"
           style={{ background: '#0e171eee', borderColor: '#26343d' }}
         >
           <RotateCcw size={14} />

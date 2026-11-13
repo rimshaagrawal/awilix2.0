@@ -47,6 +47,7 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
           <MoonGlobe3D
             selectedSiteId={selectedSiteId}
             onSelectSite={onSelectSite}
+            onVisitTerrain={() => onOpenSite(selectedSiteId)}
           />
         </div>
 
