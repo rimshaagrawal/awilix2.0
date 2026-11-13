@@ -129,7 +129,12 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
       {/* Main Visuals & Chart Grid */}
       {visualMode === '3d-terrain' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(290px, 0.65fr)', gap: 12 }}>
-          <SiteTerrain3D site={site} scenario={scenario} />
+          <SiteTerrain3D
+            site={site}
+            scenario={scenario}
+            onBack={() => onNavigate('globe')}
+            onSelectSite={onSelectSite}
+          />
           <ChartPanel site={site} scenario={scenario} />
         </div>
       ) : (

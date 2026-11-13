@@ -98,8 +98,11 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
         onClick={onToggle}
         aria-label="Open Astra assistant"
       >
-        <AstraAvatar compact />
-        <span>ASTRA</span>
+        <AstraAvatar size={74} />
+        <div className="astra-nameplate">
+          <i />
+          <span>ASTRA</span>
+        </div>
         {!isOpen && <i className="astra-notice" />}
       </button>
 
