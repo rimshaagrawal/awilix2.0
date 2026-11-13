@@ -133,11 +133,12 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
 
   // 4. Update Solar & Earth Ephemeris Positions & Azimuth Arrows
   const updateLightingAndArrows = useCallback(() => {
+    try {
     const dateStr = scenario?.date || '2026-03-01';
     const hourStr = String(currentHour).padStart(2, '0');
-    const isoTime = Date.parse(`${dateStr}T${hourStr}:00:00Z`);
+    const time = new Date(`${dateStr}T${hourStr}:00:00Z`);
 
-    const pos = computePositions(site.lat, site.lon, isoTime);
+    const pos = computePositions(site.lat, site.lon, time);
     setTelemetry({ sun: pos.sun, earth: pos.earth });
 
     // Convert topocentric alt/az to Three.js coordinates
@@ -191,6 +192,9 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
       );
       arrowsGroupRef.current.add(cyanArrow);
     }
+    } catch (err) {
+      console.warn('[SiteTerrain3D] ephemeris error:', err);
+    }
   }, [site.lat, site.lon, scenario?.date, currentHour]);
 
   useEffect(() => {
@@ -235,6 +239,11 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
     const ambientLight = new THREE.AmbientLight(0xffffff, lightingMode ? 2.4 : 0.85);
     scene.add(ambientLight);
     ambientLightRef.current = ambientLight;
+
+    // Camera Headlight for clear surface visibility
+    const cameraLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    camera.add(cameraLight);
+    scene.add(camera);
 
     // Directional Sunlight with Soft Shadows
     const sunLight = new THREE.DirectionalLight(0xfffaed, 3.2);
@@ -314,6 +323,16 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
     const geometry = new THREE.PlaneGeometry(10, 10, gridSize - 1, gridSize - 1);
     geometry.rotateX(-Math.PI / 2); // Lay horizontal in XZ plane
 
+    // Flip index winding so normals point UP (+Y) for south-polar coordinates
+    const index = geometry.index;
+    if (index) {
+      for (let i = 0; i < index.count; i += 3) {
+        const tmp = index.getX(i);
+        index.setX(i, index.getX(i + 1));
+        index.setX(i + 1, tmp);
+      }
+    }
+
     const posAttr = geometry.attributes.position;
     const center = sampleTerrain(terrainData, 0, 0) ?? terrainData.minElevationM;
     const colors = new Float32Array(gridSize * gridSize * 3);
@@ -373,6 +392,7 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
       metalness: 0.04,
       wireframe,
       flatShading: !useInterpolation,
+      side: THREE.DoubleSide,
     });
 
     const mesh = new THREE.Mesh(geometry, material);

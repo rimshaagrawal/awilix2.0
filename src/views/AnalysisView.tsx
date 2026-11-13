@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ChevronDown,
   Sun,
@@ -26,6 +26,7 @@ interface AnalysisViewProps {
   scenario: Scenario;
   onSelectSite: (id: string) => void;
   onNavigate: (view: View) => void;
+  initialTab?: 'charts' | 'terrain';
 }
 
 export const AnalysisView: React.FC<AnalysisViewProps> = ({
@@ -33,9 +34,15 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
   scenario,
   onSelectSite,
   onNavigate,
+  initialTab = 'charts',
 }) => {
   const summary = getSummary(site, scenario);
-  const [activeTab, setActiveTab] = useState<'charts' | 'terrain'>('charts');
+  const [activeTab, setActiveTab] = useState<'charts' | 'terrain'>(initialTab);
+
+  // Sync when initialTab changes (e.g. "Visit 3D Terrain" button clicked)
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
 
   return (
     <div className="view-stack">
@@ -163,7 +170,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
           <SiteTerrain3D
             site={site}
             scenario={scenario}
-            onBack={() => setActiveTab('charts')}
+            onBack={() => onNavigate('globe')}
             onSelectSite={onSelectSite}
           />
         </div>

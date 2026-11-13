@@ -2,6 +2,7 @@ import type { Scenario, Sample, Site, SiteSummary, NavigationItem } from '@/type
 import {
   Command,
   Globe2,
+  Mountain,
   Radar,
   LineChart,
   BarChart3,
@@ -21,6 +22,7 @@ export const DEFAULT_SCENARIO: Scenario = {
 export const NAVIGATION_ITEMS: NavigationItem[] = [
   { id: 'overview', label: 'Mission Overview', icon: Command },
   { id: 'globe', label: 'Lunar Globe', icon: Globe2 },
+  { id: 'terrain', label: '3D Terrain', icon: Mountain },
   { id: 'sites', label: 'Candidate Sites', icon: Radar },
   { id: 'analysis', label: 'Site Analysis', icon: LineChart },
   { id: 'compare', label: 'Compare Sites', icon: BarChart3 },

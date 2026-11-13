@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 
-export type View = 'overview' | 'globe' | 'sites' | 'analysis' | 'compare' | 'scenario' | 'astra';
+export type View = 'overview' | 'globe' | 'sites' | 'analysis' | 'compare' | 'scenario' | 'astra' | 'terrain';
 
 export type Scenario = {
   date: string;

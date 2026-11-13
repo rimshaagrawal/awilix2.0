@@ -13,6 +13,7 @@ import { AnalysisView } from '@/views/AnalysisView';
 import { CompareView } from '@/views/CompareView';
 import { ScenarioView } from '@/views/ScenarioView';
 import { AstraView } from '@/views/AstraView';
+import { SiteTerrain3D } from '@/components/terrain/SiteTerrain3D';
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('overview');
@@ -25,6 +26,7 @@ export const App: React.FC = () => {
   const [scenario, setScenario] = useState<Scenario>(DEFAULT_SCENARIO);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [astraOpen, setAstraOpen] = useState(false);
+  const [analysisTab, setAnalysisTab] = useState<'charts' | 'terrain'>('charts');
 
   const selectedSite = getSite(selectedSiteId);
   const selectedSummary = useMemo(
@@ -45,7 +47,13 @@ export const App: React.FC = () => {
 
   const handleOpenSite = (id: string) => {
     setSelectedSiteId(id);
+    setAnalysisTab('charts');
     handleNavigate('analysis');
+  };
+
+  const handleVisitTerrain = (id?: string) => {
+    if (id) setSelectedSiteId(id);
+    handleNavigate('terrain');
   };
 
   const handleToggleCompare = (id: string) => {
@@ -85,7 +93,7 @@ export const App: React.FC = () => {
               scenario={scenario}
               selectedSiteId={selectedSiteId}
               onSelectSite={setSelectedSiteId}
-              onOpenSite={handleOpenSite}
+              onOpenSite={handleVisitTerrain}
               onNavigate={handleNavigate}
             />
           )}
@@ -95,8 +103,21 @@ export const App: React.FC = () => {
               scenario={scenario}
               selectedSiteId={selectedSiteId}
               onSelectSite={setSelectedSiteId}
-              onOpenSite={handleOpenSite}
+              onOpenSite={handleVisitTerrain}
             />
+          )}
+
+          {activeView === 'terrain' && (
+            <div className="view-stack">
+              <div style={{ width: '100%', minHeight: 'calc(100vh - 120px)' }}>
+                <SiteTerrain3D
+                  site={selectedSite}
+                  scenario={scenario}
+                  onBack={() => handleNavigate('globe')}
+                  onSelectSite={setSelectedSiteId}
+                />
+              </div>
+            </div>
           )}
 
           {activeView === 'sites' && (
@@ -116,6 +137,7 @@ export const App: React.FC = () => {
               scenario={scenario}
               onSelectSite={setSelectedSiteId}
               onNavigate={handleNavigate}
+              initialTab={analysisTab}
             />
           )}
 

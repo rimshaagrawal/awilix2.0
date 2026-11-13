@@ -47,6 +47,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   const markersGroupRef = useRef<THREE.Group | null>(null);
   const dteVectorsGroupRef = useRef<THREE.Group | null>(null);
   const solarRaysGroupRef = useRef<THREE.Group | null>(null);
+  const sunLightRef = useRef<THREE.DirectionalLight | null>(null);
+  const updateEphemerisRef = useRef<() => void>(() => {});
 
   // UI States matching user's screenshot
   const [scaleMode, setScaleMode] = useState<'proportional' | 'true'>('proportional');
@@ -120,9 +122,18 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     controls.minDistance = 1.4;
     controlsRef.current = controls;
 
-    // Ambient light
-    const ambientLight = new THREE.AmbientLight(0x16222f, 0.65);
+    // 1. Ambient lighting for base celestial illumination
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
+
+    // 2. Camera headlight — ensures whichever side of Moon/Earth you orbit to is clearly illuminated
+    const cameraLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    camera.add(cameraLight);
+    scene.add(camera);
+
+    // 3. Hemisphere sky/ground illumination
+    const hemiLight = new THREE.HemisphereLight(0x446688, 0x112233, 0.5);
+    scene.add(hemiLight);
 
     // Starfield particles in deep space
     const starGeometry = new THREE.BufferGeometry();
@@ -165,24 +176,49 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     const moonGeo = new THREE.SphereGeometry(1.0, 64, 64);
     const moonMat = new THREE.MeshStandardMaterial({
       map: moonTex,
-      roughness: 0.92,
+      roughness: 0.88,
       metalness: 0.05,
     });
     const moonMesh = new THREE.Mesh(moonGeo, moonMat);
     scene.add(moonMesh);
     moonModelRef.current = moonMesh;
 
+    // Load optimized 3D Moon model
     gltfLoader.load(
-      '/models/Moon_NASA_LRO_8k_Topo_Small.glb',
+      '/models/moon_small.glb',
       (gltf) => {
         scene.remove(moonMesh);
         const model = gltf.scene;
         const box = new THREE.Box3().setFromObject(model);
-        const sphere = box.getBoundingSphere(new THREE.Sphere());
-        const scale = 1.0 / (sphere.radius || 1);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z) || 2.0;
+        const scale = 2.0 / maxDim; // Normalize to radius 1.0 (diameter 2.0)
         model.scale.set(scale, scale, scale);
+
+        // Center geometry
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        model.position.sub(center.clone().multiplyScalar(scale));
+
+        // Brighten materials
+        model.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            mats.forEach((mat) => {
+              if (mat instanceof THREE.MeshStandardMaterial) {
+                mat.color.setHex(0xffffff);
+                mat.roughness = 0.85;
+                mat.metalness = 0.05;
+                mat.needsUpdate = true;
+              }
+            });
+          }
+        });
         scene.add(model);
         moonModelRef.current = model;
+        updateEphemerisRef.current?.();
       },
       undefined,
       () => {}
@@ -194,8 +230,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     const earthGeo = new THREE.SphereGeometry(1.0, 48, 48);
     const earthMat = new THREE.MeshStandardMaterial({
       map: earthTex,
-      roughness: 0.6,
-      metalness: 0.1,
+      roughness: 0.65,
+      metalness: 0.05,
     });
     const earthMesh = new THREE.Mesh(earthGeo, earthMat);
     earthMesh.userData.naturalDim = 2.0;
@@ -207,9 +243,31 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       (gltf) => {
         scene.remove(earthMesh);
         const earthScene = gltf.scene;
-        earthScene.userData.naturalDim = 2.0;
+        const box = new THREE.Box3().setFromObject(earthScene);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z) || 1000.0;
+        earthScene.userData.naturalDim = maxDim;
+
+        // Brighten earth materials
+        earthScene.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            mats.forEach((mat) => {
+              if (mat instanceof THREE.MeshStandardMaterial) {
+                mat.color.setHex(0xffffff);
+                mat.roughness = 0.65;
+                mat.metalness = 0.05;
+                mat.needsUpdate = true;
+              }
+            });
+          }
+        });
+
         scene.add(earthScene);
         earthModelRef.current = earthScene;
+        updateEphemerisRef.current?.();
       },
       undefined,
       () => {}
@@ -221,7 +279,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     const sunGeo = new THREE.SphereGeometry(1.0, 48, 48);
     const sunMat = new THREE.MeshBasicMaterial({
       map: sunTex,
-      color: 0xffdd44,
+      color: 0xffffff,
     });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
     sunMesh.userData.naturalDim = 2.0;
@@ -233,29 +291,59 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     const coronaMat = new THREE.MeshBasicMaterial({
       color: 0xffaa22,
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.35,
       side: THREE.BackSide,
     });
     const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
     sunMesh.add(coronaMesh);
+
+    // Glowing PointLight inside the Sun
+    const sunPointLight = new THREE.PointLight(0xfff6dd, 4.0, 800);
+    sunMesh.add(sunPointLight);
 
     gltfLoader.load(
       '/models/sun.glb',
       (gltf) => {
         scene.remove(sunMesh);
         const sunScene = gltf.scene;
-        sunScene.userData.naturalDim = 2.0;
-        sunScene.add(coronaMesh);
+        const box = new THREE.Box3().setFromObject(sunScene);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z) || 1.0;
+        sunScene.userData.naturalDim = maxDim;
+
+        // Ensure Sun is a brilliant self-luminous star using MeshBasicMaterial
+        sunScene.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            mesh.material = new THREE.MeshBasicMaterial({
+              map: sunTex,
+              color: 0xffffff,
+            });
+          }
+        });
+
+        const cGeo = new THREE.SphereGeometry(maxDim * 0.65, 32, 32);
+        const cMesh = new THREE.Mesh(cGeo, coronaMat);
+        sunScene.add(cMesh);
+
+        const pLight = new THREE.PointLight(0xfff6dd, 4.0, 800);
+        sunScene.add(pLight);
+
         scene.add(sunScene);
         sunModelRef.current = sunScene;
+        updateEphemerisRef.current?.();
       },
       undefined,
       () => {}
     );
 
     // Directional sunlight shining from the Sun onto Moon and Earth
-    const sunLight = new THREE.DirectionalLight(0xfffaed, 3.2);
+    const sunLight = new THREE.DirectionalLight(0xfffaed, 3.5);
+    sunLight.position.set(50, 20, 30);
     scene.add(sunLight);
+    scene.add(sunLight.target);
+    sunLightRef.current = sunLight;
 
     // ── 4. SITE MARKERS ──────────────────────────────────────
     const markerMeshes: { id: string; mesh: THREE.Mesh }[] = [];
@@ -344,6 +432,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   // 2. Compute Celestial Ephemeris Positions, Vector Sheaf & DTE Lines
   const updateEphemerisAndVectors = useCallback(() => {
     if (!sceneRef.current) return;
+    try {
     const hourStr = String(currentHour).padStart(2, '0');
     const time = new Date(`${date}T${hourStr}:00:00Z`);
 
@@ -380,6 +469,13 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       sunModelRef.current.scale.set(s, s, s);
     }
 
+    // Move directional light to match sun position so Moon/Earth get lit
+    if (sunLightRef.current) {
+      sunLightRef.current.position.copy(sunPos);
+      sunLightRef.current.target.position.set(0, 0, 0);
+      sunLightRef.current.target.updateMatrixWorld();
+    }
+
     // 3. Earth Direct-to-Earth (DTE) Lines
     if (dteVectorsGroupRef.current) {
       dteVectorsGroupRef.current.clear();
@@ -395,7 +491,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
             Math.cos(latRad) * Math.cos(lonRad)
           );
 
-          const isVisible = computePositions(site.lat, site.lon, time.getTime()).earth.alt > 0;
+          const isVisible = computePositions(site.lat, site.lon, time).earth.alt > 0;
           const color = isVisible ? 0x8fd3e8 : 0xef4444;
           const opacity = isVisible ? (site.id === selectedSiteId ? 0.95 : 0.45) : 0.18;
 
@@ -477,9 +573,13 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         solarRaysGroupRef.current.add(new THREE.LineSegments(geom, mat));
       }
     }
+    } catch (err) {
+      console.warn('[MoonGlobe3D] ephemeris error:', err);
+    }
   }, [date, currentHour, vectorMode, selectedSiteId, scaleConfig, scaleMode]);
 
   useEffect(() => {
+    updateEphemerisRef.current = updateEphemerisAndVectors;
     updateEphemerisAndVectors();
   }, [updateEphemerisAndVectors]);
 
@@ -522,83 +622,142 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     >
       <div ref={mountRef} style={{ width: '100%', height: '100%', minHeight: compact ? 340 : 540 }} />
 
-      {/* ────────────────────────────────────────────────────────── */}
-      {/* TOP HEADER CONTROLS (EXACT LAYOUT FROM USER'S SCREENSHOT)   */}
-      {/* ────────────────────────────────────────────────────────── */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 14,
-          left: 14,
-          right: 14,
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 10,
-          zIndex: 20,
-          pointerEvents: 'none',
-        }}
-      >
-        {/* Title */}
+      {/* ── COMPACT MODE: simple bottom-left label + terrain button ── */}
+      {compact ? (
         <div
           style={{
+            position: 'absolute',
+            bottom: 10,
+            left: 10,
+            right: 10,
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
-            color: '#f0ebe1',
-            fontSize: 13,
-            fontWeight: 600,
-            fontFamily: "'Manrope', sans-serif",
-            textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-            pointerEvents: 'auto',
+            justifyContent: 'space-between',
+            zIndex: 20,
+            pointerEvents: 'none',
           }}
         >
-          <Globe size={16} color="#f0a970" />
-          <span>Interactive 3D Moon Globe · Click any beacon to explore</span>
-        </div>
-
-        {/* Visit 3D Terrain Button */}
-        {onVisitTerrain && (
-          <button
-            onClick={onVisitTerrain}
+          <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 6,
-              padding: '6px 14px',
-              background: '#f5cca0',
-              border: '1px solid #f0a970',
-              borderRadius: 8,
-              color: '#120e07',
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: 'pointer',
+              color: '#f0ebe1',
+              fontSize: 11,
+              fontWeight: 600,
               fontFamily: "'Manrope', sans-serif",
-              boxShadow: '0 4px 14px rgba(240, 169, 112, 0.35)',
-              pointerEvents: 'auto',
+              textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+              background: 'rgba(10,14,23,0.7)',
+              padding: '4px 10px',
+              borderRadius: 20,
             }}
           >
-            <span>Visit 3D Terrain</span>
-            <ArrowRight size={14} />
-          </button>
-        )}
-      </div>
+            <Globe size={13} color="#f0a970" />
+            <span>3D Moon Globe · Click beacon to explore</span>
+          </div>
+          {onVisitTerrain && (
+            <button
+              onClick={onVisitTerrain}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                padding: '5px 12px',
+                background: '#f5cca0',
+                border: '1px solid #f0a970',
+                borderRadius: 8,
+                color: '#120e07',
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: "'Manrope', sans-serif",
+                pointerEvents: 'auto',
+              }}
+            >
+              <span>3D Terrain</span>
+              <ArrowRight size={12} />
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* ────────────────────────────────────────────────────────── */}
+          {/* TOP HEADER CONTROLS (EXACT LAYOUT FROM USER'S SCREENSHOT)   */}
+          {/* ────────────────────────────────────────────────────────── */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 14,
+              left: 14,
+              right: 14,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 10,
+              zIndex: 20,
+              pointerEvents: 'none',
+            }}
+          >
+            {/* Title */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                color: '#f0ebe1',
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: "'Manrope', sans-serif",
+                textShadow: '0 2px 8px rgba(0,0,0,0.8)',
+                pointerEvents: 'auto',
+              }}
+            >
+              <Globe size={16} color="#f0a970" />
+              <span>Interactive 3D Moon Globe · Click any beacon to explore</span>
+            </div>
 
-      {/* ────────────────────────────────────────────────────────── */}
-      {/* SECOND ROW OPTIONS TOOLBAR (EXACT PILLS FROM SCREENSHOT)  */}
-      {/* ────────────────────────────────────────────────────────── */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 52,
-          left: 14,
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: 10,
-          zIndex: 20,
-          fontFamily: "'DM Mono', monospace",
+            {/* Visit 3D Terrain Button */}
+            {onVisitTerrain && (
+              <button
+                onClick={onVisitTerrain}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 14px',
+                  background: '#f5cca0',
+                  border: '1px solid #f0a970',
+                  borderRadius: 8,
+                  color: '#120e07',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: "'Manrope', sans-serif",
+                  boxShadow: '0 4px 14px rgba(240, 169, 112, 0.35)',
+                  pointerEvents: 'auto',
+                }}
+              >
+                <span>Visit 3D Terrain</span>
+                <ArrowRight size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* ────────────────────────────────────────────────────────── */}
+          {/* SECOND ROW OPTIONS TOOLBAR (EXACT PILLS FROM SCREENSHOT)  */}
+          {/* ────────────────────────────────────────────────────────── */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 52,
+              left: 14,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 10,
+              zIndex: 20,
+              fontFamily: "'DM Mono', monospace",
           fontSize: 11,
         }}
       >
@@ -732,6 +891,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
           ))}
         </div>
       </div>
+        </>
+      )}
 
       {/* ────────────────────────────────────────────────────────── */}
       {/* SCIENTIFIC DIMENSIONS MODAL                                */}
@@ -781,7 +942,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         </div>
       )}
 
-      {/* Reset Camera Button */}
+      {/* Reset Camera Button — hidden in compact */}
+      {!compact && (
       <div style={{ position: 'absolute', bottom: 14, right: 14, zIndex: 10 }}>
         <button
           className="icon-button"
@@ -792,6 +954,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
           <RotateCcw size={14} />
         </button>
       </div>
+      )}
     </div>
   );
 };
