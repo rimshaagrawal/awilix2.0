@@ -37,28 +37,28 @@ export const CompareView: React.FC<CompareViewProps> = ({
         action={
           <button
             className="primary-button"
-            onClick={() => {
-              const nextSite = sites.find((s) => !compareIds.includes(s.id));
-              if (nextSite) onToggleCompare(nextSite.id);
-            }}
+            onClick={() =>
+              onToggleCompare(
+                sites.find((site) => !compareIds.includes(site.id))?.id ?? sites[0].id
+              )
+            }
           >
-            <Plus size={15} /> Add site
+            <Plus size={14} />
+            Add site
           </button>
         }
       />
 
-      {/* Compare Site Selection Chips */}
       <div className="compare-chips">
         {sites.map((site, index) => {
           const isSelected = compareIds.includes(site.id);
-          const color = SITE_COLORS[index % SITE_COLORS.length];
           return (
             <button
               key={site.id}
               className={isSelected ? 'chip-active' : ''}
               onClick={() => onToggleCompare(site.id)}
             >
-              <i style={{ background: color }} />
+              <i style={{ background: SITE_COLORS[index % SITE_COLORS.length] }} />
               {site.shortName}
               {isSelected && <X size={13} />}
             </button>
@@ -70,11 +70,11 @@ export const CompareView: React.FC<CompareViewProps> = ({
         <div className="empty-panel">
           <BarChart3 size={25} />
           <h3>Select at least one candidate</h3>
-          <p>Choose sites above to build a side-by-side comparison matrix.</p>
+          <p>Choose sites above to build a comparison.</p>
         </div>
       ) : (
         <>
-          {/* Comparison Bars Panel */}
+          {/* Bolt's Normalized Comparison Chart with vertical bars */}
           <div className="panel comparison-chart">
             <div className="panel-heading">
               <div>
@@ -94,18 +94,21 @@ export const CompareView: React.FC<CompareViewProps> = ({
                   <div className="compare-row-bars">
                     {comparisonSites.map((site) => {
                       const summary = getSummary(site, scenario);
-                      const val = summary[row.key];
+                      const value = summary[row.key];
                       return (
                         <div
                           className="compare-bar-wrap"
                           key={site.id}
-                          title={`${site.shortName}: ${val}%`}
+                          title={`${site.shortName}: ${value}%`}
                         >
                           <div
                             className="compare-bar"
-                            style={{ height: `${val}%`, background: row.color }}
+                            style={{
+                              height: `${Math.max(4, value)}%`,
+                              background: row.color,
+                            }}
                           >
-                            <span>{val}</span>
+                            <span>{value}</span>
                           </div>
                           <small>{site.shortName}</small>
                         </div>
@@ -117,7 +120,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
             </div>
           </div>
 
-          {/* Breakdown Table */}
+          {/* Bolt's Site Breakdown Table with MiniBars */}
           <div className="panel compare-table">
             <div className="panel-heading">
               <div>
@@ -134,15 +137,14 @@ export const CompareView: React.FC<CompareViewProps> = ({
                     <th>Sunlight</th>
                     <th>Earth link</th>
                     <th>Relief</th>
-                    <th>Water Ice</th>
-                    <th>Action</th>
+                    <th>Record</th>
                   </tr>
                 </thead>
                 <tbody>
                   {comparisonSites.map((site) => {
                     const summary = getSummary(site, scenario);
-                    const index = sites.findIndex((s) => s.id === site.id);
-                    const color = SITE_COLORS[index % SITE_COLORS.length];
+                    const siteColorIndex = sites.findIndex((item) => item.id === site.id);
+                    const siteColor = SITE_COLORS[siteColorIndex % SITE_COLORS.length];
 
                     return (
                       <tr key={site.id}>
@@ -151,8 +153,8 @@ export const CompareView: React.FC<CompareViewProps> = ({
                             className="table-site"
                             onClick={() => onOpenSite(site.id)}
                           >
-                            <i style={{ background: color }} />
-                            <strong>{site.shortName}</strong>
+                            <i style={{ background: siteColor }} />
+                            {site.shortName}
                           </button>
                         </td>
                         <td>
@@ -161,11 +163,8 @@ export const CompareView: React.FC<CompareViewProps> = ({
                         <td>
                           <MiniBars value={summary.earth} color="#65d5d0" />
                         </td>
-                        <td>{site.elevationReliefM.toLocaleString()} m</td>
-                        <td>
-                          <span style={{ fontSize: 9, color: '#65d5d0' }}>
-                            {site.waterIcePotential.split('·')[0]}
-                          </span>
+                        <td className="font-mono">
+                          {site.elevationReliefM.toLocaleString()} m
                         </td>
                         <td>
                           <button
@@ -189,4 +188,3 @@ export const CompareView: React.FC<CompareViewProps> = ({
 };
 
 export default CompareView;
-
