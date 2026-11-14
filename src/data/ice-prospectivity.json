@@ -1,0 +1,69 @@
+{
+  "source": "NASA-IBM Lunar Foundation Model (LFM) ice prospectivity reconstruction, published at spaceodysseyhub.com/moon/ice",
+  "model": "NASA-IBM LFM (ViT-B, fine-tuned for polar ice prospectivity regression)",
+  "license": "Apache-2.0 (model), CC BY 4.0 (data)",
+  "attribution": "NASA-IBM LFM reconstruction of Coyan et al. (2025) expert prospectivity model. Model output, not a measurement.",
+  "note": "Prospectivity is a model-derived estimate of where conditions favour ice, not confirmed ice deposits. Values are mean within 5 km of named site.",
+  "sites": {
+    "shackleton-rim": {
+      "name": "Shackleton Crater Rim",
+      "expertProspectivity": 1.00,
+      "aiProspectivity": 1.00,
+      "disagreement": 0.00,
+      "psrPercent": 100,
+      "maxTempK": 97,
+      "slopeDeg": 18,
+      "sourceSite": "Shackleton crater (training patch)"
+    },
+    "shackleton-ridge": {
+      "name": "Shackleton Connecting Ridge",
+      "expertProspectivity": 1.00,
+      "aiProspectivity": 1.00,
+      "disagreement": 0.00,
+      "psrPercent": 100,
+      "maxTempK": 97,
+      "slopeDeg": 18,
+      "sourceSite": "Shackleton crater (training patch)"
+    },
+    "south-pole": {
+      "name": "South Pole (reference)",
+      "expertProspectivity": 1.00,
+      "aiProspectivity": 1.00,
+      "disagreement": 0.00,
+      "psrPercent": 100,
+      "maxTempK": 97,
+      "slopeDeg": 18,
+      "sourceSite": "Shackleton crater (training patch)"
+    },
+    "malapert-a": {
+      "name": "Malapert A",
+      "expertProspectivity": 0.13,
+      "aiProspectivity": 0.14,
+      "disagreement": 0.01,
+      "psrPercent": 1,
+      "maxTempK": 266,
+      "slopeDeg": 17,
+      "sourceSite": "Malapert Massif (60% training, 40% validation patches)"
+    },
+    "mons-mouton": {
+      "name": "Mons Mouton",
+      "expertProspectivity": 0.51,
+      "aiProspectivity": 0.51,
+      "disagreement": 0.02,
+      "psrPercent": 6,
+      "maxTempK": 216,
+      "slopeDeg": 5,
+      "sourceSite": "Mons Mouton (training patch)"
+    },
+    "nobile": {
+      "name": "Nobile Crater",
+      "expertProspectivity": 0.47,
+      "aiProspectivity": 0.46,
+      "disagreement": 0.02,
+      "psrPercent": 17,
+      "maxTempK": 216,
+      "slopeDeg": 8,
+      "sourceSite": "Nobile crater (training patch)"
+    }
+  }
+}
