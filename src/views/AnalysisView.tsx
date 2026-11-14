@@ -12,6 +12,7 @@ import {
   Mountain,
   Compass,
   BarChart3,
+  Sparkles,
 } from 'lucide-react';
 import type { Site, Scenario, View } from '@/types';
 import { sites } from '@/data/sites';
@@ -20,6 +21,8 @@ import { MetricCard } from '@/components/common/MetricCard';
 import { ChartPanel } from '@/components/charts/ChartPanel';
 import { AstroReadout } from '@/components/charts/AstroReadout';
 import { SiteTerrain3D } from '@/components/terrain/SiteTerrain3D';
+import { LFMLoadingScreen } from '@/components/LFMLoadingScreen';
+import iceData from '@/data/ice-prospectivity.json';
 
 interface AnalysisViewProps {
   site: Site;
@@ -38,10 +41,22 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
 }) => {
   const summary = getSummary(site, scenario);
   const [activeTab, setActiveTab] = useState<'charts' | 'terrain'>(initialTab);
+  const [lfmLoading, setLfmLoading] = useState(true);
+  const [lfmAnalyzed, setLfmAnalyzed] = useState(false);
 
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    setLfmLoading(true);
+    setLfmAnalyzed(false);
+    const timer = setTimeout(() => {
+      setLfmLoading(false);
+      setLfmAnalyzed(true);
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [site.id]);
 
   return (
     <div className="view-stack">
@@ -172,6 +187,69 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
           />
         </div>
       )}
+
+      {/* ── Ice Prospectivity (NASA-IBM LFM) ─────────────────────── */}
+      <div className="panel" style={{ padding: 20 }}>
+        <div className="panel-heading" style={{ marginBottom: 12 }}>
+          <div>
+            <span className="eyebrow">Ice prospectivity</span>
+            <h2>NASA-IBM Lunar Foundation Model</h2>
+          </div>
+          <Sparkles size={16} />
+        </div>
+        {lfmLoading ? (
+          <LFMLoadingScreen
+            message="Analyzing terrain with NASA-IBM LFM..."
+            subtext="Running ice prospectivity inference on south-pole patch"
+          />
+        ) : (
+          (() => {
+            const d = (iceData as any)?.sites?.[site.id];
+            if (!d) return <p style={{ color: 'var(--text-secondary)', fontSize: 12 }}>No LFM data available for this site.</p>;
+            const pct = Math.round(d.aiProspectivity * 100);
+            const color = d.aiProspectivity >= 0.8 ? 'var(--accent-aurora, #4ade80)' : d.aiProspectivity >= 0.4 ? 'var(--accent-solar)' : 'var(--accent-crimson, #f87171)';
+            return (
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                  <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>AI Prospectivity</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4, color }}>{pct}%</div>
+                  </div>
+                  <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Expert (Coyan)</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>{Math.round(d.expertProspectivity * 100)}%</div>
+                  </div>
+                  <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>PSR Coverage</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4, color: 'var(--accent-solar)' }}>{d.psrPercent}%</div>
+                  </div>
+                  <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
+                    <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Max Temp</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>{d.maxTempK} K</div>
+                  </div>
+                </div>
+                <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, display: 'grid', gap: 6, fontSize: 12, fontFamily: 'monospace' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Model agreement (|AI - Expert|)</span>
+                    <span style={{ fontWeight: 700 }}>{d.disagreement.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Slope</span>
+                    <span>{d.slopeDeg} deg</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Source patch</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{d.sourceSite}</span>
+                  </div>
+                </div>
+                <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                  Ice prospectivity reconstruction from the NASA-IBM Lunar Foundation Model. AI reconstruction of the expert model by Coyan et al. (2025).
+                </p>
+              </div>
+            );
+          })()
+        )}
+      </div>
 
       {/* ── 5. Lower Panels: Detailed Site Record & Limitations ─── */}
       <div className="analysis-lower">

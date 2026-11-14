@@ -14,6 +14,7 @@ import { CompareView } from '@/views/CompareView';
 import { ScenarioView } from '@/views/ScenarioView';
 import { AstraView } from '@/views/AstraView';
 import { SiteTerrain3D } from '@/components/terrain/SiteTerrain3D';
+import SiteTerrainView from '@/components/sites/SiteTerrainView';
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('overview');
@@ -110,11 +111,10 @@ export const App: React.FC = () => {
           {activeView === 'terrain' && (
             <div className="view-stack">
               <div style={{ width: '100%', minHeight: 'calc(100vh - 120px)' }}>
-                <SiteTerrain3D
-                  site={selectedSite}
-                  scenario={scenario}
-                  onBack={() => handleNavigate('globe')}
-                  onSelectSite={setSelectedSiteId}
+                <SiteTerrainView
+                    site={selectedSite}
+                    date={scenario.date}
+                    onBack={() => handleNavigate('globe')}
                 />
               </div>
             </div>
