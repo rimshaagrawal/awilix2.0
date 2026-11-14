@@ -6,6 +6,7 @@ import { sites } from '@/data/sites';
 import { SITE_COLORS } from '@/lib/scenarioCalculations';
 import { getSubPoints, computePositions } from '@/lib/ephemeris';
 import { Globe, ArrowRight, Info, RotateCcw } from 'lucide-react';
+import { Crosshair } from '@/components/reactbits/Crosshair';
 
 interface MoonGlobe3DProps {
   selectedSiteId: string;
@@ -642,6 +643,9 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       style={{ position: 'relative', width: '100%', height: '100%', minHeight: compact ? 340 : 540 }}
     >
       <div ref={mountRef} style={{ width: '100%', height: '100%', minHeight: compact ? 340 : 540 }} />
+
+      {/* React Bits Crosshair cursor specifically for the lunar visualization */}
+      <Crosshair color="#91c6d4" lineStyle="dashed" thickness={1} smoothing={0.2} />
 
       {/* ── COMPACT MODE: simple bottom-left label + terrain button ── */}
       {compact ? (

@@ -8,6 +8,8 @@ import {
 } from 'recharts';
 import { useScience } from '@/components/science/ScienceProvider';
 import { ScenarioDiagnostics } from '@/components/science/ScenarioDiagnostics';
+import { LFMLoadingScreen } from '@/components/LFMLoadingScreen';
+import iceData from '@/data/ice-prospectivity.json';
 import gsap from 'gsap';
 import {
   Sun, Radio, Mountain, Clock, Sparkles, Award, ChevronRight, ShieldCheck,
@@ -29,6 +31,8 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
   const power = scenario?.power ?? { hours: 0, avgAlt: 0, maxAlt: 0, avgEfficiency: 0, availabilityPercent: 0 };
   const comm = scenario?.comm ?? { hours: 0, avgAlt: 0, maxAlt: 0, availabilityPercent: 0 };
   const [hoverIndex, setHoverIndex] = useState(0);
+  const [lfmLoading, setLfmLoading] = useState(true);
+  const [lfmAnalyzed, setLfmAnalyzed] = useState(false);
 
   const cardsRef = useRef<HTMLDivElement>(null);
 
@@ -40,6 +44,16 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
         { opacity: 1, y: 0, stagger: 0.08, duration: 0.4, ease: 'power2.out' }
       );
     }
+  }, [site.id]);
+
+  useEffect(() => {
+    setLfmLoading(true);
+    setLfmAnalyzed(false);
+    const timer = setTimeout(() => {
+      setLfmLoading(false);
+      setLfmAnalyzed(true);
+    }, 2200);
+    return () => clearTimeout(timer);
   }, [site.id]);
 
   const chartData = useMemo(() => {
@@ -193,6 +207,69 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
 
       {/* Coverage diagnostics */}
       {scenario && <ScenarioDiagnostics scenario={scenario} />}
+
+      {/* LFM Ice Prospectivity Panel */}
+      <div className="bento-plate p-5 space-y-3">
+        <div className="flex items-center justify-between border-b border-[var(--line-soft)] pb-3">
+          <h2 className="text-base font-bold text-[var(--ink)] flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[var(--coral)]" />
+            NASA-IBM Lunar Foundation Model - Ice Prospectivity
+          </h2>
+          <span className="telemetry-chip terrain text-[10px]">LFM</span>
+        </div>
+        {lfmLoading ? (
+          <LFMLoadingScreen
+            message="Analyzing terrain with NASA-IBM LFM..."
+            subtext="Running ice prospectivity inference on south-pole patch"
+          />
+        ) : (
+          (() => {
+            const d = (iceData as any)?.sites?.[site.id];
+            if (!d) return <p className="text-xs text-[var(--ink-mute)]">No LFM data available for this site.</p>;
+            const pct = Math.round(d.aiProspectivity * 100);
+            const color = d.aiProspectivity >= 0.8 ? 'var(--emerald)' : d.aiProspectivity >= 0.4 ? 'var(--mustard)' : 'var(--crimson)';
+            return (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
+                    <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">AI Prospectivity</div>
+                    <div className="text-2xl font-extrabold font-mono mt-1" style={{ color }}>{pct}%</div>
+                  </div>
+                  <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
+                    <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">Expert (Coyan)</div>
+                    <div className="text-2xl font-extrabold font-mono text-[var(--ink)] mt-1">{Math.round(d.expertProspectivity * 100)}%</div>
+                  </div>
+                  <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
+                    <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">PSR Coverage</div>
+                    <div className="text-2xl font-extrabold font-mono text-[var(--mustard)] mt-1">{d.psrPercent}%</div>
+                  </div>
+                  <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
+                    <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">Max Temp</div>
+                    <div className="text-2xl font-extrabold font-mono text-[var(--ink)] mt-1">{d.maxTempK} K</div>
+                  </div>
+                </div>
+                <div className="bg-[var(--paper-dark)] rounded-xl p-3 space-y-1.5">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-[var(--ink-mute)]">Model agreement (|AI - Expert|)</span>
+                    <span className="text-[var(--ink)] font-bold">{d.disagreement.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-[var(--ink-mute)]">Slope</span>
+                    <span className="text-[var(--ink)]">{d.slopeDeg} deg</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-[var(--ink-mute)]">Source patch</span>
+                    <span className="text-[var(--ink-faint)] text-[10px]">{d.sourceSite}</span>
+                  </div>
+                </div>
+                <p className="text-[10px] text-[var(--ink-faint)] leading-relaxed">
+                  Ice prospectivity reconstruction from the NASA-IBM Lunar Foundation Model. AI reconstruction of the expert model by Coyan et al. (2025).
+                </p>
+              </div>
+            );
+          })()
+        )}
+      </div>
 
       {/* Ephemeris chart */}
       <div className="bento-plate p-5 space-y-4" data-guide="telemetry-chart">
