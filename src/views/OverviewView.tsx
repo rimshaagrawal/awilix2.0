@@ -50,24 +50,22 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
       <div className="mission-hero">
         <div className="hero-copy">
           <div className="hero-kicker">
-            <span className="pulse-line" />
-            LUNAR SOUTH POLE · MISSION WINDOW 04
+            Lunar south pole · Mission window 04
           </div>
           <h1>
-            Find the edge
+            Lunar landing site
             <br />
-            <em>of the light.</em>
+            ephemeris and terrain.
           </h1>
           <p>
-            AWILIX turns time-dependent illumination, Earth visibility, and terrain context into a
-            clear mission picture for six candidate sites.
+            Awilix computes time-dependent solar illumination, direct Earth visibility, and 20-meter LOLA altimetry for six candidate south-pole sites.
           </p>
           <div className="hero-actions">
             <button className="primary-button" onClick={() => onNavigate('globe')}>
-              Explore 3D globe <ArrowUpRight size={16} />
+              Explore 3D globe <ArrowUpRight size={15} />
             </button>
             <button className="quiet-button" onClick={() => onOpenSite(selectedSiteId)}>
-              Open site analysis <LineChart size={15} />
+              Open site analysis <LineChart size={14} />
             </button>
           </div>
           <div className="hero-meta">
@@ -77,11 +75,11 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             </span>
             <span>
               <Clock3 size={14} />
-              {scenario.windowHours} hour window
+              {scenario.windowHours}h window
             </span>
             <span>
               <Database size={14} />
-              NASA LOLA telemetry loaded
+              NASA LOLA telemetry
             </span>
           </div>
         </div>
@@ -94,7 +92,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             compact
           />
           <div className="hero-visual-label">
-            <span>POLAR VIEW / 90°S</span>
+            <span>Polar view / 90°S</span>
             <b>6</b>
             <small>candidate sites</small>
           </div>
@@ -129,7 +127,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         />
         <MetricCard
           label="Ephemeris status"
-          value="READY"
+          value="Ready"
           tone="green"
           detail="NASA 2026 reference tables"
           icon={Activity}
@@ -141,7 +139,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         <div className="panel site-overview-panel">
           <div className="panel-heading">
             <div>
-              <span className="eyebrow">CANDIDATE LANDING SITES</span>
+              <span className="eyebrow">Candidate landing sites</span>
               <h2>South pole shortlist</h2>
             </div>
             <button className="text-button" onClick={() => onNavigate('sites')}>
@@ -158,7 +156,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   key={site.id}
                   onClick={() => onOpenSite(site.id)}
                 >
-                  <span className="row-number" style={{ color }}>
+                  <span className="row-number">
                     0{index + 1}
                   </span>
                   <span className="row-name">
@@ -182,7 +180,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         <div className="panel readiness-panel">
           <div className="panel-heading">
             <div>
-              <span className="eyebrow">MISSION READINESS</span>
+              <span className="eyebrow">Mission readiness</span>
               <h2>Systems snapshot</h2>
             </div>
             <span className="panel-menu">
@@ -193,12 +191,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div className="readiness-orb">
             <div className="readiness-ring">
               <strong>82</strong>
-              <span>READY</span>
-            </div>
-            <div className="orb-lines">
-              <i />
-              <i />
-              <i />
+              <span>Index</span>
             </div>
           </div>
 
@@ -246,4 +239,3 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 };
 
 export default OverviewView;
-

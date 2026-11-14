@@ -15,12 +15,12 @@ export const AstroReadout: React.FC<AstroReadoutProps> = ({ site, scenario }) =>
     <div className="astro-readout">
       <div className="astro-readout-head">
         <div>
-          <span className="eyebrow">LOCAL SKY MODEL</span>
+          <span className="eyebrow">Local sky model</span>
           <h3>Polar horizon readout</h3>
         </div>
         <span className="live-pill">
           <span />
-          LIVE MODEL
+          Live model
         </span>
       </div>
 
@@ -35,7 +35,7 @@ export const AstroReadout: React.FC<AstroReadoutProps> = ({ site, scenario }) =>
               transform: `rotate(${28 + Math.abs(summary.peakSunAlt) * 7}deg) translateY(-74px)`,
             }}
           >
-            <Sun size={17} />
+            <Sun size={14} />
           </div>
           <div
             className="sky-earth"
@@ -43,7 +43,7 @@ export const AstroReadout: React.FC<AstroReadoutProps> = ({ site, scenario }) =>
               transform: `rotate(${145 - site.lon * 0.3}deg) translateY(-58px)`,
             }}
           >
-            <Globe2 size={15} />
+            <Globe2 size={14} />
           </div>
           <span className="horizon-label horizon-n">N</span>
           <span className="horizon-label horizon-e">E</span>
@@ -74,4 +74,3 @@ export const AstroReadout: React.FC<AstroReadoutProps> = ({ site, scenario }) =>
 };
 
 export default AstroReadout;
-

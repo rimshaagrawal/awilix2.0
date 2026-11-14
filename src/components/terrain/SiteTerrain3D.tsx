@@ -534,15 +534,15 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'all 0.2s',
-              background: lightingMode ? '#f5cca0' : '#10161bf2',
-              color: lightingMode ? '#120e07' : '#d6e4e4',
-              border: lightingMode ? '1px solid #f0a970' : '1px solid #283742',
-              boxShadow: lightingMode ? '0 0 14px rgba(240, 169, 112, 0.3)' : 'none',
+              background: lightingMode ? '#eef0f5' : '#10161bf2',
+              color: lightingMode ? '#07080d' : '#d6e4e4',
+              border: lightingMode ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #283742',
+              boxShadow: 'none',
               fontFamily: "'Manrope', sans-serif",
             }}
           >
             <Lightbulb size={14} />
-            <span>Lighting: {lightingMode ? 'ON' : 'OFF'}</span>
+            <span>Lighting: {lightingMode ? 'On' : 'Off'}</span>
           </button>
 
           {/* Raw DEM toggle */}

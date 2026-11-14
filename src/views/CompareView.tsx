@@ -22,17 +22,17 @@ export const CompareView: React.FC<CompareViewProps> = ({
   const comparisonSites = compareIds.map(getSite);
 
   const rows: { label: string; key: 'sunlight' | 'earth' | 'power' | 'comm'; color: string }[] = [
-    { label: 'Solar visibility', key: 'sunlight', color: '#f0a970' },
-    { label: 'Earth visibility', key: 'earth', color: '#65d5d0' },
+    { label: 'Solar visibility', key: 'sunlight', color: '#eac18b' },
+    { label: 'Earth visibility', key: 'earth', color: '#5ec4be' },
     { label: 'Power opportunity', key: 'power', color: '#9aaeff' },
-    { label: 'Comm window', key: 'comm', color: '#9dde9b' },
+    { label: 'Comm window', key: 'comm', color: '#4cc38a' },
   ];
 
   return (
     <div className="view-stack">
       <SectionTitle
-        eyebrow="COMPARE SITES / 04"
-        title="Trade-offs, made legible."
+        eyebrow="Compare sites"
+        title="Trade-offs, made legible"
         description="Compare the current mission window without collapsing the science into a single unexplained score."
         action={
           <button
@@ -68,17 +68,16 @@ export const CompareView: React.FC<CompareViewProps> = ({
 
       {comparisonSites.length === 0 ? (
         <div className="empty-panel">
-          <BarChart3 size={25} />
+          <BarChart3 size={24} />
           <h3>Select at least one candidate</h3>
           <p>Choose sites above to build a comparison.</p>
         </div>
       ) : (
         <>
-          {/* Bolt's Normalized Comparison Chart with vertical bars */}
           <div className="panel comparison-chart">
             <div className="panel-heading">
               <div>
-                <span className="eyebrow">NORMALIZED COMPARISON · {scenario.windowHours}H</span>
+                <span className="eyebrow">Normalized comparison · {scenario.windowHours}h</span>
                 <h2>Mission opportunity profile</h2>
               </div>
               <span className="chart-unit">0–100% normalized</span>
@@ -120,12 +119,11 @@ export const CompareView: React.FC<CompareViewProps> = ({
             </div>
           </div>
 
-          {/* Bolt's Site Breakdown Table with MiniBars */}
           <div className="panel compare-table">
             <div className="panel-heading">
               <div>
-                <span className="eyebrow">SITE BREAKDOWN</span>
-                <h2>Keep the context attached</h2>
+                <span className="eyebrow">Site breakdown</span>
+                <h2>Candidate parameter breakdown</h2>
               </div>
             </div>
 
@@ -158,10 +156,10 @@ export const CompareView: React.FC<CompareViewProps> = ({
                           </button>
                         </td>
                         <td>
-                          <MiniBars value={summary.sunlight} color="#f0a970" />
+                          <MiniBars value={summary.sunlight} color="#eac18b" />
                         </td>
                         <td>
-                          <MiniBars value={summary.earth} color="#65d5d0" />
+                          <MiniBars value={summary.earth} color="#5ec4be" />
                         </td>
                         <td className="font-mono">
                           {site.elevationReliefM.toLocaleString()} m

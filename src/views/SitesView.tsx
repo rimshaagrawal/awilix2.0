@@ -34,9 +34,9 @@ export const SitesView: React.FC<SitesViewProps> = ({
   return (
     <div className="view-stack">
       <SectionTitle
-        eyebrow="CANDIDATE SITES / 02"
-        title="Six places worth watching."
-        description="The shortlist is drawn from the AWILIX south-pole catalog. Values update with the current mission window."
+        eyebrow="Candidate sites"
+        title="Candidate landing sites"
+        description="Shortlisted south-pole sites from the NASA and LOLA catalog. Telemetry updates with the active mission window."
         action={
           <div className="site-toolbar">
             <div className="search-input">
@@ -44,11 +44,11 @@ export const SitesView: React.FC<SitesViewProps> = ({
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search sites or regions..."
+                placeholder="Search candidate landing sites"
               />
             </div>
             <button className="quiet-button">
-              <SlidersHorizontal size={14} /> Sort: sunlight
+              <SlidersHorizontal size={14} /> Sort by sunlight
             </button>
           </div>
         }
@@ -94,4 +94,3 @@ export const SitesView: React.FC<SitesViewProps> = ({
 };
 
 export default SitesView;
-

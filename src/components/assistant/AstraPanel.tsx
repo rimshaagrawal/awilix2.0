@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Minus, X, Sparkles, Send } from 'lucide-react';
+import { Minus, X, Bot, Send } from 'lucide-react';
 import type { Site, Scenario, Message, SiteSummary } from '@/types';
 import { AstraAvatar } from '@/components/common/AstraAvatar';
 import { sites } from '@/data/sites';
@@ -29,7 +29,7 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'astra',
-      text: 'Mission systems nominal. I can interpret the current site, compare candidates, or explain any chart in AWILIX.',
+      text: 'Mission systems nominal. I can interpret the current site, compare candidates, or explain any chart in Awilix.',
     },
   ]);
   const [loading, setLoading] = useState(false);
@@ -43,7 +43,6 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
     setLoading(true);
 
     try {
-      // First try answering with the local scientific domain engine
       const guideResult = await answerGuideQuestion(question, {
         site: selectedSite,
         date: scenario.date,
@@ -59,10 +58,9 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
         return;
       }
     } catch {
-      // Fall through to rich rule-based assistant
+      // Fall through to contextual engine
     }
 
-    // Contextual intelligent responses
     const lower = question.toLowerCase();
     const compareNames = comparisonSites.map((s) => s.shortName).join(' and ');
     let answer = `For ${selectedSite.shortName}, the current ${scenario.windowHours}-hour telemetry estimate indicates ${summary.sunlight}% sunlight availability, ${summary.earth}% Earth line-of-sight visibility, and ${summary.power}% power opportunity.`;
@@ -98,10 +96,10 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
         onClick={onToggle}
         aria-label="Open Astra assistant"
       >
-        <AstraAvatar size={74} />
+        <AstraAvatar size={64} />
         <div className="astra-nameplate">
           <i />
-          <span>ASTRA</span>
+          <span>Astra</span>
         </div>
         {!isOpen && <i className="astra-notice" />}
       </button>
@@ -112,8 +110,8 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
             <div className="astra-title">
               <AstraAvatar compact />
               <div>
-                <strong>ASTRA</strong>
-                <span>Mission support intelligence</span>
+                <strong>Astra</strong>
+                <span>Mission intelligence</span>
               </div>
             </div>
             <div>
@@ -123,16 +121,16 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
                   setMessages([
                     {
                       role: 'astra',
-                      text: 'Conversation cleared. Ask me about the selected site, scenario, or any chart.',
+                      text: 'Conversation cleared. Ask about candidate sites, scenario assumptions, or telemetry charts.',
                     },
                   ])
                 }
                 aria-label="Clear conversation"
               >
-                <Minus size={16} />
+                <Minus size={15} />
               </button>
               <button className="icon-button" onClick={onClose} aria-label="Close Astra">
-                <X size={16} />
+                <X size={15} />
               </button>
             </div>
           </div>
@@ -140,21 +138,21 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
           <div className="astra-context">
             <span>
               <span className="status-dot" />
-              CONTEXT LINKED
+              Context linked
             </span>
             <b>{selectedSite.shortName}</b>
             <span>·</span>
-            <span>{scenario.windowHours}H WINDOW</span>
+            <span>{scenario.windowHours}h window</span>
           </div>
 
           <div className="chat-messages">
             {messages.map((message, index) => (
               <div key={`${message.role}-${index}`} className={`chat-message ${message.role}`}>
                 <div className="chat-avatar">
-                  {message.role === 'astra' ? <Sparkles size={13} /> : 'RC'}
+                  {message.role === 'astra' ? <Bot size={13} /> : 'RC'}
                 </div>
                 <div>
-                  <span className="chat-role">{message.role === 'astra' ? 'ASTRA' : 'YOU'}</span>
+                  <span className="chat-role">{message.role === 'astra' ? 'Astra' : 'You'}</span>
                   <p>{message.text}</p>
                 </div>
               </div>
@@ -162,11 +160,11 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
             {loading && (
               <div className="chat-message astra">
                 <div className="chat-avatar">
-                  <Sparkles size={13} />
+                  <Bot size={13} />
                 </div>
                 <div>
-                  <span className="chat-role">ASTRA</span>
-                  <p>Synthesizing telemetry data...</p>
+                  <span className="chat-role">Astra</span>
+                  <p>Computing telemetry data...</p>
                 </div>
               </div>
             )}
@@ -174,13 +172,13 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
 
           <div className="astra-prompts">
             <button onClick={() => handleAskAstra('Which site has the best sunlight?')}>
-              Best sunlight?
+              Solar continuity
             </button>
             <button onClick={() => handleAskAstra('Explain Earth visibility')}>
               Earth visibility
             </button>
             <button onClick={() => handleAskAstra('Tell me about water ice')}>
-              Water ice (PSR)
+              Water-ice deposits
             </button>
             <button onClick={() => handleAskAstra('Explain the current scenario')}>
               Scenario impact
@@ -194,7 +192,7 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleAskAstra();
               }}
-              placeholder="Ask Astra about the mission..."
+              placeholder="Ask Astra about the mission"
               disabled={loading}
             />
             <button
@@ -202,7 +200,7 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
               aria-label="Send message"
               disabled={loading || !chatInput.trim()}
             >
-              <Send size={16} />
+              <Send size={15} />
             </button>
           </div>
         </section>
@@ -212,4 +210,3 @@ export const AstraPanel: React.FC<AstraPanelProps> = ({
 };
 
 export default AstraPanel;
-
