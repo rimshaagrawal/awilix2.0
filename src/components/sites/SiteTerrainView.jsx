@@ -196,8 +196,8 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     // DIRECTIONAL SUN LIGHT (PHYSICAL SHADOW ENGINE — 100% UNTOUCHED)
     const sunLight = new THREE.DirectionalLight(0xfffbf2, 3.2);
     sunLight.castShadow = true;
-    sunLight.shadow.mapSize.width = 4096;
-    sunLight.shadow.mapSize.height = 4096;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
     sunLight.shadow.camera.near = 0.5;
     sunLight.shadow.camera.far = 80;
     sunLight.shadow.camera.left = -9;
