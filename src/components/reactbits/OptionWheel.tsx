@@ -23,9 +23,6 @@ const ITEM_H = 40;
 const VISIBLE = 5;
 const WHEEL_H = ITEM_H * VISIBLE;
 
-/**
- * Curved/cylindrical vertical option wheel (AWILIX). Non-slop, restrained palette.
- */
 export const OptionWheel: React.FC<OptionWheelProps> = ({
   options,
   selectedId,
@@ -96,6 +93,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     const clamped = Math.max(0, Math.min(safeOptions.length - 1, n));
     targetRef.current = clamped;
     lerpTo();
+    // Do not commit here; user must click to select
   }, [safeOptions.length, lerpTo]);
 
   const commit = useCallback(
@@ -211,20 +209,17 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
           height: 40,
           padding: isLeft ? '0 12px 0 10px' : '0 10px 0 12px',
           flexDirection: isLeft ? 'row' : 'row-reverse',
-          background: isOpen ? '#ffffff' : 'linear-gradient(180deg, #fafbfc 0%, #f3f5f7 100%)',
-          border: isOpen ? '1px solid #9ca3af' : '1px solid #d1d5db',
-          borderLeft: isLeft ? '3px solid #4b5563' : undefined,
-          borderRight: !isLeft ? '3px solid #4b5563' : undefined,
-          borderRadius: 8,
-          boxShadow: isOpen ? '0 4px 14px rgba(0,0,0,0.08)' : '0 1px 2px rgba(0,0,0,0.04)',
+          background: 'transparent',
+          border: 'none',
+          boxShadow: 'none',
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.55 : 1,
           minWidth: 220,
         }}
       >
-        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#4b5563' }} />
+        <span className="w-2 h-2 rounded-full shrink-0" style={{ background: '#6b7280', boxShadow: '0 0 8px rgba(107,114,128,0.5)' }} />
         <span className="flex flex-col min-w-0 flex-1" style={{ alignItems: isLeft ? 'flex-start' : 'flex-end', textAlign: isLeft ? 'left' : 'right' }}>
-          <span className="text-[13px] font-semibold tracking-wide truncate w-full" style={{ color: '#1f2937' }}>
+          <span className="text-[13px] font-semibold tracking-wide truncate w-full" style={{ color: '#1f2937', textShadow: '0 0 10px rgba(255,255,255,0.6)' }}>
             {selectedItem?.label ?? 'Select option'}
           </span>
           {selectedItem?.sublabel && (
@@ -245,34 +240,19 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
           role="listbox"
           className="absolute z-[80]"
           style={{
-            top: 'calc(100% + 8px)',
+            top: 'calc(100% + 6px)',
             left: isLeft ? 0 : 'auto',
             right: !isLeft ? 0 : 'auto',
-            width: 300,
-            background: '#ffffff',
-            border: '1px solid #e5e7eb',
-            borderLeft: isLeft ? '3px solid #4b5563' : '1px solid #e5e7eb',
-            borderRight: !isLeft ? '3px solid #4b5563' : '1px solid #e5e7eb',
-            borderRadius: 10,
-            boxShadow: '0 12px 40px rgba(0,0,0,0.10)',
-            overflow: 'hidden',
+            width: 280,
+            background: 'transparent',
+            border: 'none',
+            boxShadow: 'none',
+            overflow: 'visible',
           }}
         >
           <div
-            className="flex items-center justify-between px-3.5 py-2.5"
-            style={{ borderBottom: '1px solid #f0f1f3', background: '#fafbfc' }}
-          >
-            <span className="text-[10px] font-semibold tracking-[0.1em] uppercase" style={{ color: '#4b5563' }}>
-              Select site
-            </span>
-            <span className="text-[9px] font-mono" style={{ color: '#9ca3af' }}>
-              Scroll · drag
-            </span>
-          </div>
-
-          <div
             ref={viewportRef}
-            className="relative overflow-hidden touch-none cursor-grab active:cursor-grabbing"
+            className="relative overflow-visible touch-none cursor-grab active:cursor-grabbing"
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -285,22 +265,22 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
             }}
           >
             <div
-              className="absolute left-2 right-2 rounded-md pointer-events-none"
+              className="absolute left-0 right-0 rounded-md pointer-events-none"
               style={{
                 top: (WHEEL_H - ITEM_H) / 2,
                 height: ITEM_H,
-                border: '1px solid #d1d5db',
-                background: 'rgba(243,244,246,0.7)',
+                border: '1px solid rgba(107,114,128,0.35)',
+                background: 'rgba(255,255,255,0.35)',
                 zIndex: 2,
               }}
             />
             <div
               className="absolute inset-x-0 top-0 pointer-events-none z-10"
-              style={{ height: 36, background: 'linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0))' }}
+              style={{ height: 36, background: 'linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0))' }}
             />
             <div
               className="absolute inset-x-0 bottom-0 pointer-events-none z-10"
-              style={{ height: 36, background: 'linear-gradient(0deg, #ffffff 0%, rgba(255,255,255,0))' }}
+              style={{ height: 36, background: 'linear-gradient(0deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0))' }}
             />
 
             <div className="absolute inset-0" style={{ transformStyle: prefersReducedMotion ? 'flat' : 'preserve-3d' }}>
@@ -321,7 +301,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
                     type="button"
                     role="option"
                     aria-selected={isSel}
-                    className="absolute left-2 right-2 flex items-center rounded-md outline-none transition-colors"
+                    className="absolute left-0 right-0 flex items-center rounded-md outline-none transition-colors"
                     style={{
                       height: ITEM_H,
                       padding: isLeft ? '0 12px 0 10px' : '0 10px 0 12px',
@@ -333,37 +313,24 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
                       opacity,
                       filter: blur > 0 ? `blur(${blur}px)` : undefined,
                       zIndex: isFocus ? 5 : Math.max(0, 4 - Math.floor(abs)),
-                      background: isFocus ? 'rgba(249,250,251,0.9)' : 'transparent',
+                      background: 'transparent',
                       color: isFocus ? '#111827' : '#4b5563',
                       fontWeight: isFocus ? 600 : 500,
+                      textShadow: isFocus ? '0 0 10px rgba(107,114,128,0.55), 0 0 2px rgba(255,255,255,0.9)' : 'none',
                     }}
                     onClick={() => {
                       commit(idx);
                       setIsOpen(false);
                     }}
                   >
-                    <span className="flex-1 truncate text-left" style={{ textAlign: isLeft ? 'left' : 'right' }}>
+                    <span className="flex-1 truncate" style={{ textAlign: isLeft ? 'left' : 'right' }}>
                       {opt.label}
                     </span>
-                    {isSel && <Check size={14} style={{ color: '#374151', marginLeft: isLeft ? 6 : 0, marginRight: isLeft ? 0 : 6, flexShrink: 0 }} />}
+                    {isSel && <Check size={14} style={{ color: '#374151', marginLeft: isLeft ? 6 : 0, marginRight: isLeft ? 0 : 6, flexShrink: 0, filter: 'drop-shadow(0 0 6px rgba(107,114,128,0.5))' }} />}
                   </button>
                 );
               })}
             </div>
-          </div>
-
-          <div className="flex items-center justify-between px-3.5 py-2.5" style={{ borderTop: '1px solid #f0f1f3', background: '#fafbfc' }}>
-            <span className="text-[10px] font-mono" style={{ color: '#6b7280' }}>
-              {safeOptions.length} options
-            </span>
-            <button
-              type="button"
-              className="clickable text-[11px] font-medium px-2.5 py-1 rounded-md"
-              style={{ color: '#374151', background: '#e5e7eb' }}
-              onClick={() => setIsOpen(false)}
-            >
-              Done
-            </button>
           </div>
         </div>
       )}
