@@ -20,7 +20,7 @@ import { getSummary, formatCoordinate } from '@/lib/scenarioCalculations';
 import { MetricCard } from '@/components/common/MetricCard';
 import { ChartPanel } from '@/components/charts/ChartPanel';
 import { AstroReadout } from '@/components/charts/AstroReadout';
-import { SiteTerrain3D } from '@/components/terrain/SiteTerrain3D';
+import SiteTerrainView from '@/components/sites/SiteTerrainView';
 import { LFMLoadingScreen } from '@/components/LFMLoadingScreen';
 import iceData from '@/data/ice-prospectivity.json';
 import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
@@ -191,10 +191,10 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
           </div>
         ) : (
           <div style={{ width: '100%', minHeight: 560 }}>
-            <SiteTerrain3D
-              site={site}
-              scenario={scenario}
-              onSelectSite={onSelectSite}
+            <SiteTerrainView
+            site={site}
+            date={scenario.date}
+            onBack={() => onNavigate('globe')}
             />
           </div>
         )}
