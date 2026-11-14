@@ -60,11 +60,11 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     if (!ambientLightRef.current) return;
     if (lightingMode) {
       // Global Inspect Fill: Illuminates deep craters and night-side terrain in high clarity
-      ambientLightRef.current.intensity = 0.9;
+      ambientLightRef.current.intensity = 0.35;
       ambientLightRef.current.color.setHex(0xffffff);
     } else {
       // Physical Solar Lighting: deep lunar shadows
-      ambientLightRef.current.intensity = 0.35;
+      ambientLightRef.current.intensity = 0.08;
       ambientLightRef.current.color.setHex(0x0a1020);
     }
   }, [lightingMode]);
@@ -190,7 +190,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     controlsRef.current = controls;
 
     // AMBIENT LIGHT
-    const ambientLight = new THREE.AmbientLight(0x0a1020, 0.35);
+    const ambientLight = new THREE.AmbientLight(0x0a1020, 0.08);
     scene.add(ambientLight);
     ambientLightRef.current = ambientLight;
 

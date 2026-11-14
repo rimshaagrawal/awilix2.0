@@ -99,15 +99,15 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         maxCameraDist: 250000,
       };
     } else {
-      // Proportional Spaceflight Exploration view:
-      // Earth and colossal glowing Sun prominently visible in celestial space
+      // Same physically-correct scale ratios as 1:1 mode. This keeps the
+      // apparent angular sizes of Earth and the Sun faithful from the Moon.
       return {
         moonRadius: 1.0,
-        earthRadius: 2.2,
-        sunRadius: 16.0, // Colossal radiant star
-        earthDist: 16.0,
-        sunDist: 48.0,
-        maxCameraDist: 600,
+        earthRadius: NASA.EARTH_R_RATIO,
+        sunRadius: NASA.SUN_R_RATIO,
+        earthDist: NASA.EARTH_DIST_RATIO,
+        sunDist: NASA.SUN_DIST_RATIO,
+        maxCameraDist: 250000,
       };
     }
   }, [scaleMode]);
@@ -168,12 +168,12 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     controlsRef.current = controls;
 
     // 1. Ambient lighting for base celestial illumination
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.18);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.06);
     scene.add(ambientLight);
     ambientLightRef.current = ambientLight;
 
     // 2. Camera headlight — ensures whichever side of Moon/Earth you orbit to is clearly illuminated
-    const cameraLight = new THREE.DirectionalLight(0xffffff, 0.25);
+    const cameraLight = new THREE.DirectionalLight(0xffffff, 0.03);
     camera.add(cameraLight);
     scene.add(camera);
 
@@ -572,9 +572,10 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       sunModelRef.current.scale.set(s, s, s);
     }
 
-    // Move directional light to match sun position so Moon/Earth get lit
+    // Directional light only needs the sun direction, not its astronomical distance.
+    // Keeping it at a fixed local distance preserves shadow-map precision in 1:1 mode.
     if (sunLightRef.current) {
-      sunLightRef.current.position.copy(sunPos);
+      sunLightRef.current.position.copy(sunDir.clone().multiplyScalar(25));
       sunLightRef.current.target.position.set(0, 0, 0);
       sunLightRef.current.target.updateMatrixWorld();
     }
@@ -730,7 +731,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       sunLightRef.current.intensity = displaySettings.lighting ? 3.5 : 1.0;
     }
     if (ambientLightRef.current) {
-      ambientLightRef.current.intensity = displaySettings.lighting ? 0.18 : 0.35;
+      ambientLightRef.current.intensity = displaySettings.lighting ? 0.06 : 0.12;
     }
   }, [displaySettings.lighting]);
 
