@@ -256,6 +256,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       metalness: 0.05,
     });
     const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+    moonMesh.castShadow = true;
+    moonMesh.receiveShadow = true;
     scene.add(moonMesh);
     moonModelRef.current = moonMesh;
 
@@ -320,6 +322,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     });
     const earthMesh = new THREE.Mesh(earthGeo, earthMat);
     earthMesh.userData.naturalDim = 2.0;
+    earthMesh.castShadow = true;
+    earthMesh.receiveShadow = true;
     scene.add(earthMesh);
     earthModelRef.current = earthMesh;
 
@@ -432,6 +436,13 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 500;
+    sunLight.shadow.camera.left = -5;
+    sunLight.shadow.camera.right = 5;
+    sunLight.shadow.camera.top = 5;
+    sunLight.shadow.camera.bottom = -5;
+    sunLight.shadow.bias = -0.0005;
     scene.add(sunLight);
     scene.add(sunLight.target);
     sunLightRef.current = sunLight;
