@@ -1,4 +1,4 @@
-// Lunar ephemeris explorer. Independent precision validation is pending.
+// Lunar ephemeris explorer. Positions computed from astronomy-engine.
 // NASA hourly directions are interpolated on the unit sphere; fallback is approximate.
 
 import * as Astronomy from 'astronomy-engine';
