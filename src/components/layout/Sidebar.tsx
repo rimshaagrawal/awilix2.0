@@ -27,12 +27,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
       <div className="brand">
         <div className="brand-mark">
-          <Moon size={21} />
+          <Moon size={16} />
         </div>
         {sidebarOpen && (
           <div>
-            <strong>AWILIX</strong>
-            <span>LUNAR MISSION BROWSER</span>
+            <strong>Awilix</strong>
+            <span>Lunar mission browser</span>
           </div>
         )}
       </div>
@@ -41,8 +41,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <span className="status-dot" />
         {sidebarOpen && (
           <>
-            <span>MISSION CONTROL</span>
-            <b>LIVE</b>
+            <span>Mission control</span>
+            <b>Live</b>
           </>
         )}
       </div>
@@ -55,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => onNavigate(id)}
             title={!sidebarOpen ? label : undefined}
           >
-            <Icon size={17} />
+            <Icon size={16} />
             <span>{label}</span>
             {activeView === id && <i />}
           </button>
@@ -66,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="sidebar-bottom">
           <div className="data-health">
             <div className="health-head">
-              <span>DATA HEALTH</span>
+              <span>Telemetry health</span>
               <ShieldCheck size={14} />
             </div>
             <strong>98.4%</strong>
@@ -77,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <button className="sidebar-source" onClick={() => onNavigate('overview')}>
             <Database size={14} />
-            <span>Sources &amp; methodology</span>
+            <span>Sources and methodology</span>
             <ExternalLink size={12} />
           </button>
         </div>
@@ -88,11 +88,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onClick={onToggleSidebar}
         aria-label={sidebarOpen ? 'Collapse navigation' : 'Expand navigation'}
       >
-        {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
+        {sidebarOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
       </button>
     </aside>
   );
 };
 
 export default Sidebar;
-

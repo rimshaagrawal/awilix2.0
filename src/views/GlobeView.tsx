@@ -25,17 +25,17 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
   return (
     <div className="view-stack">
       <SectionTitle
-        eyebrow="LUNAR GLOBE / 01"
-        title="The south pole, in context."
-        description="Authentic 3D Celestial System with NASA 3D LRO topographic geometry. Rotate, zoom, and select candidate landing site markers."
+        eyebrow="Lunar globe"
+        title="The south pole, in context"
+        description="Interactive 3D celestial system with NASA LRO topographic geometry and ephemeris orientation. Rotate, zoom, and select candidate landing site markers."
         action={
           <div className="view-tools">
             <span>
               <Move3d size={14} />
-              Interactive 3D View
+              Interactive 3D view
             </span>
             <button className="icon-button" title="North orientation">
-              <Compass size={16} />
+              <Compass size={15} />
             </button>
           </div>
         }
@@ -54,10 +54,10 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
         {/* Selected Site Readout Panel */}
         <div className="panel selected-readout">
           <div className="readout-label">
-            <span className="eyebrow">SELECTED SITE</span>
+            <span className="eyebrow">Selected site</span>
             <span className="site-status">
               <span />
-              TRACKED
+              Tracked
             </span>
           </div>
 
@@ -66,11 +66,11 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
 
           <div className="coordinate-block">
             <div>
-              <span>LATITUDE</span>
+              <span>Latitude</span>
               <strong>{formatCoordinate(site.lat, 'N', 'S')}</strong>
             </div>
             <div>
-              <span>LONGITUDE</span>
+              <span>Longitude</span>
               <strong>{formatCoordinate(site.lon, 'E', 'W')}</strong>
             </div>
           </div>
@@ -97,11 +97,11 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
             className="primary-button full-button"
             onClick={() => onOpenSite(site.id)}
           >
-            Open 3D terrain analysis <ArrowUpRight size={16} />
+            Open 3D terrain analysis <ArrowUpRight size={14} />
           </button>
 
           <div className="globe-legend">
-            <span className="eyebrow">MARKER LEGEND</span>
+            <span className="eyebrow">Candidate markers</span>
             {sites.map((item, index) => (
               <button
                 key={item.id}
@@ -121,4 +121,3 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
 };
 
 export default GlobeView;
-

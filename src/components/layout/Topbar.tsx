@@ -29,11 +29,11 @@ export const Topbar: React.FC<TopbarProps> = ({ activeView, onToggleSidebar }) =
   return (
     <header className="topbar">
       <button className="mobile-menu" onClick={onToggleSidebar} aria-label="Toggle navigation menu">
-        <Menu size={20} />
+        <Menu size={18} />
       </button>
 
       <div className="breadcrumb">
-        <span>AWILIX</span>
+        <span>Awilix</span>
         <ChevronDown size={13} />
         <b>{currentLabel}</b>
       </div>
@@ -46,7 +46,7 @@ export const Topbar: React.FC<TopbarProps> = ({ activeView, onToggleSidebar }) =
         </div>
 
         <button className="icon-button" aria-label="Notifications">
-          <Bell size={17} />
+          <Bell size={16} />
           <i />
         </button>
 
@@ -56,7 +56,7 @@ export const Topbar: React.FC<TopbarProps> = ({ activeView, onToggleSidebar }) =
             <strong>R. Calder</strong>
             <span>Flight dynamics</span>
           </div>
-          <ChevronDown size={14} />
+          <ChevronDown size={13} />
         </div>
       </div>
     </header>
@@ -64,4 +64,3 @@ export const Topbar: React.FC<TopbarProps> = ({ activeView, onToggleSidebar }) =
 };
 
 export default Topbar;
-

@@ -16,7 +16,7 @@ export const ChartPanel: React.FC<ChartPanelProps> = ({ site, scenario }) => {
     <div className="chart-panel">
       <div className="chart-panel-head">
         <div>
-          <span className="eyebrow">TIME SERIES · {scenario.windowHours}H WINDOW</span>
+          <span className="eyebrow">Time series · {scenario.windowHours}h window</span>
           <h3>Illumination and link profile</h3>
         </div>
         <div className="chart-legend">
@@ -49,8 +49,8 @@ export const ChartPanel: React.FC<ChartPanelProps> = ({ site, scenario }) => {
           <i />
         </div>
         <div className="chart-area">
-          <Sparkline samples={summary.samples} dataKey="sun" color="#f0a970" />
-          <Sparkline samples={summary.samples} dataKey="earth" color="#65d5d0" />
+          <Sparkline samples={summary.samples} dataKey="sun" color="#eac18b" />
+          <Sparkline samples={summary.samples} dataKey="earth" color="#5ec4be" />
           <Sparkline samples={summary.samples} dataKey="power" color="#9aaeff" />
         </div>
       </div>
@@ -72,4 +72,3 @@ export const ChartPanel: React.FC<ChartPanelProps> = ({ site, scenario }) => {
 };
 
 export default ChartPanel;
-

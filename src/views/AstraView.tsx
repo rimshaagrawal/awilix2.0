@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageCircle, Sparkles, Check, ArrowUpRight, Cpu, Info } from 'lucide-react';
+import { MessageCircle, Bot, Check, ArrowUpRight, Cpu, Info } from 'lucide-react';
 import type { Site, Scenario, SiteSummary } from '@/types';
 import { AstraAvatar } from '@/components/common/AstraAvatar';
 
@@ -21,28 +21,26 @@ export const AstraView: React.FC<AstraViewProps> = ({
       {/* Astra Hero Stage */}
       <div className="astra-hero">
         <div>
-          <span className="eyebrow">ASTRA / 06</span>
+          <span className="eyebrow">Mission assistant</span>
           <h1>
-            Your mission
+            Telemetry guidance
             <br />
-            <em>co-pilot.</em>
+            and mission context.
           </h1>
           <p>
-            Astra is context-aware by design. She reads the active AWILIX site, scenario assumptions,
-            comparison matrices, and LOLA altimetry charts so explanations stay anchored to the mission
-            in front of you.
+            Astra is context-aware by design. The assistant reads active site coordinates, scenario parameters,
+            candidate comparisons, and LOLA altimetry models to explain the science on screen.
           </p>
           <button className="primary-button" onClick={onOpenChat}>
-            Open Astra channel <MessageCircle size={16} />
+            Open Astra channel <MessageCircle size={15} />
           </button>
         </div>
 
         <div className="astra-stage">
-          <div className="astra-stage-grid" />
-          <AstraAvatar />
+          <AstraAvatar size={96} />
           <div className="astra-stage-label">
-            <span>ASTRA-01</span>
-            <b>CONTEXT AWARE</b>
+            <span>Astra-01</span>
+            <b>Telemetry linked</b>
           </div>
         </div>
       </div>
@@ -52,14 +50,14 @@ export const AstraView: React.FC<AstraViewProps> = ({
         <div className="panel astra-capabilities">
           <div className="panel-heading">
             <div>
-              <span className="eyebrow">CAPABILITIES</span>
-              <h2>Ask about what you can see.</h2>
+              <span className="eyebrow">Capabilities</span>
+              <h2>Ask about active telemetry</h2>
             </div>
-            <Sparkles size={17} />
+            <Bot size={16} />
           </div>
 
           {[
-            'Interpret solar illumination windows & power curves',
+            'Interpret solar illumination windows and power curves',
             'Explain Direct-to-Earth (DTE) comm visibility and libration wobbles',
             'Compare candidate landing zones side-by-side',
             'Translate 20m LOLA terrain slopes and water-ice cold traps into plain English',
@@ -70,7 +68,7 @@ export const AstraView: React.FC<AstraViewProps> = ({
                 <Check size={13} />
               </span>
               {item}
-              <ArrowUpRight size={14} />
+              <ArrowUpRight size={13} />
             </div>
           ))}
         </div>
@@ -78,10 +76,10 @@ export const AstraView: React.FC<AstraViewProps> = ({
         <div className="panel astra-context-card">
           <div className="panel-heading">
             <div>
-              <span className="eyebrow">CURRENT CONTEXT</span>
-              <h2>What Astra can read</h2>
+              <span className="eyebrow">Current context</span>
+              <h2>Active telemetry inputs</h2>
             </div>
-            <Cpu size={17} />
+            <Cpu size={16} />
           </div>
 
           <div className="context-list">
@@ -124,4 +122,3 @@ export const AstraView: React.FC<AstraViewProps> = ({
 };
 
 export default AstraView;
-

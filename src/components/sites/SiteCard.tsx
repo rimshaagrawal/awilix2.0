@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Sun, ArrowUpRight } from 'lucide-react';
+import { Check, ArrowUpRight, Mountain, Shield } from 'lucide-react';
 import type { Site, Scenario } from '@/types';
 import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalculations';
 
@@ -28,7 +28,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
       <div className="site-card-top">
         <span
           className="site-index"
-          style={{ color, borderColor: `${color}55` }}
+          style={{ color }}
         >
           0{index + 1}
         </span>
@@ -45,22 +45,24 @@ export const SiteCard: React.FC<SiteCardProps> = ({
         <div>
           <h3>{site.name}</h3>
           <p>
-            {formatCoordinate(site.lat, 'N', 'S')} / {formatCoordinate(site.lon, 'E', 'W')}
+            {formatCoordinate(site.lat, 'N', 'S')} · {formatCoordinate(site.lon, 'E', 'W')}
           </p>
         </div>
         <span className="site-status">
           <span />
-          {summary.sunlight > 75 ? 'FAVOURABLE' : 'WATCH'}
+          {summary.sunlight > 75 ? 'Favourable' : 'Watch'}
         </span>
       </div>
 
-      <div className="site-card-visual">
-        <div className="terrain-ridge" />
-        <div className="terrain-ridge terrain-ridge-two" />
-        <div className="terrain-sun">
-          <Sun size={14} />
+      <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 12, color: 'var(--text-muted)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Mountain size={13} />
+          <span>{site.elevationReliefM.toLocaleString()} m topographic relief</span>
         </div>
-        <div className="terrain-grid" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Shield size={13} />
+          <span>{site.targetRegion} · {site.waterIcePotential} ice potential</span>
+        </div>
       </div>
 
       <div className="site-card-stats">
@@ -86,4 +88,3 @@ export const SiteCard: React.FC<SiteCardProps> = ({
 };
 
 export default SiteCard;
-

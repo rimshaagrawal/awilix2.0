@@ -49,13 +49,13 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
   return (
     <div className="view-stack">
       <SectionTitle
-        eyebrow="SCENARIO LAB / 05"
-        title="Move the mission assumptions."
+        eyebrow="Scenario lab"
+        title="Modify mission assumptions"
         description="Change observing geometry, lander height, and solar array angles to test candidate site margins in real time."
         action={
           <div className="scenario-status">
             <span className="status-dot" />
-            CUSTOM SCENARIO ACTIVE
+            Custom scenario active
           </div>
         }
       />
@@ -65,14 +65,14 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
         <div className="panel scenario-controls">
           <div className="panel-heading">
             <div>
-              <span className="eyebrow">SCENARIO INPUTS</span>
+              <span className="eyebrow">Scenario inputs</span>
               <h2>Mission assumptions</h2>
             </div>
-            <Settings2 size={17} />
+            <Settings2 size={16} />
           </div>
 
           <label className="control-label">
-            ACTIVE SITE
+            Active site
             <select value={site.id} onChange={(e) => onSelectSite(e.target.value)}>
               {sites.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -83,9 +83,9 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
           </label>
 
           <label className="control-label">
-            MISSION DATE
+            Mission date
             <div className="input-with-icon">
-              <CalendarDays size={15} />
+              <CalendarDays size={14} />
               <input
                 type="date"
                 value={scenario.date}
@@ -95,7 +95,7 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
           </label>
 
           <div className="control-label">
-            TIME WINDOW
+            Time window
             <div className="segmented-control">
               {[24, 48, 168, 336].map((hours) => (
                 <button
@@ -103,7 +103,7 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
                   className={scenario.windowHours === hours ? 'active' : ''}
                   onClick={() => onUpdateScenario('windowHours', hours)}
                 >
-                  {hours < 168 ? `${hours}H` : `${hours / 24}D`}
+                  {hours < 168 ? `${hours}h` : `${hours / 24}d`}
                 </button>
               ))}
             </div>
@@ -158,11 +158,11 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
         <div className="scenario-results">
           <div className="panel scenario-result-hero">
             <div>
-              <span className="eyebrow">LIVE RESPONSE · {site.shortName}</span>
+              <span className="eyebrow">Live response · {site.shortName}</span>
               <h2>Custom scenario delta</h2>
               <p>
-                Compared with the AWILIX reference baseline (2m observer, 2m antenna, 8° panel tilt),
-                the current telemetry parameters produce these deviations.
+                Compared with the Awilix reference baseline (2m observer, 2m antenna, 8° panel tilt),
+                the active telemetry parameters produce these deviations.
               </p>
             </div>
             <div className="delta-orbit">
@@ -171,10 +171,7 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
                   {sunDelta > 0 ? '+' : ''}
                   {sunDelta}%
                 </strong>
-                <span>SUNLIGHT</span>
-              </div>
-              <div className="delta-node">
-                <Sun size={14} />
+                <span>Sunlight</span>
               </div>
             </div>
           </div>
@@ -225,4 +222,3 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
 };
 
 export default ScenarioView;
-
