@@ -162,7 +162,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             </div>
 
             <div className="shortlist-list">
-              {summaries.slice(0, 4).map(({ site, summary }, index) => {
+              {summaries.map(({ site, summary }, index) => {
                 const color = SITE_COLORS[index % SITE_COLORS.length];
                 return (
                   <button

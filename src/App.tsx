@@ -4,7 +4,6 @@ import { sites, getSite } from '@/data/sites';
 import { DEFAULT_SCENARIO, getSummary } from '@/lib/scenarioCalculations';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
-import { Footer } from '@/components/layout/Footer';
 import { AstraPanel } from '@/components/assistant/AstraPanel';
 import { OverviewView } from '@/views/OverviewView';
 import { GlobeView } from '@/views/GlobeView';
@@ -15,7 +14,6 @@ import { ScenarioView } from '@/views/ScenarioView';
 import { AstraView } from '@/views/AstraView';
 import { SiteTerrain3D } from '@/components/terrain/SiteTerrain3D';
 import SiteTerrainView from '@/components/sites/SiteTerrainView';
-import { CustomCursor } from '@/components/reactbits/CustomCursor';
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('overview');
@@ -74,9 +72,6 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-shell">
-      {/* React Bits Custom Cursor with smooth ring and dot */}
-      <CustomCursor color="#f0a970" ringColor="rgba(145, 198, 212, 0.4)" dotSize={5} ringSize={30} />
-
       {/* Left Collapsible Navigation Sidebar */}
       <Sidebar
         activeView={activeView}
@@ -172,8 +167,6 @@ export const App: React.FC = () => {
             />
           )}
         </div>
-
-        <Footer />
       </main>
 
       {/* Floating Context-Aware Astra Mission Assistant */}
