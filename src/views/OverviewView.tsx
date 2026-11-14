@@ -9,8 +9,6 @@ import {
   Globe2,
   Zap,
   Activity,
-  Settings2,
-  Info,
 } from 'lucide-react';
 import type { Scenario, View } from '@/types';
 import { sites } from '@/data/sites';
@@ -190,63 +188,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               })}
             </div>
           </div>
-
-          <div className="panel readiness-panel">
-            <div className="panel-heading">
-              <div>
-                <span className="eyebrow">Mission readiness</span>
-                <h2>Systems snapshot</h2>
-              </div>
-              <span className="panel-menu">
-                <Settings2 size={16} />
-              </span>
-            </div>
-
-            <div className="readiness-orb">
-              <div className="readiness-ring">
-                <strong>82</strong>
-                <span>Index</span>
-              </div>
-            </div>
-
-            <div className="readiness-list">
-              <div>
-                <span>
-                  <i className="ready-dot" />
-                  Illumination model
-                </span>
-                <b>Nominal</b>
-              </div>
-              <div>
-                <span>
-                  <i className="ready-dot" />
-                  Earth geometry
-                </span>
-                <b>Nominal</b>
-              </div>
-              <div>
-                <span>
-                  <i className="ready-dot" />
-                  3D LOLA terrain
-                </span>
-                <b>Active 20m</b>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Scientific Transparency Method Strip */}
-        <div className="method-strip">
-          <div>
-            <Info size={16} />
-            <span>
-              <strong>Scientific transparency:</strong> Real 2026 astronomical ephemeris calculated with
-              instantaneous solar illumination, Earth line-of-sight elevation, and 20-meter LOLA altimetry models.
-            </span>
-          </div>
-          <button className="quiet-button" onClick={() => onNavigate('scenario')}>
-            Review assumptions <ArrowUpRight size={14} />
-          </button>
         </div>
       </div>
     </AnimatedContent>

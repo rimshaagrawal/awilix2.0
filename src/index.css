@@ -729,12 +729,12 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 /* ── Overview Grid & Shortlist ─────────────────────────────────── */
 .overview-grid {
   display: grid;
-  grid-template-columns: 1.35fr 0.65fr;
+  grid-template-columns: 1fr;
   gap: 16px;
 }
 
-.site-overview-panel, .readiness-panel {
-  padding: 20px;
+.site-overview-panel {
+  padding: 24px;
 }
 
 .shortlist-list {
@@ -744,10 +744,11 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 .shortlist-row {
   display: grid;
-  grid-template-columns: 32px 1fr 30% 48px 16px;
+  grid-template-columns: 36px minmax(180px, 260px) 1fr 52px 16px;
   align-items: center;
-  gap: 16px;
-  min-height: 48px;
+  gap: 24px;
+  min-height: 52px;
+  padding: 0 12px;
   border-top: 1px solid var(--border-subtle);
   color: var(--text-secondary);
   background: transparent;
@@ -756,6 +757,8 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   border-bottom: 0;
   text-align: left;
   transition: background 0.15s ease, color 0.15s ease;
+  border-radius: var(--radius-control);
+  cursor: pointer;
 }
 
 .shortlist-row:hover {
@@ -785,16 +788,16 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 }
 
 .row-bar {
-  height: 4px;
+  height: 6px;
   background: var(--surface-raised);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .row-bar i {
   height: 100%;
   display: block;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 
 .row-value {
