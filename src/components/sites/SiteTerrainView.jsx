@@ -60,7 +60,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     if (!ambientLightRef.current) return;
     if (lightingMode) {
       // Global Inspect Fill: Illuminates deep craters and night-side terrain in high clarity
-      ambientLightRef.current.intensity = 2.4;
+      ambientLightRef.current.intensity = 0.9;
       ambientLightRef.current.color.setHex(0xffffff);
     } else {
       // Physical Solar Lighting: deep lunar shadows

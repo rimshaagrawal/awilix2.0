@@ -168,12 +168,12 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     controlsRef.current = controls;
 
     // 1. Ambient lighting for base celestial illumination
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.18);
     scene.add(ambientLight);
     ambientLightRef.current = ambientLight;
 
     // 2. Camera headlight — ensures whichever side of Moon/Earth you orbit to is clearly illuminated
-    const cameraLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    const cameraLight = new THREE.DirectionalLight(0xffffff, 0.25);
     camera.add(cameraLight);
     scene.add(camera);
 
@@ -730,7 +730,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       sunLightRef.current.intensity = displaySettings.lighting ? 3.5 : 1.0;
     }
     if (ambientLightRef.current) {
-      ambientLightRef.current.intensity = displaySettings.lighting ? 1.4 : 2.4;
+      ambientLightRef.current.intensity = displaySettings.lighting ? 0.18 : 0.35;
     }
   }, [displaySettings.lighting]);
 
