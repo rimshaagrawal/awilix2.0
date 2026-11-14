@@ -117,7 +117,7 @@ export const App: React.FC = () => {
                 <SiteTerrainView
                     site={selectedSite}
                     date={scenario.date}
-                    onBack={() => handleNavigate('globe')}
+                    onSelectSite={setSelectedSiteId}
                 />
               </div>
             </div>

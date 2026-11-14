@@ -194,7 +194,6 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
             <SiteTerrain3D
               site={site}
               scenario={scenario}
-              onBack={() => onNavigate('globe')}
               onSelectSite={onSelectSite}
             />
           </div>

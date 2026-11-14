@@ -13,14 +13,14 @@ import {bilinearGrid,gridToENU,sampleTerrain} from '@/lib/terrainScience.js';
 import { coordinateText } from '@/lib/mascotKnowledge.js';
 import sites from '@/data/sites.json';
 import {
-  ArrowLeft, Sun, Radio, Compass, Mountain, Layers, Play,
+  Sun, Radio, Compass, Mountain, Layers, Play,
   Pause, Sparkles, RefreshCw, Grid, Eye, Lightbulb, CheckCircle2
 } from 'lucide-react';
 
 // Global in-memory cache for instant 0ms site switching
 const terrainCache = new Map();
 
-export default function SiteTerrainView({ site, date, onBack, ephemerisRevision }) {
+export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRevision }) {
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
@@ -393,19 +393,24 @@ export default function SiteTerrainView({ site, date, onBack, ephemerisRevision 
       )}
 
       {terrainError&&<div className="science-warning" role="alert">{terrainError}. Return to the globe or choose another region.</div>}
-      {/* Top Left: Back Button & Site Identity */}
+      {/* Top Left: Site Selector Dropdown */}
       <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="btn-ghost flex items-center gap-1.5 text-xs py-1.5 px-3 bg-[var(--paper-warm)]/90 backdrop-blur-md"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Moon Globe</span>
-        </button>
-
-        <div className="bento-plate px-3.5 py-1.5 hidden sm:flex items-center gap-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">
+        <div className="bento-plate px-3.5 py-1.5 flex items-center gap-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">
           <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)] shadow-[0_0_8px_var(--laser-crimson)]" />
-          <span className="text-xs font-semibold text-[var(--ink)] tracking-wide">{site.name}</span>
+          <select
+            value={site.id}
+            onChange={(e) => onSelectSite?.(e.target.value)}
+            className="bg-transparent text-xs font-semibold text-[var(--ink)] tracking-wide border-none outline-none cursor-pointer appearance-none pr-4"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2382929a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 0 center',
+            }}
+          >
+            {sites.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
           <span className="text-[10px] text-[var(--ink-faint)] font-mono">({coordinateText(site)})</span>
         </div>
 

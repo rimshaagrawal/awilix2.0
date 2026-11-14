@@ -6,7 +6,6 @@ import { sites } from '@/data/sites';
 import { computePositions } from '@/lib/ephemeris';
 import { bilinearGrid, gridToENU, sampleTerrain } from '@/lib/terrainScience';
 import {
-  ArrowLeft,
   Sun,
   Radio,
   Play,
@@ -22,7 +21,6 @@ import {
 interface SiteTerrain3DProps {
   site: Site;
   scenario?: Scenario;
-  onBack?: () => void;
   onSelectSite?: (siteId: string) => void;
 }
 
@@ -48,7 +46,6 @@ const terrainCache = new Map<string, TerrainData>();
 export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
   site,
   scenario,
-  onBack,
   onSelectSite,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -473,30 +470,8 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
           pointerEvents: 'none',
         }}
       >
-        {/* Left: Moon Globe button + Site Title & Coordinates */}
+        {/* Left: Site Selector Dropdown & Coordinates */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, pointerEvents: 'auto' }}>
-          {onBack && (
-            <button
-              onClick={onBack}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '6px 14px',
-                background: '#10161bf2',
-                border: '1px solid #283742',
-                borderRadius: 20,
-                color: '#d6e4e4',
-                fontSize: 12,
-                cursor: 'pointer',
-                fontFamily: "'Manrope', sans-serif",
-              }}
-            >
-              <ArrowLeft size={14} />
-              <span>Moon Globe</span>
-            </button>
-          )}
-
           <div
             style={{
               display: 'flex',
@@ -512,7 +487,32 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
               fontFamily: "'Manrope', sans-serif",
             }}
           >
-            <span>{site.name}</span>
+            <select
+              value={site.id}
+              onChange={(e) => onSelectSite?.(e.target.value)}
+              style={{
+                background: 'transparent',
+                color: '#f0ebe1',
+                border: 'none',
+                outline: 'none',
+                fontSize: 12,
+                fontWeight: 600,
+                fontFamily: "'Manrope', sans-serif",
+                cursor: 'pointer',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                paddingRight: 16,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2382929a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 0 center',
+              }}
+            >
+              {sites.map((s) => (
+                <option key={s.id} value={s.id} style={{ background: '#10161b', color: '#f0ebe1' }}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
             <span style={{ color: '#82929a', fontSize: 11, fontFamily: "'DM Mono', monospace" }}>
               ({site.lat.toFixed(1)}°S, {Math.abs(site.lon).toFixed(1)}°{site.lon < 0 ? 'W' : 'E'})
             </span>
