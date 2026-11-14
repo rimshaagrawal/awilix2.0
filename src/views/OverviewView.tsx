@@ -17,6 +17,9 @@ import { sites } from '@/data/sites';
 import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalculations';
 import { MetricCard } from '@/components/common/MetricCard';
 import { MoonGlobe3D } from '@/components/globe/MoonGlobe3D';
+import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
+import { GlareHover } from '@/components/reactbits/GlareHover';
+import { Magnet } from '@/components/reactbits/Magnet';
 
 interface OverviewViewProps {
   scenario: Scenario;
@@ -45,196 +48,209 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   );
 
   return (
-    <div className="view-stack">
-      {/* Mission Hero Banner with 3D Globe */}
-      <div className="mission-hero">
-        <div className="hero-copy">
-          <div className="hero-kicker">
-            Lunar south pole · Mission window 04
-          </div>
-          <h1>
-            Lunar landing site
-            <br />
-            ephemeris and terrain.
-          </h1>
-          <p>
-            Awilix computes time-dependent solar illumination, direct Earth visibility, and 20-meter LOLA altimetry for six candidate south-pole sites.
-          </p>
-          <div className="hero-actions">
-            <button className="primary-button" onClick={() => onNavigate('globe')}>
-              Explore 3D globe <ArrowUpRight size={15} />
-            </button>
-            <button className="quiet-button" onClick={() => onOpenSite(selectedSiteId)}>
-              Open site analysis <LineChart size={14} />
-            </button>
-          </div>
-          <div className="hero-meta">
-            <span>
-              <CalendarDays size={14} />
-              {scenario.date}
-            </span>
-            <span>
-              <Clock3 size={14} />
-              {scenario.windowHours}h window
-            </span>
-            <span>
-              <Database size={14} />
-              NASA LOLA telemetry
-            </span>
-          </div>
-        </div>
+    <AnimatedContent distance={45} direction="vertical">
+      <div className="view-stack">
+        {/* Mission Hero Banner with 3D Globe & Glare Sheen */}
+        <GlareHover
+          glareColor="rgba(145, 198, 212, 0.16)"
+          glareSize={420}
+          glareOpacity={0.35}
+          style={{ borderRadius: '16px' }}
+        >
+          <div className="mission-hero">
+            <div className="hero-copy">
+              <div className="hero-kicker">
+                Lunar south pole · Mission window 04
+              </div>
+              <h1>
+                Lunar landing site
+                <br />
+                ephemeris and terrain.
+              </h1>
+              <p>
+                Awilix computes time-dependent solar illumination, direct Earth visibility, and 20-meter LOLA altimetry for six candidate south-pole sites.
+              </p>
+              <div className="hero-actions">
+                <Magnet padding={40} magnetStrength={3} maxOffset={10}>
+                  <button className="primary-button" onClick={() => onNavigate('globe')}>
+                    Explore 3D globe <ArrowUpRight size={15} />
+                  </button>
+                </Magnet>
+                <Magnet padding={40} magnetStrength={3} maxOffset={10}>
+                  <button className="quiet-button" onClick={() => onOpenSite(selectedSiteId)}>
+                    Open site analysis <LineChart size={14} />
+                  </button>
+                </Magnet>
+              </div>
+              <div className="hero-meta">
+                <span>
+                  <CalendarDays size={14} />
+                  {scenario.date}
+                </span>
+                <span>
+                  <Clock3 size={14} />
+                  {scenario.windowHours}h window
+                </span>
+                <span>
+                  <Database size={14} />
+                  NASA LOLA telemetry
+                </span>
+              </div>
+            </div>
 
-        <div className="hero-visual">
-          <MoonGlobe3D
-            selectedSiteId={selectedSiteId}
-            onSelectSite={onSelectSite}
-            onVisitTerrain={() => onOpenSite(selectedSiteId)}
-            compact
+            <div className="hero-visual">
+              <MoonGlobe3D
+                selectedSiteId={selectedSiteId}
+                onSelectSite={onSelectSite}
+                onVisitTerrain={() => onOpenSite(selectedSiteId)}
+                compact
+              />
+              <div className="hero-visual-label">
+                <span>Polar view / 90°S</span>
+                <b>6</b>
+                <small>candidate sites</small>
+              </div>
+            </div>
+          </div>
+        </GlareHover>
+
+        {/* 4 Top Metric Cards */}
+        <div className="metrics-grid">
+          <MetricCard
+            label="Solar availability"
+            value={averageSun}
+            unit="%"
+            tone="amber"
+            detail="six-site mean · current window"
+            icon={Sun}
           />
-          <div className="hero-visual-label">
-            <span>Polar view / 90°S</span>
-            <b>6</b>
-            <small>candidate sites</small>
-          </div>
-        </div>
-      </div>
-
-      {/* 4 Top Metric Cards */}
-      <div className="metrics-grid">
-        <MetricCard
-          label="Solar availability"
-          value={averageSun}
-          unit="%"
-          tone="amber"
-          detail="six-site mean · current window"
-          icon={Sun}
-        />
-        <MetricCard
-          label="Earth visibility"
-          value={averageEarth}
-          unit="%"
-          tone="cyan"
-          detail="direct-to-Earth opportunity"
-          icon={Globe2}
-        />
-        <MetricCard
-          label="Power opportunity"
-          value={averagePower}
-          unit="%"
-          tone="blue"
-          detail="panel incidence included"
-          icon={Zap}
-        />
-        <MetricCard
-          label="Ephemeris status"
-          value="Ready"
-          tone="green"
-          detail="NASA 2026 reference tables"
-          icon={Activity}
-        />
-      </div>
-
-      {/* Overview Grid: Shortlist & Readiness */}
-      <div className="overview-grid">
-        <div className="panel site-overview-panel">
-          <div className="panel-heading">
-            <div>
-              <span className="eyebrow">Candidate landing sites</span>
-              <h2>South pole shortlist</h2>
-            </div>
-            <button className="text-button" onClick={() => onNavigate('sites')}>
-              View all sites <ArrowUpRight size={14} />
-            </button>
-          </div>
-
-          <div className="shortlist-list">
-            {summaries.slice(0, 4).map(({ site, summary }, index) => {
-              const color = SITE_COLORS[index % SITE_COLORS.length];
-              return (
-                <button
-                  className="shortlist-row"
-                  key={site.id}
-                  onClick={() => onOpenSite(site.id)}
-                >
-                  <span className="row-number">
-                    0{index + 1}
-                  </span>
-                  <span className="row-name">
-                    <strong>{site.shortName}</strong>
-                    <small>
-                      {formatCoordinate(site.lat, 'N', 'S')} ·{' '}
-                      {formatCoordinate(site.lon, 'E', 'W')}
-                    </small>
-                  </span>
-                  <span className="row-bar">
-                    <i style={{ width: `${summary.sunlight}%`, background: color }} />
-                  </span>
-                  <span className="row-value">{summary.sunlight}%</span>
-                  <ArrowUpRight size={14} />
-                </button>
-              );
-            })}
-          </div>
+          <MetricCard
+            label="Earth visibility"
+            value={averageEarth}
+            unit="%"
+            tone="cyan"
+            detail="direct-to-Earth opportunity"
+            icon={Globe2}
+          />
+          <MetricCard
+            label="Power opportunity"
+            value={averagePower}
+            unit="%"
+            tone="blue"
+            detail="panel incidence included"
+            icon={Zap}
+          />
+          <MetricCard
+            label="Ephemeris status"
+            value="Ready"
+            tone="green"
+            detail="NASA 2026 reference tables"
+            icon={Activity}
+          />
         </div>
 
-        <div className="panel readiness-panel">
-          <div className="panel-heading">
-            <div>
-              <span className="eyebrow">Mission readiness</span>
-              <h2>Systems snapshot</h2>
+        {/* Overview Grid: Shortlist & Readiness */}
+        <div className="overview-grid">
+          <div className="panel site-overview-panel">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">Candidate landing sites</span>
+                <h2>South pole shortlist</h2>
+              </div>
+              <button className="text-button" onClick={() => onNavigate('sites')}>
+                View all sites <ArrowUpRight size={14} />
+              </button>
             </div>
-            <span className="panel-menu">
-              <Settings2 size={16} />
+
+            <div className="shortlist-list">
+              {summaries.slice(0, 4).map(({ site, summary }, index) => {
+                const color = SITE_COLORS[index % SITE_COLORS.length];
+                return (
+                  <button
+                    className="shortlist-row"
+                    key={site.id}
+                    onClick={() => onOpenSite(site.id)}
+                  >
+                    <span className="row-number">
+                      0{index + 1}
+                    </span>
+                    <span className="row-name">
+                      <strong>{site.shortName}</strong>
+                      <small>
+                        {formatCoordinate(site.lat, 'N', 'S')} ·{' '}
+                        {formatCoordinate(site.lon, 'E', 'W')}
+                      </small>
+                    </span>
+                    <span className="row-bar">
+                      <i style={{ width: `${summary.sunlight}%`, background: color }} />
+                    </span>
+                    <span className="row-value">{summary.sunlight}%</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="panel readiness-panel">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">Mission readiness</span>
+                <h2>Systems snapshot</h2>
+              </div>
+              <span className="panel-menu">
+                <Settings2 size={16} />
+              </span>
+            </div>
+
+            <div className="readiness-orb">
+              <div className="readiness-ring">
+                <strong>82</strong>
+                <span>Index</span>
+              </div>
+            </div>
+
+            <div className="readiness-list">
+              <div>
+                <span>
+                  <i className="ready-dot" />
+                  Illumination model
+                </span>
+                <b>Nominal</b>
+              </div>
+              <div>
+                <span>
+                  <i className="ready-dot" />
+                  Earth geometry
+                </span>
+                <b>Nominal</b>
+              </div>
+              <div>
+                <span>
+                  <i className="ready-dot" />
+                  3D LOLA terrain
+                </span>
+                <b>Active 20m</b>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scientific Transparency Method Strip */}
+        <div className="method-strip">
+          <div>
+            <Info size={16} />
+            <span>
+              <strong>Scientific transparency:</strong> Real 2026 astronomical ephemeris calculated with
+              instantaneous solar illumination, Earth line-of-sight elevation, and 20-meter LOLA altimetry models.
             </span>
           </div>
-
-          <div className="readiness-orb">
-            <div className="readiness-ring">
-              <strong>82</strong>
-              <span>Index</span>
-            </div>
-          </div>
-
-          <div className="readiness-list">
-            <div>
-              <span>
-                <i className="ready-dot" />
-                Illumination model
-              </span>
-              <b>Nominal</b>
-            </div>
-            <div>
-              <span>
-                <i className="ready-dot" />
-                Earth geometry
-              </span>
-              <b>Nominal</b>
-            </div>
-            <div>
-              <span>
-                <i className="ready-dot" />
-                3D LOLA terrain
-              </span>
-              <b>Active 20m</b>
-            </div>
-          </div>
+          <button className="quiet-button" onClick={() => onNavigate('scenario')}>
+            Review assumptions <ArrowUpRight size={14} />
+          </button>
         </div>
       </div>
-
-      {/* Scientific Transparency Method Strip */}
-      <div className="method-strip">
-        <div>
-          <Info size={16} />
-          <span>
-            <strong>Scientific transparency:</strong> Real 2026 astronomical ephemeris calculated with
-            instantaneous solar illumination, Earth line-of-sight elevation, and 20-meter LOLA altimetry models.
-          </span>
-        </div>
-        <button className="quiet-button" onClick={() => onNavigate('scenario')}>
-          Review assumptions <ArrowUpRight size={14} />
-        </button>
-      </div>
-    </div>
+    </AnimatedContent>
   );
 };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Moon,
   ShieldCheck,
@@ -6,9 +6,12 @@ import {
   ExternalLink,
   PanelLeftClose,
   PanelLeftOpen,
+  Menu,
 } from 'lucide-react';
 import type { View } from '@/types';
 import { NAVIGATION_ITEMS } from '@/lib/scenarioCalculations';
+import { LineSidebar, type LineSidebarItem } from '@/components/reactbits/LineSidebar';
+import { StaggeredMenu, type StaggeredMenuItem } from '@/components/reactbits/StaggeredMenu';
 
 interface SidebarProps {
   activeView: View;
@@ -23,74 +26,99 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNavigate,
   onToggleSidebar,
 }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const lineItems: LineSidebarItem[] = NAVIGATION_ITEMS.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+    active: activeView === item.id,
+  }));
+
+  const staggeredItems: StaggeredMenuItem[] = NAVIGATION_ITEMS.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+    active: activeView === item.id,
+  }));
+
   return (
-    <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
-      <div className="brand">
-        <div className="brand-mark">
-          <Moon size={16} />
+    <>
+      <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
+        <div className="brand">
+          <div className="brand-mark">
+            <Moon size={16} />
+          </div>
+          {sidebarOpen && (
+            <div>
+              <strong>Awilix</strong>
+              <span>Lunar mission browser</span>
+            </div>
+          )}
         </div>
+
+        <div className="sidebar-status">
+          <span className="status-dot" />
+          {sidebarOpen && (
+            <>
+              <span>Mission control</span>
+              <b>Live</b>
+            </>
+          )}
+        </div>
+
+        {/* ── React Bits Line Sidebar (Cursor-Proximity & Active Indicator) ── */}
+        <nav className="main-nav" aria-label="Primary navigation" style={{ padding: '4px 0' }}>
+          <LineSidebar
+            items={lineItems}
+            activeId={activeView}
+            collapsed={!sidebarOpen}
+            onSelect={(id) => onNavigate(id as View)}
+          />
+        </nav>
+
         {sidebarOpen && (
-          <div>
-            <strong>Awilix</strong>
-            <span>Lunar mission browser</span>
+          <div className="sidebar-bottom">
+            <div className="data-health">
+              <div className="health-head">
+                <span>Telemetry health</span>
+                <ShieldCheck size={14} />
+              </div>
+              <strong>98.4%</strong>
+              <div className="health-bar">
+                <span />
+              </div>
+              <small>Precomputed ephemeris ready</small>
+            </div>
+            <button className="sidebar-source" onClick={() => onNavigate('overview')}>
+              <Database size={14} />
+              <span>Sources and methodology</span>
+              <ExternalLink size={12} />
+            </button>
           </div>
         )}
-      </div>
 
-      <div className="sidebar-status">
-        <span className="status-dot" />
-        {sidebarOpen && (
-          <>
-            <span>Mission control</span>
-            <b>Live</b>
-          </>
-        )}
-      </div>
+        <button
+          className="sidebar-toggle"
+          onClick={onToggleSidebar}
+          aria-label={sidebarOpen ? 'Collapse navigation' : 'Expand navigation'}
+        >
+          {sidebarOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
+        </button>
+      </aside>
 
-      <nav className="main-nav" aria-label="Primary navigation">
-        {NAVIGATION_ITEMS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            className={`nav-item ${activeView === id ? 'active' : ''}`}
-            onClick={() => onNavigate(id)}
-            title={!sidebarOpen ? label : undefined}
-          >
-            <Icon size={16} />
-            <span>{label}</span>
-            {activeView === id && <i />}
-          </button>
-        ))}
-      </nav>
-
-      {sidebarOpen && (
-        <div className="sidebar-bottom">
-          <div className="data-health">
-            <div className="health-head">
-              <span>Telemetry health</span>
-              <ShieldCheck size={14} />
-            </div>
-            <strong>98.4%</strong>
-            <div className="health-bar">
-              <span />
-            </div>
-            <small>Precomputed ephemeris ready</small>
-          </div>
-          <button className="sidebar-source" onClick={() => onNavigate('overview')}>
-            <Database size={14} />
-            <span>Sources and methodology</span>
-            <ExternalLink size={12} />
-          </button>
-        </div>
-      )}
-
-      <button
-        className="sidebar-toggle"
-        onClick={onToggleSidebar}
-        aria-label={sidebarOpen ? 'Collapse navigation' : 'Expand navigation'}
-      >
-        {sidebarOpen ? <PanelLeftClose size={14} /> : <PanelLeftOpen size={14} />}
-      </button>
-    </aside>
+      {/* ── React Bits Staggered Menu Drawer for Mobile / Compact Navigation ── */}
+      <StaggeredMenu
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        items={staggeredItems}
+        activeId={activeView}
+        onSelect={(id) => onNavigate(id as View)}
+        colors={['#0c192c', '#060a14']}
+        position="left"
+        title="LUNAR MISSION CONTROL"
+      />
+    </>
   );
 };
 

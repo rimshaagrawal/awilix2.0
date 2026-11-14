@@ -5,6 +5,8 @@ import { sites, getSite } from '@/data/sites';
 import { getSummary, SITE_COLORS } from '@/lib/scenarioCalculations';
 import { SectionTitle } from '@/components/common/SectionTitle';
 import { MiniBars } from '@/components/common/MiniBars';
+import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
+import { Magnet } from '@/components/reactbits/Magnet';
 
 interface CompareViewProps {
   scenario: Scenario;
@@ -29,25 +31,29 @@ export const CompareView: React.FC<CompareViewProps> = ({
   ];
 
   return (
-    <div className="view-stack">
-      <SectionTitle
-        eyebrow="Compare sites"
-        title="Trade-offs, made legible"
-        description="Compare the current mission window without collapsing the science into a single unexplained score."
-        action={
-          <button
-            className="primary-button"
-            onClick={() =>
-              onToggleCompare(
-                sites.find((site) => !compareIds.includes(site.id))?.id ?? sites[0].id
-              )
-            }
-          >
-            <Plus size={14} />
-            Add site
-          </button>
-        }
-      />
+    <AnimatedContent distance={45} direction="vertical">
+      <div className="view-stack">
+        <SectionTitle
+          eyebrow="Compare sites / 05"
+          title="Trade-offs, made legible"
+          animateTitle={true}
+          description="Compare the current mission window without collapsing the science into a single unexplained score."
+          action={
+            <Magnet padding={35} magnetStrength={3} maxOffset={10}>
+              <button
+                className="primary-button"
+                onClick={() =>
+                  onToggleCompare(
+                    sites.find((site) => !compareIds.includes(site.id))?.id ?? sites[0].id
+                  )
+                }
+              >
+                <Plus size={14} />
+                Add site
+              </button>
+            </Magnet>
+          }
+        />
 
       <div className="compare-chips">
         {sites.map((site, index) => {
@@ -181,7 +187,8 @@ export const CompareView: React.FC<CompareViewProps> = ({
           </div>
         </>
       )}
-    </div>
+      </div>
+    </AnimatedContent>
   );
 };
 
