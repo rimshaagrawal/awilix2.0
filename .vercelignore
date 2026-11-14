@@ -1,0 +1,7 @@
+.git
+.github
+node_modules
+dist
+awilix-lunar-mission-browser.zip
+*.log
+.env*.local
