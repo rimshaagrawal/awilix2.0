@@ -1177,6 +1177,8 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   transition: border-color 0.15s ease, background 0.15s ease;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
+  user-select: none;
 }
 
 .site-card:hover, .site-card-selected {

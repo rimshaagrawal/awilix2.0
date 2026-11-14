@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, SlidersHorizontal, Info, ArrowUpRight, Layers, LayoutGrid } from 'lucide-react';
+import { Info, Layers, LayoutGrid } from 'lucide-react';
 import type { Scenario } from '@/types';
 import { sites } from '@/data/sites';
 import { SectionTitle } from '@/components/common/SectionTitle';
@@ -24,15 +24,7 @@ export const SitesView: React.FC<SitesViewProps> = ({
   onToggleCompare,
   onOpenSite,
 }) => {
-  const [query, setQuery] = useState('');
   const [layoutMode, setLayoutMode] = useState<'stack' | 'grid'>('grid');
-
-  const visibleSites = sites.filter(
-    (site) =>
-      site.name.toLowerCase().includes(query.toLowerCase()) ||
-      site.targetRegion.toLowerCase().includes(query.toLowerCase()) ||
-      site.mission.toLowerCase().includes(query.toLowerCase())
-  );
 
   return (
     <AnimatedContent distance={50} direction="vertical">
@@ -44,15 +36,6 @@ export const SitesView: React.FC<SitesViewProps> = ({
           description="Shortlisted south-pole sites from the NASA and LOLA catalog. Telemetry updates with the active mission window."
           action={
             <div className="site-toolbar">
-              <div className="search-input">
-                <Search size={15} />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search candidate landing sites"
-                />
-              </div>
-
               {/* View Layout Toggle: Grid vs React Bits Scroll Stack */}
               <div
                 style={{
@@ -81,28 +64,18 @@ export const SitesView: React.FC<SitesViewProps> = ({
                 <button
                   className="icon-button"
                   onClick={() => setLayoutMode('stack')}
-                  title="React Bits Scroll Stack Layout"
+                  title="Stack Layout"
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
                     background: layoutMode === 'stack' ? 'var(--surface-raised)' : 'transparent',
                     border: 'none',
                     color: layoutMode === 'stack' ? '#f0a970' : '#687a86',
                     padding: '4px 8px',
                     borderRadius: '6px',
-                    fontSize: '11px',
-                    fontFamily: "'DM Mono', monospace",
                   }}
                 >
                   <Layers size={14} />
-                  <span>Stack</span>
                 </button>
               </div>
-
-              <button className="quiet-button">
-                <SlidersHorizontal size={14} /> Sort by sunlight
-              </button>
             </div>
           }
         />
@@ -110,20 +83,13 @@ export const SitesView: React.FC<SitesViewProps> = ({
         <div className="sites-note">
           <span>
             <Info size={15} />
-            <strong>{compareIds.length} sites</strong> selected for comparison
+            <strong>{compareIds.length} sites</strong> selected for comparison · Click any card to select or deselect
           </span>
-          <button
-            className="text-button"
-            onClick={() => onToggleCompare(selectedSiteId)}
-          >
-            {compareIds.includes(selectedSiteId) ? 'Remove selected' : 'Add selected'}{' '}
-            <ArrowUpRight size={13} />
-          </button>
         </div>
 
         {layoutMode === 'stack' ? (
           <ScrollStack topOffset={30} stackSpacing={18} scaleDecay={0.015}>
-            {visibleSites.map((site) => {
+            {sites.map((site) => {
               const index = sites.findIndex((item) => item.id === site.id);
               const isSelected = compareIds.includes(site.id);
 
@@ -146,7 +112,7 @@ export const SitesView: React.FC<SitesViewProps> = ({
           </ScrollStack>
         ) : (
           <div className="site-grid">
-            {visibleSites.map((site) => {
+            {sites.map((site) => {
               const index = sites.findIndex((item) => item.id === site.id);
               const isSelected = compareIds.includes(site.id);
 

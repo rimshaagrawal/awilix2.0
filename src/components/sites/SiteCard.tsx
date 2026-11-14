@@ -32,7 +32,11 @@ export const SiteCard: React.FC<SiteCardProps> = ({
       glareOpacity={0.4}
       style={{ borderRadius: '12px', height: '100%' }}
     >
-      <article className={`site-card ${selected ? 'site-card-selected' : ''}`} style={{ height: '100%' }}>
+      <article
+        className={`site-card ${selected ? 'site-card-selected' : ''}`}
+        style={{ height: '100%', cursor: 'pointer' }}
+        onClick={onSelect}
+      >
         <div className="site-card-top">
           <span
             className="site-index"
@@ -42,7 +46,10 @@ export const SiteCard: React.FC<SiteCardProps> = ({
           </span>
           <button
             className={`selection-check ${selected ? 'checked' : ''}`}
-            onClick={onSelect}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect();
+            }}
             aria-label={`${selected ? 'Remove' : 'Add'} ${site.name} ${selected ? 'from' : 'to'} comparison`}
           >
             {selected && <Check size={13} />}
@@ -90,7 +97,13 @@ export const SiteCard: React.FC<SiteCardProps> = ({
 
         <div style={{ marginTop: 'auto', paddingTop: 10 }}>
           <Magnet padding={40} magnetStrength={3} maxOffset={12}>
-            <button className="text-button" onClick={onOpen}>
+            <button
+              className="text-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpen();
+              }}
+            >
               Open site analysis <ArrowUpRight size={14} />
             </button>
           </Magnet>
