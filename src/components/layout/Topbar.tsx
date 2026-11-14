@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, ChevronDown, Clock3, Bell } from 'lucide-react';
+import { Menu, ChevronDown, Clock3 } from 'lucide-react';
 import type { View } from '@/types';
 import { NAVIGATION_ITEMS } from '@/lib/scenarioCalculations';
 
@@ -45,19 +45,7 @@ export const Topbar: React.FC<TopbarProps> = ({ activeView, onToggleSidebar }) =
           <strong>{utcTime || '14:32:07'}</strong>
         </div>
 
-        <button className="icon-button" aria-label="Notifications">
-          <Bell size={16} />
-          <i />
-        </button>
 
-        <div className="operator">
-          <div className="operator-avatar">RC</div>
-          <div>
-            <strong>R. Calder</strong>
-            <span>Flight dynamics</span>
-          </div>
-          <ChevronDown size={13} />
-        </div>
       </div>
     </header>
   );

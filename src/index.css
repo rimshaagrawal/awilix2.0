@@ -387,73 +387,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
-.icon-button {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border: 1px solid transparent;
-  color: var(--text-secondary);
-  background: transparent;
-  border-radius: var(--radius-control);
-  position: relative;
-  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-}
 
-.icon-button:hover {
-  color: var(--text-primary);
-  border-color: var(--border-subtle);
-  background: var(--surface-raised);
-}
-
-.icon-button > i {
-  width: 5px;
-  height: 5px;
-  background: var(--accent-solar);
-  border-radius: 50%;
-  position: absolute;
-  top: 6px;
-  right: 6px;
-}
-
-.operator {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-left: 16px;
-  border-left: 1px solid var(--border-subtle);
-}
-
-.operator-avatar {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--surface-raised);
-  color: var(--text-secondary);
-  font: 500 11px var(--font-mono);
-}
-
-.operator strong, .operator span {
-  display: block;
-}
-
-.operator strong {
-  color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.operator span {
-  color: var(--text-muted);
-  font: 400 11px var(--font-sans);
-}
-
-.operator > svg {
-  color: var(--text-muted);
-  margin-left: 2px;
-}
 
 .mobile-menu {
   display: none;
@@ -2647,8 +2581,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   .topbar { padding: 0 16px; }
   .topbar-actions { gap: 10px; }
   .utc-clock { display: none; }
-  .operator { padding-left: 10px; border-left: 0; }
-  .operator > div:nth-child(2), .operator > svg { display: none; }
   .page-content { padding: 20px 16px; }
   .page-footer { padding: 0 16px; gap: 8px; }
   .page-footer span:nth-child(2) { display: none; }
