@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import {
   Moon,
-  ShieldCheck,
   Database,
   ExternalLink,
   PanelLeftClose,
   PanelLeftOpen,
-  Menu,
 } from 'lucide-react';
 import type { View } from '@/types';
 import { NAVIGATION_ITEMS } from '@/lib/scenarioCalculations';
@@ -79,18 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {sidebarOpen && (
           <div className="sidebar-bottom">
-            <div className="data-health">
-              <div className="health-head">
-                <span>Telemetry health</span>
-                <ShieldCheck size={14} />
-              </div>
-              <strong>98.4%</strong>
-              <div className="health-bar">
-                <span />
-              </div>
-              <small>Precomputed ephemeris ready</small>
-            </div>
-            <button className="sidebar-source" onClick={() => onNavigate('overview')}>
+            <button className="sidebar-source" onClick={() => onNavigate('overview')} style={{ marginTop: 0 }}>
               <Database size={14} />
               <span>Sources and methodology</span>
               <ExternalLink size={12} />
