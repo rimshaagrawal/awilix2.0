@@ -76,9 +76,10 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
           height: 40,
           padding: isLeft ? '0 12px 0 10px' : '0 10px 0 12px',
           flexDirection: isLeft ? 'row' : 'row-reverse',
-          background: 'transparent',
-          border: 'none',
-          boxShadow: 'none',
+          background: isOpen ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.75)',
+          border: '1px solid rgba(0,0,0,0.08)',
+          borderRadius: 8,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.55 : 1,
           minWidth: 220,
@@ -86,7 +87,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       >
         <span
           className="w-2 h-2 rounded-full shrink-0"
-          style={{ background: '#6b7280', boxShadow: '0 0 8px rgba(107,114,128,0.55)' }}
+          style={{ background: '#4b5563' }}
         />
         <span
           className="flex flex-col min-w-0 flex-1"
@@ -94,7 +95,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         >
           <span
             className="text-[13px] font-semibold tracking-wide truncate w-full"
-            style={{ color: '#1f2937', textShadow: '0 0 10px rgba(255,255,255,0.7)' }}
+            style={{ color: '#1f2937' }}
           >
             {selectedItem?.label ?? 'Select option'}
           </span>
@@ -102,7 +103,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         <ChevronDown
           size={16}
           className="shrink-0 transition-transform duration-300 ease-out"
-          style={{ color: '#6b7280', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          style={{ color: '#4b5563', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
         />
       </button>
 
@@ -116,15 +117,16 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
               left: isLeft ? 0 : 'auto',
               right: !isLeft ? 0 : 'auto',
               width: 280,
-              background: 'transparent',
-              border: 'none',
-              boxShadow: 'none',
-              overflow: 'visible',
+              background: 'rgba(255,255,255,0.96)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              borderRadius: 8,
+              boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+              overflow: 'hidden',
             }}
           >
             <div
-              className="flex flex-col gap-0.5 py-1"
-              style={{ animation: 'awilixGlideIn 0.22s ease-out' }}
+              className="flex flex-col py-1"
+              style={{ animation: 'awilixGlideIn 0.18s ease-out' }}
             >
               {safeOptions.map((opt) => {
                 const isSel = opt.id === selectedId;
@@ -134,26 +136,25 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
                     type="button"
                     role="option"
                     aria-selected={isSel}
-                    className="clickable w-full text-left px-3 py-2 rounded-md outline-none transition-all duration-150"
+                    className="clickable w-full text-left px-3 py-2 outline-none transition-colors duration-150"
                     style={{
-                      background: isSel ? 'rgba(255,255,255,0.55)' : 'transparent',
+                      background: isSel ? 'rgba(0,0,0,0.06)' : 'transparent',
                       color: isSel ? '#111827' : '#374151',
                       fontWeight: isSel ? 600 : 500,
-                      textShadow: isSel ? '0 0 10px rgba(107,114,128,0.5)' : 'none',
                     }}
                     onClick={() => {
                       onChange(opt.id);
                       setIsOpen(false);
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.45)';
+                      (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = isSel ? 'rgba(255,255,255,0.55)' : 'transparent';
+                      (e.currentTarget as HTMLElement).style.background = isSel ? 'rgba(0,0,0,0.06)' : 'transparent';
                     }}
                   >
                     <span className="flex items-center gap-2" style={{ justifyContent: isLeft ? 'flex-start' : 'flex-end', flexDirection: isLeft ? 'row' : 'row-reverse' }}>
-                      {isSel && <Check size={14} style={{ color: '#4b5563', flexShrink: 0, filter: 'drop-shadow(0 0 6px rgba(107,114,128,0.5))' }} />}
+                      {isSel && <Check size={14} style={{ color: '#374151', flexShrink: 0 }} />}
                       <span className="truncate">{opt.label}</span>
                     </span>
                   </button>
@@ -161,7 +162,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
               })}
             </div>
           </div>
-          <style>{`@keyframes awilixGlideIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+          <style>{`@keyframes awilixGlideIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }`}</style>
         </>
       )}
     </div>
