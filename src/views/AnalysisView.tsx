@@ -95,11 +95,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
               label="Active site"
               selectedId={site.id}
               onChange={onSelectSite}
-              options={sites.map((item) => ({
-                id: item.id,
-                label: item.shortName,
-                sublabel: `${formatCoordinate(item.lat, 'N', 'S')} · ${formatCoordinate(item.lon, 'E', 'W')}`,
-              }))}
+              options={sites.map((item) => ({ id: item.id, label: item.shortName }))}
             />
           </div>
         </div>

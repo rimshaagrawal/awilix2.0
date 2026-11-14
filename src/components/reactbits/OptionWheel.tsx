@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronDown, Check, Crosshair } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 export interface OptionWheelItem {
   id: string;
@@ -19,23 +19,10 @@ export interface OptionWheelProps {
   disabled?: boolean;
 }
 
-const ITEM_HEIGHT = 44;
-const VISIBLE_COUNT = 5;
-const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_COUNT; // 220px
-
 /**
- * OptionWheel — React Bits 3D Cylindrical Option Wheel Component
- *
- * Implements a vertical 3D curved wheel selector with dynamic directional alignment:
- * - align='left': visual focus, curvature anchor, and selection markers aligned to the LEFT.
- * - align='right': visual focus, curvature anchor, and selection markers aligned to the RIGHT (mirrored).
- *
- * Features:
- * - Inertial wheel and touch/pointer drag interaction
- * - Direction-aware 3D cylinder perspective with subtle yaw & depth
- * - Lunar mission-control aesthetic: dark navy glassmorphism with subtle cyan/amber accents
- * - Full compatibility with AWILIX CustomCursor (.clickable & [role="button"])
- * - Reduced motion support (prefers-reduced-motion)
+ * Circular spatial navigation wheel (AWILIX / React Bits-inspired).
+ * - Options arranged around a ring; center shows active selection.
+ * - Rotate via drag, scroll, or arrow keys; active option is emphasized.
  */
 export const OptionWheel: React.FC<OptionWheelProps> = ({
   options,
@@ -47,178 +34,166 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   style = {},
   disabled = false,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const safeOptions = options.length > 0 ? options : [];
   const selectedIndex = Math.max(
     0,
-    options.findIndex((opt) => opt.id === selectedId)
+    safeOptions.findIndex((opt) => opt.id === selectedId)
   );
+  const [isOpen, setIsOpen] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const rotationRef = useRef(0);
+  const targetRotationRef = useRef(0);
+  const animRef = useRef<number | null>(null);
+  const dragRef = useRef<{ active: boolean; startX: number; startY: number; startRot: number }>({
+    active: false,
+    startX: 0,
+    startY: 0,
+    startRot: 0,
+  });
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  const [currentIndex, setCurrentIndex] = useState(selectedIndex);
-  const targetIndexRef = useRef(selectedIndex);
-  const currentIndexRef = useRef(selectedIndex);
-  const animFrameRef = useRef<number | null>(null);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const wheelViewportRef = useRef<HTMLDivElement>(null);
-  const isDraggingRef = useRef(false);
-  const startYRef = useRef(0);
-  const startIndexRef = useRef(0);
-
-  // Sync internal index with external selectedId
-  useEffect(() => {
-    targetIndexRef.current = selectedIndex;
-    setCurrentIndex(selectedIndex);
-    currentIndexRef.current = selectedIndex;
-  }, [selectedIndex]);
-
-  // Check reduced motion preference
   const prefersReducedMotion =
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Smooth lerp loop when rotating
-  const startLerp = useCallback(() => {
-    if (animFrameRef.current) return;
+  const stepAngle = safeOptions.length > 0 ? 360 / safeOptions.length : 360;
+  // Place selected item at the "top" (negative Y) of the circle
+  const desiredRotationForIndex = useCallback(
+    (idx: number) => -idx * stepAngle,
+    [stepAngle]
+  );
 
-    const tick = () => {
-      const diff = targetIndexRef.current - currentIndexRef.current;
-      if (Math.abs(diff) > 0.002) {
-        currentIndexRef.current += diff * 0.22;
-        setCurrentIndex(currentIndexRef.current);
-        animFrameRef.current = requestAnimationFrame(tick);
-      } else {
-        currentIndexRef.current = targetIndexRef.current;
-        setCurrentIndex(targetIndexRef.current);
-        animFrameRef.current = null;
-      }
-    };
-    animFrameRef.current = requestAnimationFrame(tick);
-  }, []);
-
-  // Snap to integer index when motion finishes
-  const snapToClosest = useCallback(() => {
-    const clamped = Math.max(0, Math.min(options.length - 1, Math.round(targetIndexRef.current)));
-    targetIndexRef.current = clamped;
-    startLerp();
-  }, [options.length, startLerp]);
-
-  // Wheel event listener with passive: false to prevent background scroll
   useEffect(() => {
-    const viewport = wheelViewportRef.current;
-    if (!isOpen || !viewport) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const delta = e.deltaY * 0.012;
-      const next = Math.max(0, Math.min(options.length - 1, targetIndexRef.current + delta));
-      targetIndexRef.current = next;
-      startLerp();
-
-      // Debounced snap after scrolling
-      if ((handleWheel as any).snapTimeout) {
-        clearTimeout((handleWheel as any).snapTimeout);
+    const r = desiredRotationForIndex(selectedIndex);
+    targetRotationRef.current = r;
+    if (prefersReducedMotion) {
+      rotationRef.current = r;
+      setRotation(r);
+      return;
+    }
+    const tick = () => {
+      const cur = rotationRef.current;
+      let diff = targetRotationRef.current - cur;
+      // Normalize to shortest path
+      while (diff > 180) diff -= 360;
+      while (diff < -180) diff += 360;
+      if (Math.abs(diff) < 0.35) {
+        rotationRef.current = targetRotationRef.current;
+        setRotation(targetRotationRef.current);
+        animRef.current = null;
+        return;
       }
-      (handleWheel as any).snapTimeout = setTimeout(() => {
-        snapToClosest();
-      }, 140);
+      rotationRef.current = cur + diff * 0.18;
+      setRotation(rotationRef.current);
+      animRef.current = requestAnimationFrame(tick);
     };
-
-    viewport.addEventListener('wheel', handleWheel, { passive: false });
+    if (animRef.current) cancelAnimationFrame(animRef.current);
+    animRef.current = requestAnimationFrame(tick);
     return () => {
-      viewport.removeEventListener('wheel', handleWheel);
-      if ((handleWheel as any).snapTimeout) {
-        clearTimeout((handleWheel as any).snapTimeout);
-      }
+      if (animRef.current) cancelAnimationFrame(animRef.current);
     };
-  }, [isOpen, options.length, snapToClosest, startLerp]);
+  }, [selectedIndex, desiredRotationForIndex, prefersReducedMotion]);
 
-  // Pointer drag interactions
-  const handlePointerDown = (e: React.PointerEvent) => {
-    isDraggingRef.current = true;
-    startYRef.current = e.clientY;
-    startIndexRef.current = targetIndexRef.current;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-  };
+  useEffect(() => {
+    if (!isOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [isOpen]);
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDraggingRef.current) return;
-    const deltaY = startYRef.current - e.clientY;
-    const deltaIndex = deltaY / (ITEM_HEIGHT * 0.9);
-    const next = Math.max(0, Math.min(options.length - 1, startIndexRef.current + deltaIndex));
-    targetIndexRef.current = next;
-    startLerp();
-  };
+  const commitIndex = useCallback(
+    (idx: number) => {
+      const clamped = Math.max(0, Math.min(safeOptions.length - 1, idx));
+      const item = safeOptions[clamped];
+      if (item) onChange(item.id);
+    },
+    [safeOptions, onChange]
+  );
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (!isDraggingRef.current) return;
-    isDraggingRef.current = false;
-    try {
-      (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-    } catch {}
-    snapToClosest();
-  };
-
-  // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
     if (!isOpen) {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault();
         setIsOpen(true);
       }
       return;
     }
-
     if (e.key === 'Escape') {
       e.preventDefault();
       setIsOpen(false);
-    } else if (e.key === 'ArrowDown') {
+      return;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       e.preventDefault();
-      const next = Math.min(options.length - 1, Math.round(targetIndexRef.current) + 1);
-      targetIndexRef.current = next;
-      startLerp();
-    } else if (e.key === 'ArrowUp') {
+      commitIndex((selectedIndex + 1) % safeOptions.length);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
       e.preventDefault();
-      const prev = Math.max(0, Math.round(targetIndexRef.current) - 1);
-      targetIndexRef.current = prev;
-      startLerp();
+      commitIndex((selectedIndex - 1 + safeOptions.length) % safeOptions.length);
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      const activeIdx = Math.max(0, Math.min(options.length - 1, Math.round(targetIndexRef.current)));
-      const chosen = options[activeIdx];
-      if (chosen) {
-        onChange(chosen.id);
-        setIsOpen(false);
-      }
+      setIsOpen(false);
     }
   };
 
-  // Click outside to close
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
+  const onWheel = (e: React.WheelEvent) => {
+    if (!isOpen || disabled || safeOptions.length < 2) return;
+    e.preventDefault();
+    const dir = e.deltaY > 0 ? 1 : -1;
+    commitIndex(selectedIndex + dir);
+  };
 
-  // Clean up animation on unmount
-  useEffect(() => {
-    return () => {
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
-    };
-  }, []);
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!isOpen || disabled) return;
+    dragRef.current = { active: true, startX: e.clientX, startY: e.clientY, startRot: rotationRef.current };
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current.active || disabled) return;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+    // Horizontal drag feels natural for rotation
+    const delta = dx * 0.55 - dy * 0.15;
+    const next = dragRef.current.startRot + delta;
+    rotationRef.current = next;
+    targetRotationRef.current = next;
+    setRotation(next);
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!dragRef.current.active) return;
+    dragRef.current.active = false;
+    try {
+      (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    // Snap to nearest
+    if (safeOptions.length > 0) {
+      const norm = ((-rotationRef.current % 360) + 360) % 360;
+      const nearest = Math.round(norm / stepAngle) % safeOptions.length;
+      commitIndex(nearest);
+    }
+  };
 
-  const selectedItem = options[selectedIndex] || options[0];
+  const selectedItem = safeOptions[selectedIndex];
   const isLeft = align === 'left';
+  const radius = 92;
+
+  const wheelItems = useMemo(() => {
+    return safeOptions.map((opt, idx) => {
+      const angle = (idx * stepAngle * Math.PI) / 180;
+      const x = Math.sin(angle) * radius;
+      const y = -Math.cos(angle) * radius;
+      const isActive = idx === selectedIndex;
+      return { opt, idx, x, y, isActive, angleDeg: idx * stepAngle };
+    });
+  }, [safeOptions, stepAngle, selectedIndex]);
 
   return (
     <div
-      ref={containerRef}
+      ref={rootRef}
       className={`option-wheel-root relative select-none ${className}`}
       style={{
         display: 'inline-block',
@@ -231,7 +206,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         <span
           className="block text-[11px] font-medium tracking-wider uppercase mb-1.5"
           style={{
-            color: '#7a8296',
+            color: 'var(--text-muted, #7a8296)',
             textAlign: isLeft ? 'left' : 'right',
           }}
         >
@@ -239,38 +214,37 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         </span>
       )}
 
-      {/* ── Trigger Pill Button ────────────────────────────────────── */}
       <button
         type="button"
-        role="button"
-        tabIndex={0}
+        role="combobox"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
+        aria-label={label || 'Select site'}
         disabled={disabled}
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="option-wheel-trigger clickable group flex items-center gap-2.5 transition-all duration-200 outline-none"
+        onClick={() => setIsOpen((p) => !p)}
+        className="clickable group flex items-center gap-2.5 transition-all duration-200 outline-none"
         style={{
-          height: 38,
+          height: 40,
           padding: isLeft ? '0 12px 0 10px' : '0 10px 0 12px',
           flexDirection: isLeft ? 'row' : 'row-reverse',
-          background: isOpen ? 'rgba(14, 23, 38, 0.96)' : 'rgba(11, 16, 26, 0.88)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          border: isOpen ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid rgba(238, 240, 245, 0.12)',
-          borderLeft: isLeft ? (isOpen ? '3px solid #38bdf8' : '2px solid rgba(56, 189, 248, 0.5)') : undefined,
-          borderRight: !isLeft ? (isOpen ? '3px solid #38bdf8' : '2px solid rgba(56, 189, 248, 0.5)') : undefined,
-          borderRadius: 8,
+          background: isOpen ? 'rgba(14, 23, 38, 0.98)' : 'rgba(11, 16, 26, 0.9)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          border: isOpen ? '1px solid rgba(56, 189, 248, 0.55)' : '1px solid rgba(238, 240, 245, 0.14)',
+          borderLeft: isLeft ? '3px solid rgba(56, 189, 248, 0.85)' : undefined,
+          borderRight: !isLeft ? '3px solid rgba(56, 189, 248, 0.85)' : undefined,
+          borderRadius: 10,
           boxShadow: isOpen
-            ? '0 0 20px rgba(56, 189, 248, 0.18), 0 4px 12px rgba(0, 0, 0, 0.4)'
-            : '0 2px 8px rgba(0, 0, 0, 0.3)',
+            ? '0 0 0 1px rgba(56,189,248,0.15), 0 8px 28px rgba(0,0,0,0.45)'
+            : '0 2px 10px rgba(0,0,0,0.35)',
           cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.5 : 1,
+          opacity: disabled ? 0.55 : 1,
+          minWidth: 200,
         }}
       >
-        {/* Status Beacon / Target Pin */}
         <span
-          className="relative flex items-center justify-center"
-          style={{ width: 14, height: 14, flexShrink: 0 }}
+          className="relative flex items-center justify-center shrink-0"
+          style={{ width: 12, height: 12 }}
         >
           <span
             className="absolute rounded-full"
@@ -278,308 +252,174 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
               width: 8,
               height: 8,
               background: '#38bdf8',
-              boxShadow: '0 0 10px #38bdf8',
+              boxShadow: '0 0 10px rgba(56,189,248,0.9)',
             }}
           />
         </span>
-
-        {/* Selected Label & Sublabel */}
-        <div
-          className="flex flex-col min-w-0"
+        <span
+          className="flex flex-col min-w-0 flex-1"
           style={{
             alignItems: isLeft ? 'flex-start' : 'flex-end',
             textAlign: isLeft ? 'left' : 'right',
           }}
         >
-          <div className="flex items-center gap-1.5">
-            <span
-              className="text-xs font-semibold tracking-wide whitespace-nowrap"
-              style={{ color: '#eef0f5' }}
-            >
-              {selectedItem?.label ?? 'Select option'}
-            </span>
-          </div>
+          <span className="text-[13px] font-semibold tracking-wide truncate w-full" style={{ color: '#eef0f5' }}>
+            {selectedItem?.label ?? 'Select site'}
+          </span>
           {selectedItem?.sublabel && (
-            <span
-              className="text-[10px] whitespace-nowrap font-mono"
-              style={{ color: '#82929a' }}
-            >
+            <span className="text-[10px] font-mono truncate w-full" style={{ color: '#8fa3ad' }}>
               {selectedItem.sublabel}
             </span>
           )}
-        </div>
-
-        {/* Dropdown Chevron */}
+        </span>
         <ChevronDown
-          size={14}
-          className="transition-transform duration-200"
+          size={16}
+          className="shrink-0 transition-transform duration-200"
           style={{
-            color: isOpen ? '#38bdf8' : '#7a8296',
+            color: isOpen ? '#38bdf8' : '#9aa6b2',
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            marginLeft: isLeft ? 4 : 0,
-            marginRight: isLeft ? 0 : 4,
-            flexShrink: 0,
           }}
         />
       </button>
 
-      {/* ── 3D Option Wheel Dropdown Panel ─────────────────────────── */}
-      {isOpen && (
+      {isOpen && safeOptions.length > 0 && (
         <div
           role="listbox"
-          aria-label={label || 'Select option'}
-          className="option-wheel-popover absolute z-50 transition-all"
+          aria-label={label || 'Select site'}
+          className="absolute z-[80]"
           style={{
-            top: 'calc(100% + 8px)',
+            top: 'calc(100% + 10px)',
             left: isLeft ? 0 : 'auto',
             right: !isLeft ? 0 : 'auto',
-            width: 270,
-            background: 'rgba(8, 13, 22, 0.96)',
-            backdropFilter: 'blur(24px)',
-            WebkitBackdropFilter: 'blur(24px)',
-            border: '1px solid rgba(56, 189, 248, 0.28)',
-            borderLeft: isLeft ? '3px solid #38bdf8' : '1px solid rgba(56, 189, 248, 0.28)',
-            borderRight: !isLeft ? '3px solid #38bdf8' : '1px solid rgba(56, 189, 248, 0.28)',
-            borderRadius: 12,
-            boxShadow: isLeft
-              ? '0 20px 48px -8px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.16)'
-              : '0 20px 48px -8px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.16)',
-            overflow: 'hidden',
+            width: 300,
+            padding: 14,
+            background: 'rgba(8, 13, 22, 0.97)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(56, 189, 248, 0.3)',
+            borderLeft: isLeft ? '3px solid rgba(56,189,248,0.85)' : '1px solid rgba(56,189,248,0.3)',
+            borderRight: !isLeft ? '3px solid rgba(56,189,248,0.85)' : '1px solid rgba(56,189,248,0.3)',
+            borderRadius: 14,
+            boxShadow: '0 24px 56px rgba(0,0,0,0.65), 0 0 40px rgba(56,189,248,0.08)',
           }}
+          onWheel={onWheel}
         >
-          {/* Header Bar */}
           <div
-            className="flex items-center justify-between px-3.5 py-2 border-b"
+            className="flex items-center justify-between mb-3 pb-2"
             style={{
-              borderColor: 'rgba(238, 240, 245, 0.08)',
-              background: 'rgba(15, 23, 42, 0.6)',
+              borderBottom: '1px solid rgba(238,240,245,0.08)',
               flexDirection: isLeft ? 'row' : 'row-reverse',
             }}
           >
-            <div
-              className="flex items-center gap-1.5"
-              style={{ flexDirection: isLeft ? 'row' : 'row-reverse' }}
-            >
-              <Crosshair size={12} style={{ color: '#38bdf8' }} />
-              <span
-                className="text-[10px] font-mono tracking-wider uppercase font-semibold"
-                style={{ color: '#38bdf8' }}
-              >
-                {isLeft ? '3D TARGET SELECT' : 'TARGET ANALYSIS'}
-              </span>
-            </div>
-            <span
-              className="text-[9px] font-mono tracking-tight"
-              style={{ color: '#64748b' }}
-            >
-              SCROLL / DRAG WHEEL
+            <span className="text-[10px] font-semibold tracking-[0.12em] uppercase" style={{ color: '#7dd3fc' }}>
+              Site navigation
+            </span>
+            <span className="text-[9px] font-mono" style={{ color: '#64748b' }}>
+              Drag · Scroll · Arrows
             </span>
           </div>
 
-          {/* Wheel 3D Container Viewport */}
           <div
-            ref={wheelViewportRef}
-            className="relative overflow-hidden cursor-grab active:cursor-grabbing"
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
+            className="relative mx-auto touch-none cursor-grab active:cursor-grabbing"
             style={{
-              height: WHEEL_HEIGHT,
-              perspective: prefersReducedMotion ? 'none' : 800,
-              perspectiveOrigin: isLeft ? '30% 50%' : '70% 50%',
+              width: 272,
+              height: 272,
               userSelect: 'none',
-              touchAction: 'none',
             }}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
           >
-            {/* Center Selection Focus Lens */}
+            {/* Ring guide */}
             <div
-              className="absolute left-1 right-1 pointer-events-none rounded-md"
+              className="absolute rounded-full pointer-events-none"
               style={{
-                top: (WHEEL_HEIGHT - ITEM_HEIGHT) / 2,
-                height: ITEM_HEIGHT,
-                border: '1px solid rgba(56, 189, 248, 0.35)',
-                borderLeft: isLeft ? '3px solid #38bdf8' : '1px solid rgba(56, 189, 248, 0.35)',
-                borderRight: !isLeft ? '3px solid #38bdf8' : '1px solid rgba(56, 189, 248, 0.35)',
-                background: isLeft
-                  ? 'linear-gradient(90deg, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0.03) 70%, transparent 100%)'
-                  : 'linear-gradient(270deg, rgba(56, 189, 248, 0.16) 0%, rgba(56, 189, 248, 0.03) 70%, transparent 100%)',
-                boxShadow: isLeft
-                  ? 'inset 10px 0 16px -6px rgba(56, 189, 248, 0.28)'
-                  : 'inset -10px 0 16px -6px rgba(56, 189, 248, 0.28)',
-                zIndex: 2,
+                inset: 18,
+                border: '1px dashed rgba(56,189,248,0.25)',
+                boxShadow: 'inset 0 0 30px rgba(56,189,248,0.04)',
               }}
             />
-
-            {/* Top & Bottom Vignette Fade Overlays */}
+            {/* Center hub */}
             <div
-              className="absolute inset-x-0 top-0 pointer-events-none z-10"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center text-center px-3"
               style={{
-                height: 48,
-                background: 'linear-gradient(180deg, rgba(8, 13, 22, 0.95) 0%, transparent 100%)',
-              }}
-            />
-            <div
-              className="absolute inset-x-0 bottom-0 pointer-events-none z-10"
-              style={{
-                height: 48,
-                background: 'linear-gradient(0deg, rgba(8, 13, 22, 0.95) 0%, transparent 100%)',
-              }}
-            />
-
-            {/* 3D Wheel Items Drum */}
-            <div
-              className="absolute inset-x-0 top-0 w-full h-full"
-              style={{
-                transformStyle: prefersReducedMotion ? 'flat' : 'preserve-3d',
+                width: 118,
+                height: 118,
+                background: 'radial-gradient(circle at 40% 30%, rgba(56,189,248,0.18), rgba(8,13,22,0.95) 70%)',
+                border: '1px solid rgba(56,189,248,0.45)',
+                boxShadow: '0 0 24px rgba(56,189,248,0.12)',
               }}
             >
-              {options.map((option, idx) => {
-                const offset = idx - currentIndex;
-                const isSelected = option.id === selectedId;
-                const isFocused = Math.abs(offset) < 0.5;
+              <span className="text-[9px] font-mono tracking-widest uppercase mb-1" style={{ color: '#7dd3fc' }}>
+                Selected
+              </span>
+              <span className="text-[12px] font-semibold leading-snug line-clamp-3" style={{ color: '#eef0f5' }}>
+                {selectedItem?.label}
+              </span>
+            </div>
 
-                // 3D Geometry calculations
-                const angleDeg = offset * 22;
-                const angleRad = (angleDeg * Math.PI) / 180;
-                const translateY = Math.sin(angleRad) * (WHEEL_HEIGHT * 0.44) + (WHEEL_HEIGHT - ITEM_HEIGHT) / 2;
-                const translateZ = (Math.cos(angleRad) - 1) * 60;
-                const rotateX = -angleDeg;
-
-                // Directional yaw and inward offset
-                const rotateY = isLeft ? -offset * 3.5 : offset * 3.5;
-                const translateX = isLeft ? -Math.abs(offset) * 4 : Math.abs(offset) * 4;
-
-                const opacity = Math.max(0.2, 1 - Math.abs(offset) * 0.26);
-                const scale = Math.max(0.78, 1 - Math.abs(offset) * 0.06);
-
-                const transformStyle = prefersReducedMotion
-                  ? `translate3d(0, ${offset * ITEM_HEIGHT + (WHEEL_HEIGHT - ITEM_HEIGHT) / 2}px, 0)`
-                  : `translate3d(${translateX}px, ${translateY}px, ${translateZ}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`;
-
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="button"
-                    tabIndex={0}
-                    className="option-wheel-item clickable absolute inset-x-2 flex items-center transition-colors outline-none"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      targetIndexRef.current = idx;
-                      startLerp();
-                      onChange(option.id);
-                      setTimeout(() => setIsOpen(false), 180);
-                    }}
-                    style={{
-                      height: ITEM_HEIGHT,
-                      padding: isLeft ? '0 12px 0 10px' : '0 10px 0 12px',
-                      flexDirection: isLeft ? 'row' : 'row-reverse',
-                      transform: transformStyle,
-                      transformOrigin: isLeft ? 'left center' : 'right center',
-                      opacity,
-                      zIndex: isFocused ? 5 : Math.round(10 - Math.abs(offset)),
-                      willChange: 'transform, opacity',
-                      borderRadius: 6,
-                      background: 'transparent',
-                      border: 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {/* Item Content */}
-                    <div
-                      className="flex-1 min-w-0 flex flex-col"
-                      style={{
-                        alignItems: isLeft ? 'flex-start' : 'flex-end',
-                        textAlign: isLeft ? 'left' : 'right',
-                      }}
-                    >
-                      <div
-                        className="flex items-center gap-1.5"
-                        style={{ flexDirection: isLeft ? 'row' : 'row-reverse' }}
-                      >
-                        <span
-                          className={`text-xs tracking-wide transition-all ${
-                            isFocused ? 'font-bold' : isSelected ? 'font-semibold' : 'font-normal'
-                          }`}
-                          style={{
-                            color: isFocused
-                              ? '#38bdf8'
-                              : isSelected
-                              ? '#eef0f5'
-                              : '#a3a9b8',
-                            textShadow: isFocused ? '0 0 12px rgba(56, 189, 248, 0.45)' : 'none',
-                          }}
-                        >
-                          {option.label}
-                        </span>
-                        {isSelected && (
-                          <Check
-                            size={12}
-                            style={{
-                              color: '#38bdf8',
-                              strokeWidth: 2.5,
-                            }}
-                          />
-                        )}
-                      </div>
-                      {option.sublabel && (
-                        <span
-                          className="text-[10px] font-mono tracking-tight"
-                          style={{
-                            color: isFocused ? 'rgba(56, 189, 248, 0.75)' : '#64748b',
-                          }}
-                        >
-                          {option.sublabel}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Numeric Index Tag */}
-                    <span
-                      className="text-[9px] font-mono px-1.5 py-0.5 rounded"
-                      style={{
-                        color: isFocused ? '#38bdf8' : '#475569',
-                        background: isFocused ? 'rgba(56, 189, 248, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-                        marginLeft: isLeft ? 8 : 0,
-                        marginRight: isLeft ? 0 : 8,
-                      }}
-                    >
-                      {String(idx + 1).padStart(2, '0')}
-                    </span>
-                  </button>
-                );
-              })}
+            {/* Rotating items layer */}
+            <div
+              className="absolute left-1/2 top-1/2"
+              style={{
+                width: 0,
+                height: 0,
+                transform: `rotate(${rotation}deg)`,
+                transition: prefersReducedMotion ? 'none' : 'transform 0.05s linear',
+              }}
+            >
+              {wheelItems.map(({ opt, idx, x, y, isActive }) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  role="option"
+                  aria-selected={isActive}
+                  className="clickable absolute flex items-center justify-center rounded-full outline-none transition-shadow duration-150"
+                  style={{
+                    width: isActive ? 52 : 44,
+                    height: isActive ? 52 : 44,
+                    left: x,
+                    top: y,
+                    transform: `translate(-50%, -50%) rotate(${-rotation}deg)`,
+                    background: isActive
+                      ? 'linear-gradient(145deg, rgba(56,189,248,0.35), rgba(14,23,38,0.95))'
+                      : 'rgba(15, 23, 42, 0.85)',
+                    border: isActive ? '2px solid rgba(56,189,248,0.95)' : '1px solid rgba(148,163,184,0.25)',
+                    boxShadow: isActive
+                      ? '0 0 20px rgba(56,189,248,0.35), inset 0 1px 0 rgba(255,255,255,0.08)'
+                      : '0 4px 12px rgba(0,0,0,0.4)',
+                    color: isActive ? '#e0f2fe' : '#cbd5e1',
+                    fontSize: 11,
+                    fontWeight: isActive ? 700 : 500,
+                  }}
+                  title={opt.label}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    commitIndex(idx);
+                  }}
+                >
+                  <span className="px-1 leading-tight text-center line-clamp-2">{opt.label.length > 10 ? `${opt.label.slice(0, 9)}…` : opt.label}</span>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Footer Bar */}
-          <div
-            className="flex items-center justify-between px-3 py-2 border-t"
-            style={{
-              borderColor: 'rgba(238, 240, 245, 0.08)',
-              background: 'rgba(10, 16, 26, 0.8)',
-              flexDirection: isLeft ? 'row' : 'row-reverse',
-            }}
-          >
-            <span
-              className="text-[10px] font-mono"
-              style={{ color: '#82929a' }}
-            >
-              {options.length} SITES AVAILABLE
+          <div className="mt-3 flex items-center justify-between gap-2 pt-2" style={{ borderTop: '1px solid rgba(238,240,245,0.08)' }}>
+            <span className="text-[10px] font-mono" style={{ color: '#94a3b8' }}>
+              {safeOptions.length} sites
             </span>
             <button
               type="button"
-              role="button"
-              className="clickable text-[10px] font-semibold px-2 py-0.5 rounded transition-colors"
-              onClick={() => setIsOpen(false)}
+              className="clickable text-[10px] font-semibold px-2.5 py-1 rounded-md"
               style={{
-                color: '#38bdf8',
-                background: 'rgba(56, 189, 248, 0.08)',
-                border: '1px solid rgba(56, 189, 248, 0.2)',
+                color: '#7dd3fc',
+                background: 'rgba(56,189,248,0.1)',
+                border: '1px solid rgba(56,189,248,0.35)',
               }}
+              onClick={() => setIsOpen(false)}
             >
-              DONE
+              Done
             </button>
           </div>
         </div>

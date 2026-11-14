@@ -477,11 +477,7 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
             align="left"
             selectedId={site.id}
             onChange={(id) => onSelectSite?.(id)}
-            options={sites.map((s) => ({
-              id: s.id,
-              label: s.name,
-              sublabel: `${s.lat.toFixed(1)}°S · ${Math.abs(s.lon).toFixed(1)}°${s.lon < 0 ? 'W' : 'E'}`,
-            }))}
+            options={sites.map((s) => ({ id: s.id, label: s.name }))}
           />
         </div>
 
