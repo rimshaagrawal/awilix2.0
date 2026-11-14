@@ -156,6 +156,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.35;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mount.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -427,6 +429,9 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     // Directional sunlight shining from the Sun onto Moon and Earth
     const sunLight = new THREE.DirectionalLight(0xfffaed, 3.5);
     sunLight.position.set(50, 20, 30);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
     scene.add(sunLight);
     scene.add(sunLight.target);
     sunLightRef.current = sunLight;
