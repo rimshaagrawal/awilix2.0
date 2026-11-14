@@ -168,6 +168,11 @@ export default function MoonGlobe({ selectedSite, date, onSiteClick, ephemerisRe
     moonSunLight.shadow.mapSize.height = 2048;
     moonSunLight.shadow.camera.near = 0.5;
     moonSunLight.shadow.camera.far = 100;
+    moonSunLight.shadow.camera.left = -5;
+    moonSunLight.shadow.camera.right = 5;
+    moonSunLight.shadow.camera.top = 5;
+    moonSunLight.shadow.camera.bottom = -5;
+    moonSunLight.shadow.camera.updateProjectionMatrix();
     moonSunLight.shadow.bias = -0.0004;
     scene.add(moonSunLight);
     moonSunLightRef.current = moonSunLight;

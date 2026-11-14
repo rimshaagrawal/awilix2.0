@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { sites } from '@/data/sites';
 import { SITE_COLORS } from '@/lib/scenarioCalculations';
 import { getSubPoints, computePositions } from '@/lib/ephemeris';
+import gsap from 'gsap';
 import {
   Globe,
   Info,
@@ -99,15 +100,15 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         maxCameraDist: 250000,
       };
     } else {
-      // Proportional Spaceflight Exploration view:
-      // Earth and colossal glowing Sun prominently visible in celestial space
+      // Same physically-correct scale ratios as 1:1 mode. This keeps the
+      // apparent angular sizes of Earth and the Sun faithful from the Moon.
       return {
         moonRadius: 1.0,
-        earthRadius: 2.2,
-        sunRadius: 16.0, // Colossal radiant star
-        earthDist: 16.0,
-        sunDist: 48.0,
-        maxCameraDist: 600,
+        earthRadius: NASA.EARTH_R_RATIO,
+        sunRadius: NASA.SUN_R_RATIO,
+        earthDist: NASA.EARTH_DIST_RATIO,
+        sunDist: NASA.SUN_DIST_RATIO,
+        maxCameraDist: 250000,
       };
     }
   }, [scaleMode]);
@@ -168,12 +169,12 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     controlsRef.current = controls;
 
     // 1. Ambient lighting for base celestial illumination
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.06);
     scene.add(ambientLight);
     ambientLightRef.current = ambientLight;
 
     // 2. Camera headlight — ensures whichever side of Moon/Earth you orbit to is clearly illuminated
-    const cameraLight = new THREE.DirectionalLight(0xffffff, 0.9);
+    const cameraLight = new THREE.DirectionalLight(0xffffff, 0.03);
     camera.add(cameraLight);
     scene.add(camera);
 
@@ -376,17 +377,6 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     scene.add(sunMesh);
     sunModelRef.current = sunMesh;
 
-    // Glowing sun corona billboard
-    const coronaGeo = new THREE.SphereGeometry(1.25, 32, 32);
-    const coronaMat = new THREE.MeshBasicMaterial({
-      color: 0xffaa22,
-      transparent: true,
-      opacity: 0.35,
-      side: THREE.BackSide,
-    });
-    const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
-    sunMesh.add(coronaMesh);
-
     // Glowing PointLight inside the Sun
     const sunPointLight = new THREE.PointLight(0xfff6dd, 4.0, 800);
     sunMesh.add(sunPointLight);
@@ -414,10 +404,6 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
             });
           }
         });
-
-        const cGeo = new THREE.SphereGeometry(maxDim * 0.65, 32, 32);
-        const cMesh = new THREE.Mesh(cGeo, coronaMat);
-        sunScene.add(cMesh);
 
         const pLight = new THREE.PointLight(0xfff6dd, 4.0, 800);
         sunScene.add(pLight);
@@ -587,9 +573,10 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       sunModelRef.current.scale.set(s, s, s);
     }
 
-    // Move directional light to match sun position so Moon/Earth get lit
+    // Directional light only needs the sun direction, not its astronomical distance.
+    // Keeping it at a fixed local distance preserves shadow-map precision in 1:1 mode.
     if (sunLightRef.current) {
-      sunLightRef.current.position.copy(sunPos);
+      sunLightRef.current.position.copy(sunDir.clone().multiplyScalar(25));
       sunLightRef.current.target.position.set(0, 0, 0);
       sunLightRef.current.target.updateMatrixWorld();
     }
@@ -727,6 +714,31 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     controlsRef.current.update();
   };
 
+  // Fly-to-zoom: pan/zoom the camera to the selected site marker
+  useEffect(() => {
+    if (compact || !cameraRef.current || !controlsRef.current) return;
+    const site = sites.find((s) => s.id === selectedSiteId);
+    if (!site) return;
+
+    const latRad = (site.lat * Math.PI) / 180;
+    const lonRad = (site.lon * Math.PI) / 180;
+    const nx = Math.cos(latRad) * Math.sin(lonRad);
+    const ny = Math.sin(latRad);
+    const nz = Math.cos(latRad) * Math.cos(lonRad);
+    const dist = 2.2;
+
+    gsap.to(controlsRef.current.target, {
+      x: 0, y: 0, z: 0, duration: 0.7, ease: 'power2.out',
+      onUpdate: () => controlsRef.current?.update(),
+    });
+    gsap.to(cameraRef.current.position, {
+      x: nx * dist, y: ny * dist, z: nz * dist,
+      duration: 1.15, ease: 'power2.inOut',
+      onUpdate: () => controlsRef.current?.update(),
+    });
+    setFocusTarget('moon');
+  }, [selectedSiteId, compact]);
+
   // React to Display Settings toggles
   useEffect(() => {
     if (markersGroupRef.current) {
@@ -745,7 +757,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       sunLightRef.current.intensity = displaySettings.lighting ? 3.5 : 1.0;
     }
     if (ambientLightRef.current) {
-      ambientLightRef.current.intensity = displaySettings.lighting ? 1.4 : 2.4;
+      ambientLightRef.current.intensity = displaySettings.lighting ? 0.06 : 0.12;
     }
   }, [displaySettings.lighting]);
 
@@ -759,41 +771,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       {/* React Bits Crosshair cursor specifically for the lunar visualization */}
       <Crosshair color="#91c6d4" lineStyle="dashed" thickness={1} smoothing={0.2} />
 
-      {/* ── COMPACT MODE: simple bottom-left label + terrain button ── */}
-      {compact ? (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 10,
-            left: 10,
-            right: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            zIndex: 20,
-            pointerEvents: 'none',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              color: '#f0ebe1',
-              fontSize: 11,
-              fontWeight: 600,
-              fontFamily: "'Manrope', sans-serif",
-              textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-              background: 'rgba(10,14,23,0.7)',
-              padding: '4px 10px',
-              borderRadius: 20,
-            }}
-          >
-            <Globe size={13} color="#f0a970" />
-            <span>3D Moon Globe · Click pin to explore</span>
-          </div>
-        </div>
-      ) : (
+      {/* ── ACCORDION CONTROL PANEL (Hidden in compact mode) ── */}
+      {!compact && (
         <>
           {/* ── LEFT VERTICAL ACCORDION CONTROL PANEL ── */}
           <div

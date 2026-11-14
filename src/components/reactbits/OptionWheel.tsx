@@ -21,8 +21,7 @@ export interface OptionWheelProps {
 
 /**
  * Circular spatial navigation wheel (AWILIX / React Bits-inspired).
- * - Options arranged around a ring; center shows active selection.
- * - Rotate via drag, scroll, or arrow keys; active option is emphasized.
+ * Options arranged around a ring; center shows the active selection.
  */
 export const OptionWheel: React.FC<OptionWheelProps> = ({
   options,
@@ -53,11 +52,10 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   const rootRef = useRef<HTMLDivElement>(null);
 
   const prefersReducedMotion =
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const stepAngle = safeOptions.length > 0 ? 360 / safeOptions.length : 360;
-  // Place selected item at the "top" (negative Y) of the circle
+
   const desiredRotationForIndex = useCallback(
     (idx: number) => -idx * stepAngle,
     [stepAngle]
@@ -74,7 +72,6 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     const tick = () => {
       const cur = rotationRef.current;
       let diff = targetRotationRef.current - cur;
-      // Normalize to shortest path
       while (diff > 180) diff -= 360;
       while (diff < -180) diff += 360;
       if (Math.abs(diff) < 0.35) {
@@ -150,17 +147,18 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     dragRef.current = { active: true, startX: e.clientX, startY: e.clientY, startRot: rotationRef.current };
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   };
+
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragRef.current.active || disabled) return;
     const dx = e.clientX - dragRef.current.startX;
     const dy = e.clientY - dragRef.current.startY;
-    // Horizontal drag feels natural for rotation
     const delta = dx * 0.55 - dy * 0.15;
     const next = dragRef.current.startRot + delta;
     rotationRef.current = next;
     targetRotationRef.current = next;
     setRotation(next);
   };
+
   const onPointerUp = (e: React.PointerEvent) => {
     if (!dragRef.current.active) return;
     dragRef.current.active = false;
@@ -169,7 +167,6 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     } catch {
       /* ignore */
     }
-    // Snap to nearest
     if (safeOptions.length > 0) {
       const norm = ((-rotationRef.current % 360) + 360) % 360;
       const nearest = Math.round(norm / stepAngle) % safeOptions.length;
@@ -187,7 +184,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       const x = Math.sin(angle) * radius;
       const y = -Math.cos(angle) * radius;
       const isActive = idx === selectedIndex;
-      return { opt, idx, x, y, isActive, angleDeg: idx * stepAngle };
+      return { opt, idx, x, y, isActive };
     });
   }, [safeOptions, stepAngle, selectedIndex]);
 
@@ -219,7 +216,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         role="combobox"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        aria-label={label || 'Select site'}
+        aria-label={label || 'Select option'}
         disabled={disabled}
         onClick={() => setIsOpen((p) => !p)}
         className="clickable group flex items-center gap-2.5 transition-all duration-200 outline-none"
@@ -242,10 +239,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
           minWidth: 200,
         }}
       >
-        <span
-          className="relative flex items-center justify-center shrink-0"
-          style={{ width: 12, height: 12 }}
-        >
+        <span className="relative flex items-center justify-center shrink-0" style={{ width: 12, height: 12 }}>
           <span
             className="absolute rounded-full"
             style={{
@@ -264,7 +258,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
           }}
         >
           <span className="text-[13px] font-semibold tracking-wide truncate w-full" style={{ color: '#eef0f5' }}>
-            {selectedItem?.label ?? 'Select site'}
+            {selectedItem?.label ?? 'Select option'}
           </span>
           {selectedItem?.sublabel && (
             <span className="text-[10px] font-mono truncate w-full" style={{ color: '#8fa3ad' }}>
@@ -285,7 +279,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       {isOpen && safeOptions.length > 0 && (
         <div
           role="listbox"
-          aria-label={label || 'Select site'}
+          aria-label={label || 'Select option'}
           className="absolute z-[80]"
           style={{
             top: 'calc(100% + 10px)',
@@ -331,7 +325,6 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
           >
-            {/* Ring guide */}
             <div
               className="absolute rounded-full pointer-events-none"
               style={{
@@ -340,7 +333,6 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
                 boxShadow: 'inset 0 0 30px rgba(56,189,248,0.04)',
               }}
             />
-            {/* Center hub */}
             <div
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full flex flex-col items-center justify-center text-center px-3"
               style={{
@@ -359,7 +351,6 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
               </span>
             </div>
 
-            {/* Rotating items layer */}
             <div
               className="absolute left-1/2 top-1/2"
               style={{
@@ -399,7 +390,9 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
                     commitIndex(idx);
                   }}
                 >
-                  <span className="px-1 leading-tight text-center line-clamp-2">{opt.label.length > 10 ? `${opt.label.slice(0, 9)}…` : opt.label}</span>
+                  <span className="px-1 leading-tight text-center line-clamp-2">
+                    {opt.label.length > 10 ? `${opt.label.slice(0, 9)}…` : opt.label}
+                  </span>
                 </button>
               ))}
             </div>

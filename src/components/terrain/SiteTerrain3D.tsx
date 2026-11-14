@@ -120,11 +120,11 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
     if (!ambientLightRef.current) return;
     if (lightingMode) {
       // Global inspect fill: illuminates deep craters and shadow areas in high clarity
-      ambientLightRef.current.intensity = 2.4;
+      ambientLightRef.current.intensity = 0.35;
       ambientLightRef.current.color.setHex(0xffffff);
     } else {
       // Physical Solar Lighting: deep lunar shadows with subtle earthshine
-      ambientLightRef.current.intensity = 0.85;
+      ambientLightRef.current.intensity = 0.08;
       ambientLightRef.current.color.setHex(0x283848);
     }
   }, [lightingMode]);
@@ -234,7 +234,7 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
     controlsRef.current = controls;
 
     // Ambient Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, lightingMode ? 2.4 : 0.85);
+    const ambientLight = new THREE.AmbientLight(0xffffff, lightingMode ? 0.35 : 0.08);
     scene.add(ambientLight);
     ambientLightRef.current = ambientLight;
 
@@ -254,6 +254,7 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
     sunLight.shadow.camera.right = 10;
     sunLight.shadow.camera.top = 10;
     sunLight.shadow.camera.bottom = -10;
+    sunLight.shadow.camera.updateProjectionMatrix();
     sunLight.shadow.bias = -0.0005;
     scene.add(sunLight);
     sunLightRef.current = sunLight;
