@@ -7,7 +7,6 @@ import { SITE_COLORS } from '@/lib/scenarioCalculations';
 import { getSubPoints, computePositions } from '@/lib/ephemeris';
 import {
   Globe,
-  ArrowRight,
   Info,
   RotateCcw,
   Maximize2,
@@ -70,7 +69,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
 
   // UI States matching user's screenshot
   const [scaleMode, setScaleMode] = useState<'proportional' | 'true'>('proportional');
-  const [focusTarget, setFocusTarget] = useState<'moon' | 'earth' | 'sun' | 'system'>('system');
+  const [focusTarget, setFocusTarget] = useState<'moon' | 'earth' | 'sun' | 'system'>('moon');
   const [vectorMode, setVectorMode] = useState<'all' | 'dte' | 'solar' | 'off'>('all');
   const [showScaleDetails, setShowScaleDetails] = useState(false);
   const [currentHour] = useState(12);
@@ -143,7 +142,13 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 300000);
-    camera.position.set(0, 40, 110);
+    if (compact) {
+      // Direct view of south polar candidate landing sites for the hero card
+      camera.position.set(0, -2.4, 0.7);
+    } else {
+      // Moon globe view centered on south pole
+      camera.position.set(0, -1.8, 2.2);
+    }
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -300,7 +305,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         }
       );
     };
-    loadNasaMoon('/models/Moon_NASA_LRO_8k_Topo_Small.glb');
+    loadNasaMoon('/models/moon_small.glb');
 
     // ── 2. EARTH (Real NASA EarthClouds_1_12756 Model) ─────────
     const earthTex = texLoader.load('/textures/earth_2k.jpg');
@@ -774,56 +779,6 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         </div>
       ) : (
         <>
-          {/* ── TOP-RIGHT ACTION BAR ── */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 14,
-              right: 14,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              zIndex: 20,
-              pointerEvents: 'none',
-            }}
-          >
-            {onVisitTerrain && (
-              <button
-                onClick={onVisitTerrain}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '7px 16px',
-                  background: 'linear-gradient(135deg, #f5cca0, #f0a970)',
-                  border: '1px solid rgba(240,169,112,0.4)',
-                  borderRadius: 8,
-                  color: '#120e07',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  fontFamily: "'DM Mono', monospace",
-                  letterSpacing: '0.5px',
-                  textTransform: 'uppercase',
-                  pointerEvents: 'auto',
-                  boxShadow: '0 2px 12px rgba(240,169,112,0.25)',
-                  transition: 'box-shadow 0.2s ease, transform 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(240,169,112,0.4)';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = '0 2px 12px rgba(240,169,112,0.25)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                <span>Visit 3D Terrain</span>
-                <ArrowRight size={13} />
-              </button>
-            )}
-          </div>
-
           {/* ── LEFT VERTICAL ACCORDION CONTROL PANEL ── */}
           <div
             style={{
