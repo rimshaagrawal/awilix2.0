@@ -5,7 +5,21 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { sites } from '@/data/sites';
 import { SITE_COLORS } from '@/lib/scenarioCalculations';
 import { getSubPoints, computePositions } from '@/lib/ephemeris';
-import { Globe, Info, RotateCcw } from 'lucide-react';
+import {
+  Globe,
+  ArrowRight,
+  Info,
+  RotateCcw,
+  Maximize2,
+  Target,
+  Radio,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Layers,
+} from 'lucide-react';
 import { Crosshair } from '@/components/reactbits/Crosshair';
 
 interface MoonGlobe3DProps {
@@ -60,6 +74,19 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   const [vectorMode, setVectorMode] = useState<'all' | 'dte' | 'solar' | 'off'>('all');
   const [showScaleDetails, setShowScaleDetails] = useState(false);
   const [currentHour] = useState(12);
+
+  // Vertical Collapsible Accordion State (all collapsed by default)
+  const [expandedCategory, setExpandedCategory] = useState<'scale' | 'target' | 'vectors' | 'display' | null>(null);
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [displaySettings, setDisplaySettings] = useState({
+    labels: true,
+    beacons: true,
+    grid: false,
+    lighting: true,
+  });
+
+  const lunarGridGroupRef = useRef<THREE.Group | null>(null);
+  const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
 
   // Compute active 3D units based on selected scaleMode
   const scaleConfig = useMemo(() => {
@@ -136,6 +163,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     // 1. Ambient lighting for base celestial illumination
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
+    ambientLightRef.current = ambientLight;
 
     // 2. Camera headlight — ensures whichever side of Moon/Earth you orbit to is clearly illuminated
     const cameraLight = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -177,6 +205,36 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     const markersGroup = new THREE.Group();
     scene.add(markersGroup);
     markersGroupRef.current = markersGroup;
+
+    // Coordinate Grid Group (latitude parallels & longitude meridians)
+    const gridGroup = new THREE.Group();
+    gridGroup.visible = false;
+    const ringMat = new THREE.LineBasicMaterial({ color: 0x486581, transparent: true, opacity: 0.35 });
+    const latitudes = [-85, -80, -60, -30, 0, 30, 60, 80, 85];
+    latitudes.forEach((lat) => {
+      const phi = (lat * Math.PI) / 180;
+      const r = Math.cos(phi) * 1.002;
+      const y = Math.sin(phi) * 1.002;
+      const pts: THREE.Vector3[] = [];
+      for (let i = 0; i <= 64; i++) {
+        const theta = (i / 64) * Math.PI * 2;
+        pts.push(new THREE.Vector3(r * Math.cos(theta), y, -r * Math.sin(theta)));
+      }
+      gridGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat));
+    });
+    for (let m = 0; m < 12; m++) {
+      const lon = (m / 12) * Math.PI * 2;
+      const pts: THREE.Vector3[] = [];
+      for (let i = -32; i <= 32; i++) {
+        const lat = (i / 32) * (Math.PI / 2);
+        const y = Math.sin(lat) * 1.002;
+        const r = Math.cos(lat) * 1.002;
+        pts.push(new THREE.Vector3(r * Math.cos(lon), y, -r * Math.sin(lon)));
+      }
+      gridGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat));
+    }
+    scene.add(gridGroup);
+    lunarGridGroupRef.current = gridGroup;
 
     const texLoader = new THREE.TextureLoader();
     const gltfLoader = new GLTFLoader();
@@ -648,6 +706,28 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     controlsRef.current.update();
   };
 
+  // React to Display Settings toggles
+  useEffect(() => {
+    if (markersGroupRef.current) {
+      markersGroupRef.current.visible = displaySettings.beacons;
+    }
+  }, [displaySettings.beacons]);
+
+  useEffect(() => {
+    if (lunarGridGroupRef.current) {
+      lunarGridGroupRef.current.visible = displaySettings.grid;
+    }
+  }, [displaySettings.grid]);
+
+  useEffect(() => {
+    if (sunLightRef.current) {
+      sunLightRef.current.intensity = displaySettings.lighting ? 3.5 : 1.0;
+    }
+    if (ambientLightRef.current) {
+      ambientLightRef.current.intensity = displaySettings.lighting ? 1.4 : 2.4;
+    }
+  }, [displaySettings.lighting]);
+
   return (
     <div
       className={`globe-scene ${compact ? 'globe-compact' : ''}`}
@@ -694,190 +774,534 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         </div>
       ) : (
         <>
-          {/* ────────────────────────────────────────────────────────── */}
-          {/* TOP HEADER CONTROLS (EXACT LAYOUT FROM USER'S SCREENSHOT)   */}
-          {/* ────────────────────────────────────────────────────────── */}
+          {/* ── TOP-RIGHT ACTION BAR ── */}
           <div
             style={{
               position: 'absolute',
               top: 14,
-              left: 14,
               right: 14,
               display: 'flex',
-              flexWrap: 'wrap',
               alignItems: 'center',
-              justifyContent: 'space-between',
               gap: 10,
               zIndex: 20,
               pointerEvents: 'none',
             }}
           >
-            {/* Title */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                color: '#f0ebe1',
-                fontSize: 13,
-                fontWeight: 600,
-                fontFamily: "'Manrope', sans-serif",
-                textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-                pointerEvents: 'auto',
-              }}
-            >
-              <Globe size={16} color="#f0a970" />
-              <span>Interactive 3D Moon Globe · Click any pin to explore</span>
-            </div>
+            {onVisitTerrain && (
+              <button
+                onClick={onVisitTerrain}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '7px 16px',
+                  background: 'linear-gradient(135deg, #f5cca0, #f0a970)',
+                  border: '1px solid rgba(240,169,112,0.4)',
+                  borderRadius: 8,
+                  color: '#120e07',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: "'DM Mono', monospace",
+                  letterSpacing: '0.5px',
+                  textTransform: 'uppercase',
+                  pointerEvents: 'auto',
+                  boxShadow: '0 2px 12px rgba(240,169,112,0.25)',
+                  transition: 'box-shadow 0.2s ease, transform 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(240,169,112,0.4)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = '0 2px 12px rgba(240,169,112,0.25)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <span>Visit 3D Terrain</span>
+                <ArrowRight size={13} />
+              </button>
+            )}
           </div>
 
-          {/* ────────────────────────────────────────────────────────── */}
-          {/* SECOND ROW OPTIONS TOOLBAR (EXACT PILLS FROM SCREENSHOT)  */}
-          {/* ────────────────────────────────────────────────────────── */}
+          {/* ── LEFT VERTICAL ACCORDION CONTROL PANEL ── */}
           <div
             style={{
               position: 'absolute',
-              top: 52,
+              top: 14,
               left: 14,
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              gap: 10,
+              width: panelOpen ? 190 : 38,
               zIndex: 20,
               fontFamily: "'DM Mono', monospace",
-          fontSize: 11,
-        }}
-      >
-        {/* Scale Mode Group: Proportional | 1:1 NASA | Info */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            background: '#0a0e17ee',
-            padding: '3px 4px',
-            borderRadius: 10,
-            border: '1px solid #23333e',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <button
-            onClick={() => setScaleMode('proportional')}
-            style={{
-              padding: '4px 10px',
-              borderRadius: 7,
-              background: scaleMode === 'proportional' ? '#91c6d4' : 'transparent',
-              color: scaleMode === 'proportional' ? '#060910' : '#8899a6',
-              border: 'none',
-              fontWeight: scaleMode === 'proportional' ? 700 : 500,
-              cursor: 'pointer',
+              fontSize: 10,
+              transition: 'width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)',
+              pointerEvents: 'auto',
             }}
           >
-            Proportional
-          </button>
-          <button
-            onClick={() => setScaleMode('true')}
-            style={{
-              padding: '4px 10px',
-              borderRadius: 7,
-              background: scaleMode === 'true' ? '#f0a970' : 'transparent',
-              color: scaleMode === 'true' ? '#120e07' : '#8899a6',
-              border: 'none',
-              fontWeight: scaleMode === 'true' ? 700 : 500,
-              cursor: 'pointer',
-            }}
-          >
-            1:1 NASA
-          </button>
-          <button
-            onClick={() => setShowScaleDetails(!showScaleDetails)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#8899a6',
-              padding: '2px 6px',
-              cursor: 'pointer',
-              display: 'grid',
-              placeItems: 'center',
-            }}
-            title="Toggle NASA scientific dimensions specification"
-          >
-            <Info size={14} />
-          </button>
-        </div>
-
-        {/* Target Focus Group: Target: Moon | Earth | Sun | System */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-            background: '#0a0e17ee',
-            padding: '3px 8px',
-            borderRadius: 10,
-            border: '1px solid #23333e',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <span style={{ color: '#687a86', paddingRight: 4, fontSize: 10 }}>Target:</span>
-          {(['moon', 'earth', 'sun', 'system'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => handleFocus(t)}
+            {/* Panel Glass Container */}
+            <div
               style={{
-                padding: '3px 9px',
-                borderRadius: 6,
-                background: focusTarget === t ? '#ffffff22' : 'transparent',
-                color: focusTarget === t ? '#ffffff' : '#8899a6',
-                border: 'none',
-                fontWeight: focusTarget === t ? 700 : 500,
-                cursor: 'pointer',
-                textTransform: 'capitalize',
+                background: 'rgba(8, 14, 23, 0.88)',
+                border: '1px solid rgba(35, 51, 62, 0.7)',
+                borderRadius: 12,
+                backdropFilter: 'blur(16px)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                overflow: 'hidden',
               }}
             >
-              {t}
-            </button>
-          ))}
-        </div>
+              {/* Panel Header */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: panelOpen ? '10px 12px 8px' : '10px 0',
+                  borderBottom: panelOpen ? '1px solid rgba(35,51,62,0.5)' : 'none',
+                  cursor: 'pointer',
+                }}
+                onClick={() => setPanelOpen(!panelOpen)}
+              >
+                {panelOpen ? (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Layers size={12} color="#91c6d4" />
+                      <span style={{ color: '#91c6d4', fontSize: 9, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>
+                        3D Controls
+                      </span>
+                    </div>
+                    <ChevronLeft size={13} color="#687a86" style={{ transition: 'transform 0.2s ease' }} />
+                  </>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                    <ChevronRight size={15} color="#91c6d4" />
+                  </div>
+                )}
+              </div>
 
-        {/* Vectors Mode Group: Vectors: All | Earth LOS | Sun Rays | Off */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-            background: '#0a0e17ee',
-            padding: '3px 8px',
-            borderRadius: 10,
-            border: '1px solid #23333e',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <span style={{ color: '#687a86', paddingRight: 4, fontSize: 10 }}>Vectors:</span>
-          {[
-            { id: 'all', label: 'All', activeColor: '#f0a970', textColor: '#120e07' },
-            { id: 'dte', label: 'Earth LOS', activeColor: '#91c6d4', textColor: '#060910' },
-            { id: 'solar', label: 'Sun Rays', activeColor: '#f0a970', textColor: '#120e07' },
-            { id: 'off', label: 'Off', activeColor: '#ffffff25', textColor: '#ffffff' },
-          ].map((v) => (
-            <button
-              key={v.id}
-              onClick={() => setVectorMode(v.id as any)}
-              style={{
-                padding: '3px 9px',
-                borderRadius: 6,
-                background: vectorMode === v.id ? v.activeColor : 'transparent',
-                color: vectorMode === v.id ? v.textColor : '#8899a6',
-                border: 'none',
-                fontWeight: vectorMode === v.id ? 700 : 500,
-                cursor: 'pointer',
-              }}
-            >
-              {v.label}
-            </button>
-          ))}
-        </div>
-      </div>
+              {/* Categories - only visible when panel is open */}
+              {panelOpen && (
+                <div style={{ padding: '4px 0 6px' }}>
+                  {/* ── CATEGORY 1: VISUAL SCALE ── */}
+                  {(() => {
+                    const cat = 'scale' as const;
+                    const isExpanded = expandedCategory === cat;
+                    const activeLabel = scaleMode === 'proportional' ? 'Prop' : '1:1';
+                    return (
+                      <div style={{ borderBottom: '1px solid rgba(35,51,62,0.3)' }}>
+                        <div
+                          onClick={() => setExpandedCategory(isExpanded ? null : cat)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '7px 12px',
+                            cursor: 'pointer',
+                            transition: 'background 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(145,198,212,0.06)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                            <Maximize2 size={11} color={isExpanded ? '#91c6d4' : '#687a86'} style={{ transition: 'color 0.2s ease' }} />
+                            <span style={{ color: isExpanded ? '#d6e4e4' : '#8899a6', fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', transition: 'color 0.2s ease' }}>
+                              SCALE
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <span style={{
+                              fontSize: 9,
+                              padding: '1px 6px',
+                              borderRadius: 4,
+                              background: 'rgba(145,198,212,0.12)',
+                              color: '#91c6d4',
+                              fontWeight: 600,
+                            }}>
+                              {activeLabel}
+                            </span>
+                            <ChevronDown
+                              size={11}
+                              color="#687a86"
+                              style={{
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.25s cubic-bezier(0.2,0.8,0.2,1)',
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            maxHeight: isExpanded ? 120 : 0,
+                            opacity: isExpanded ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: 'max-height 0.28s cubic-bezier(0.2,0.8,0.2,1), opacity 0.22s ease',
+                          }}
+                        >
+                          <div style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {[
+                              { value: 'proportional' as const, label: 'Proportional' },
+                              { value: 'true' as const, label: '1:1 (True Scale)' },
+                            ].map((opt) => (
+                              <button
+                                key={opt.value}
+                                onClick={() => setScaleMode(opt.value)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 7,
+                                  padding: '5px 8px',
+                                  borderRadius: 6,
+                                  border: scaleMode === opt.value ? '1px solid rgba(145,198,212,0.35)' : '1px solid transparent',
+                                  background: scaleMode === opt.value ? 'rgba(145,198,212,0.1)' : 'transparent',
+                                  color: scaleMode === opt.value ? '#d6e4e4' : '#687a86',
+                                  cursor: 'pointer',
+                                  fontSize: 10,
+                                  fontWeight: scaleMode === opt.value ? 600 : 400,
+                                  textAlign: 'left',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <div style={{
+                                  width: 6, height: 6, borderRadius: '50%',
+                                  background: scaleMode === opt.value ? '#91c6d4' : 'rgba(104,122,134,0.3)',
+                                  boxShadow: scaleMode === opt.value ? '0 0 6px rgba(145,198,212,0.5)' : 'none',
+                                  transition: 'all 0.2s ease',
+                                }} />
+                                {opt.label}
+                              </button>
+                            ))}
+                            <button
+                              onClick={() => setShowScaleDetails(!showScaleDetails)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 7,
+                                padding: '5px 8px',
+                                borderRadius: 6,
+                                border: '1px solid transparent',
+                                background: 'transparent',
+                                color: '#687a86',
+                                cursor: 'pointer',
+                                fontSize: 9,
+                                fontWeight: 400,
+                                textAlign: 'left',
+                                transition: 'color 0.15s ease',
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.color = '#91c6d4'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.color = '#687a86'; }}
+                            >
+                              <Info size={10} />
+                              NASA Specs
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── CATEGORY 2: TARGET BODY ── */}
+                  {(() => {
+                    const cat = 'target' as const;
+                    const isExpanded = expandedCategory === cat;
+                    const activeLabel = focusTarget.charAt(0).toUpperCase() + focusTarget.slice(1);
+                    return (
+                      <div style={{ borderBottom: '1px solid rgba(35,51,62,0.3)' }}>
+                        <div
+                          onClick={() => setExpandedCategory(isExpanded ? null : cat)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '7px 12px',
+                            cursor: 'pointer',
+                            transition: 'background 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(145,198,212,0.06)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                            <Target size={11} color={isExpanded ? '#91c6d4' : '#687a86'} style={{ transition: 'color 0.2s ease' }} />
+                            <span style={{ color: isExpanded ? '#d6e4e4' : '#8899a6', fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', transition: 'color 0.2s ease' }}>
+                              TARGET
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <span style={{
+                              fontSize: 9,
+                              padding: '1px 6px',
+                              borderRadius: 4,
+                              background: 'rgba(145,198,212,0.12)',
+                              color: '#91c6d4',
+                              fontWeight: 600,
+                            }}>
+                              {activeLabel}
+                            </span>
+                            <ChevronDown
+                              size={11}
+                              color="#687a86"
+                              style={{
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.25s cubic-bezier(0.2,0.8,0.2,1)',
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            maxHeight: isExpanded ? 180 : 0,
+                            opacity: isExpanded ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: 'max-height 0.28s cubic-bezier(0.2,0.8,0.2,1), opacity 0.22s ease',
+                          }}
+                        >
+                          <div style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {(['moon', 'earth', 'sun', 'system'] as const).map((t) => (
+                              <button
+                                key={t}
+                                onClick={() => handleFocus(t)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 7,
+                                  padding: '5px 8px',
+                                  borderRadius: 6,
+                                  border: focusTarget === t ? '1px solid rgba(145,198,212,0.35)' : '1px solid transparent',
+                                  background: focusTarget === t ? 'rgba(145,198,212,0.1)' : 'transparent',
+                                  color: focusTarget === t ? '#d6e4e4' : '#687a86',
+                                  cursor: 'pointer',
+                                  fontSize: 10,
+                                  fontWeight: focusTarget === t ? 600 : 400,
+                                  textAlign: 'left',
+                                  textTransform: 'capitalize',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <div style={{
+                                  width: 6, height: 6, borderRadius: '50%',
+                                  background: focusTarget === t ? '#91c6d4' : 'rgba(104,122,134,0.3)',
+                                  boxShadow: focusTarget === t ? '0 0 6px rgba(145,198,212,0.5)' : 'none',
+                                  transition: 'all 0.2s ease',
+                                }} />
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── CATEGORY 3: VECTOR OVERLAYS ── */}
+                  {(() => {
+                    const cat = 'vectors' as const;
+                    const isExpanded = expandedCategory === cat;
+                    const vecLabels: Record<string, string> = { all: 'All', dte: 'LOS', solar: 'Sun', off: 'Off' };
+                    const activeLabel = vecLabels[vectorMode] || 'All';
+                    return (
+                      <div style={{ borderBottom: '1px solid rgba(35,51,62,0.3)' }}>
+                        <div
+                          onClick={() => setExpandedCategory(isExpanded ? null : cat)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '7px 12px',
+                            cursor: 'pointer',
+                            transition: 'background 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(240,169,112,0.06)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                            <Radio size={11} color={isExpanded ? '#f0a970' : '#687a86'} style={{ transition: 'color 0.2s ease' }} />
+                            <span style={{ color: isExpanded ? '#d6e4e4' : '#8899a6', fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', transition: 'color 0.2s ease' }}>
+                              VECTORS
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <span style={{
+                              fontSize: 9,
+                              padding: '1px 6px',
+                              borderRadius: 4,
+                              background: 'rgba(240,169,112,0.12)',
+                              color: '#f0a970',
+                              fontWeight: 600,
+                            }}>
+                              {activeLabel}
+                            </span>
+                            <ChevronDown
+                              size={11}
+                              color="#687a86"
+                              style={{
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.25s cubic-bezier(0.2,0.8,0.2,1)',
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            maxHeight: isExpanded ? 180 : 0,
+                            opacity: isExpanded ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: 'max-height 0.28s cubic-bezier(0.2,0.8,0.2,1), opacity 0.22s ease',
+                          }}
+                        >
+                          <div style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {[
+                              { id: 'all' as const, label: 'All Vectors', accent: '#f0a970' },
+                              { id: 'dte' as const, label: 'Earth LOS', accent: '#91c6d4' },
+                              { id: 'solar' as const, label: 'Sun Rays', accent: '#f0a970' },
+                              { id: 'off' as const, label: 'Off', accent: '#687a86' },
+                            ].map((v) => (
+                              <button
+                                key={v.id}
+                                onClick={() => setVectorMode(v.id)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 7,
+                                  padding: '5px 8px',
+                                  borderRadius: 6,
+                                  border: vectorMode === v.id ? `1px solid ${v.accent}44` : '1px solid transparent',
+                                  background: vectorMode === v.id ? `${v.accent}18` : 'transparent',
+                                  color: vectorMode === v.id ? '#d6e4e4' : '#687a86',
+                                  cursor: 'pointer',
+                                  fontSize: 10,
+                                  fontWeight: vectorMode === v.id ? 600 : 400,
+                                  textAlign: 'left',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <div style={{
+                                  width: 6, height: 6, borderRadius: '50%',
+                                  background: vectorMode === v.id ? v.accent : 'rgba(104,122,134,0.3)',
+                                  boxShadow: vectorMode === v.id ? `0 0 6px ${v.accent}88` : 'none',
+                                  transition: 'all 0.2s ease',
+                                }} />
+                                {v.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ── CATEGORY 4: DISPLAY SETTINGS ── */}
+                  {(() => {
+                    const cat = 'display' as const;
+                    const isExpanded = expandedCategory === cat;
+                    const activeCount = Object.values(displaySettings).filter(Boolean).length;
+                    return (
+                      <div>
+                        <div
+                          onClick={() => setExpandedCategory(isExpanded ? null : cat)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '7px 12px',
+                            cursor: 'pointer',
+                            transition: 'background 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(145,198,212,0.06)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                            <SlidersHorizontal size={11} color={isExpanded ? '#91c6d4' : '#687a86'} style={{ transition: 'color 0.2s ease' }} />
+                            <span style={{ color: isExpanded ? '#d6e4e4' : '#8899a6', fontSize: 10, fontWeight: 600, letterSpacing: '0.6px', transition: 'color 0.2s ease' }}>
+                              DISPLAY
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <span style={{
+                              fontSize: 9,
+                              padding: '1px 6px',
+                              borderRadius: 4,
+                              background: 'rgba(145,198,212,0.12)',
+                              color: '#91c6d4',
+                              fontWeight: 600,
+                            }}>
+                              {activeCount} ON
+                            </span>
+                            <ChevronDown
+                              size={11}
+                              color="#687a86"
+                              style={{
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.25s cubic-bezier(0.2,0.8,0.2,1)',
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            maxHeight: isExpanded ? 200 : 0,
+                            opacity: isExpanded ? 1 : 0,
+                            overflow: 'hidden',
+                            transition: 'max-height 0.28s cubic-bezier(0.2,0.8,0.2,1), opacity 0.22s ease',
+                          }}
+                        >
+                          <div style={{ padding: '2px 12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {([
+                              { key: 'labels' as const, label: 'Labels' },
+                              { key: 'beacons' as const, label: 'Beacons' },
+                              { key: 'grid' as const, label: 'Grid' },
+                              { key: 'lighting' as const, label: 'Lighting' },
+                            ]).map((opt) => (
+                              <button
+                                key={opt.key}
+                                onClick={() => setDisplaySettings((prev) => ({ ...prev, [opt.key]: !prev[opt.key] }))}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '5px 8px',
+                                  borderRadius: 6,
+                                  border: '1px solid transparent',
+                                  background: 'transparent',
+                                  color: displaySettings[opt.key] ? '#d6e4e4' : '#687a86',
+                                  cursor: 'pointer',
+                                  fontSize: 10,
+                                  fontWeight: displaySettings[opt.key] ? 600 : 400,
+                                  textAlign: 'left',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                {opt.label}
+                                {/* Toggle Switch */}
+                                <div style={{
+                                  width: 28,
+                                  height: 14,
+                                  borderRadius: 7,
+                                  background: displaySettings[opt.key] ? 'rgba(145,198,212,0.35)' : 'rgba(104,122,134,0.2)',
+                                  border: displaySettings[opt.key] ? '1px solid rgba(145,198,212,0.4)' : '1px solid rgba(104,122,134,0.3)',
+                                  position: 'relative',
+                                  transition: 'all 0.2s ease',
+                                }}>
+                                  <div style={{
+                                    width: 10,
+                                    height: 10,
+                                    borderRadius: '50%',
+                                    background: displaySettings[opt.key] ? '#91c6d4' : '#687a86',
+                                    position: 'absolute',
+                                    top: 1,
+                                    left: displaySettings[opt.key] ? 15 : 1,
+                                    transition: 'left 0.2s cubic-bezier(0.2,0.8,0.2,1), background 0.2s ease',
+                                    boxShadow: displaySettings[opt.key] ? '0 0 4px rgba(145,198,212,0.5)' : 'none',
+                                  }} />
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
         </>
       )}
 
@@ -888,9 +1312,9 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         <div
           style={{
             position: 'absolute',
-            top: 96,
-            left: 14,
-            maxWidth: 320,
+            top: 14,
+            left: panelOpen ? 216 : 60,
+            maxWidth: 280,
             background: '#0e1520f5',
             border: '1px solid #283946',
             borderRadius: 10,
