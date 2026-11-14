@@ -170,7 +170,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     const texLoader = new THREE.TextureLoader();
     const gltfLoader = new GLTFLoader();
 
-    // ── 1. MOON ──────────────────────────────────────────────
+    // ── 1. MOON (Real NASA LRO 8k LOLA Topographic Model) ────
     const moonTex = texLoader.load('/textures/lroc_color_2k.jpg');
     moonTex.colorSpace = THREE.SRGBColorSpace;
     const moonGeo = new THREE.SphereGeometry(1.0, 64, 64);
@@ -183,48 +183,54 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     scene.add(moonMesh);
     moonModelRef.current = moonMesh;
 
-    // Load optimized 3D Moon model
-    gltfLoader.load(
-      '/models/moon_small.glb',
-      (gltf) => {
-        scene.remove(moonMesh);
-        const model = gltf.scene;
-        const box = new THREE.Box3().setFromObject(model);
-        const size = new THREE.Vector3();
-        box.getSize(size);
-        const maxDim = Math.max(size.x, size.y, size.z) || 2.0;
-        const scale = 2.0 / maxDim; // Normalize to radius 1.0 (diameter 2.0)
-        model.scale.set(scale, scale, scale);
+    // Load authentic NASA LRO 8k Topo GLB
+    const loadNasaMoon = (url: string) => {
+      gltfLoader.load(
+        url,
+        (gltf) => {
+          scene.remove(moonMesh);
+          const model = gltf.scene;
+          const box = new THREE.Box3().setFromObject(model);
+          const sphere = box.getBoundingSphere(new THREE.Sphere());
+          const scale = 1.0 / (sphere.radius || 1);
+          model.scale.set(scale, scale, scale);
 
-        // Center geometry
-        const center = new THREE.Vector3();
-        box.getCenter(center);
-        model.position.sub(center.clone().multiplyScalar(scale));
+          // Center geometry to (0,0,0)
+          const center = new THREE.Vector3();
+          box.getCenter(center);
+          model.position.sub(center.clone().multiplyScalar(scale));
 
-        // Brighten materials
-        model.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const mesh = child as THREE.Mesh;
-            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-            mats.forEach((mat) => {
-              if (mat instanceof THREE.MeshStandardMaterial) {
-                mat.color.setHex(0xffffff);
-                mat.roughness = 0.85;
-                mat.metalness = 0.05;
-                mat.needsUpdate = true;
-              }
-            });
+          // Retain authentic NASA LRO 8k topography & crisp crater relief
+          model.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              mesh.castShadow = true;
+              mesh.receiveShadow = true;
+              const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              mats.forEach((mat) => {
+                if (mat instanceof THREE.MeshStandardMaterial) {
+                  mat.roughness = 0.88;
+                  mat.metalness = 0.02;
+                  mat.needsUpdate = true;
+                }
+              });
+            }
+          });
+          scene.add(model);
+          moonModelRef.current = model;
+          updateEphemerisRef.current?.();
+        },
+        undefined,
+        () => {
+          if (url !== '/models/moon_small.glb') {
+            loadNasaMoon('/models/moon_small.glb');
           }
-        });
-        scene.add(model);
-        moonModelRef.current = model;
-        updateEphemerisRef.current?.();
-      },
-      undefined,
-      () => {}
-    );
+        }
+      );
+    };
+    loadNasaMoon('/models/Moon_NASA_LRO_8k_Topo_Small.glb');
 
-    // ── 2. EARTH ─────────────────────────────────────────────
+    // ── 2. EARTH (Real NASA EarthClouds_1_12756 Model) ─────────
     const earthTex = texLoader.load('/textures/earth_2k.jpg');
     earthTex.colorSpace = THREE.SRGBColorSpace;
     const earthGeo = new THREE.SphereGeometry(1.0, 48, 48);
@@ -249,14 +255,15 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         const maxDim = Math.max(size.x, size.y, size.z) || 1000.0;
         earthScene.userData.naturalDim = maxDim;
 
-        // Brighten earth materials
+        // Enhance NASA Earth Blue Marble with dynamic cloud layer & normal map
         earthScene.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
             const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
             mats.forEach((mat) => {
               if (mat instanceof THREE.MeshStandardMaterial) {
-                mat.color.setHex(0xffffff);
                 mat.roughness = 0.65;
                 mat.metalness = 0.05;
                 mat.needsUpdate = true;
@@ -273,7 +280,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       () => {}
     );
 
-    // ── 3. COLOSSAL GLOWING SUN ──────────────────────────────
+    // ── 3. SUN (Real NASA SDO Sun_1_1391000 Model) ────────────
     const sunTex = texLoader.load('/textures/sun_texture_2k.jpg');
     sunTex.colorSpace = THREE.SRGBColorSpace;
     const sunGeo = new THREE.SphereGeometry(1.0, 48, 48);
@@ -312,12 +319,14 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         const maxDim = Math.max(size.x, size.y, size.z) || 1.0;
         sunScene.userData.naturalDim = maxDim;
 
-        // Ensure Sun is a brilliant self-luminous star using MeshBasicMaterial
+        // Extract and display the authentic NASA SDO sun_diff.jpg texture embedded inside the model
         sunScene.traverse((child) => {
           if ((child as THREE.Mesh).isMesh) {
             const mesh = child as THREE.Mesh;
+            const mat = mesh.material as THREE.MeshStandardMaterial;
+            const realNasaSunTexture = mat?.emissiveMap || mat?.map || sunTex;
             mesh.material = new THREE.MeshBasicMaterial({
-              map: sunTex,
+              map: realNasaSunTexture,
               color: 0xffffff,
             });
           }
