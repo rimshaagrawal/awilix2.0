@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Search, SlidersHorizontal, Info, ArrowUpRight } from 'lucide-react';
+import { Search, SlidersHorizontal, Info, ArrowUpRight, Layers, LayoutGrid } from 'lucide-react';
 import type { Scenario } from '@/types';
 import { sites } from '@/data/sites';
 import { SectionTitle } from '@/components/common/SectionTitle';
 import { SiteCard } from '@/components/sites/SiteCard';
+import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
+import { ScrollStack } from '@/components/reactbits/ScrollStack';
 
 interface SitesViewProps {
   scenario: Scenario;
@@ -23,6 +25,7 @@ export const SitesView: React.FC<SitesViewProps> = ({
   onOpenSite,
 }) => {
   const [query, setQuery] = useState('');
+  const [layoutMode, setLayoutMode] = useState<'stack' | 'grid'>('grid');
 
   const visibleSites = sites.filter(
     (site) =>
@@ -32,64 +35,140 @@ export const SitesView: React.FC<SitesViewProps> = ({
   );
 
   return (
-    <div className="view-stack">
-      <SectionTitle
-        eyebrow="Candidate sites"
-        title="Candidate landing sites"
-        description="Shortlisted south-pole sites from the NASA and LOLA catalog. Telemetry updates with the active mission window."
-        action={
-          <div className="site-toolbar">
-            <div className="search-input">
-              <Search size={15} />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search candidate landing sites"
-              />
+    <AnimatedContent distance={50} direction="vertical">
+      <div className="view-stack">
+        <SectionTitle
+          eyebrow="Candidate sites / 03"
+          title="Candidate landing sites"
+          animateTitle={true}
+          description="Shortlisted south-pole sites from the NASA and LOLA catalog. Telemetry updates with the active mission window."
+          action={
+            <div className="site-toolbar">
+              <div className="search-input">
+                <Search size={15} />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search candidate landing sites"
+                />
+              </div>
+
+              {/* View Layout Toggle: Grid vs React Bits Scroll Stack */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: 'var(--surface-sunken)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  padding: '2px',
+                }}
+              >
+                <button
+                  className="icon-button"
+                  onClick={() => setLayoutMode('grid')}
+                  title="Grid Layout"
+                  style={{
+                    background: layoutMode === 'grid' ? 'var(--surface-raised)' : 'transparent',
+                    border: 'none',
+                    color: layoutMode === 'grid' ? '#f0ebe1' : '#687a86',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                  }}
+                >
+                  <LayoutGrid size={14} />
+                </button>
+                <button
+                  className="icon-button"
+                  onClick={() => setLayoutMode('stack')}
+                  title="React Bits Scroll Stack Layout"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    background: layoutMode === 'stack' ? 'var(--surface-raised)' : 'transparent',
+                    border: 'none',
+                    color: layoutMode === 'stack' ? '#f0a970' : '#687a86',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontFamily: "'DM Mono', monospace",
+                  }}
+                >
+                  <Layers size={14} />
+                  <span>Stack</span>
+                </button>
+              </div>
+
+              <button className="quiet-button">
+                <SlidersHorizontal size={14} /> Sort by sunlight
+              </button>
             </div>
-            <button className="quiet-button">
-              <SlidersHorizontal size={14} /> Sort by sunlight
-            </button>
+          }
+        />
+
+        <div className="sites-note">
+          <span>
+            <Info size={15} />
+            <strong>{compareIds.length} sites</strong> selected for comparison
+          </span>
+          <button
+            className="text-button"
+            onClick={() => onToggleCompare(selectedSiteId)}
+          >
+            {compareIds.includes(selectedSiteId) ? 'Remove selected' : 'Add selected'}{' '}
+            <ArrowUpRight size={13} />
+          </button>
+        </div>
+
+        {layoutMode === 'stack' ? (
+          <ScrollStack topOffset={30} stackSpacing={18} scaleDecay={0.015}>
+            {visibleSites.map((site) => {
+              const index = sites.findIndex((item) => item.id === site.id);
+              const isSelected = compareIds.includes(site.id);
+
+              return (
+                <div key={site.id} style={{ maxWidth: '780px', margin: '0 auto', width: '100%' }}>
+                  <SiteCard
+                    site={site}
+                    index={index}
+                    selected={isSelected}
+                    scenario={scenario}
+                    onSelect={() => onToggleCompare(site.id)}
+                    onOpen={() => {
+                      onSelectSite(site.id);
+                      onOpenSite(site.id);
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </ScrollStack>
+        ) : (
+          <div className="site-grid">
+            {visibleSites.map((site) => {
+              const index = sites.findIndex((item) => item.id === site.id);
+              const isSelected = compareIds.includes(site.id);
+
+              return (
+                <SiteCard
+                  key={site.id}
+                  site={site}
+                  index={index}
+                  selected={isSelected}
+                  scenario={scenario}
+                  onSelect={() => onToggleCompare(site.id)}
+                  onOpen={() => {
+                    onSelectSite(site.id);
+                    onOpenSite(site.id);
+                  }}
+                />
+              );
+            })}
           </div>
-        }
-      />
-
-      <div className="sites-note">
-        <span>
-          <Info size={15} />
-          <strong>{compareIds.length} sites</strong> selected for comparison
-        </span>
-        <button
-          className="text-button"
-          onClick={() => onToggleCompare(selectedSiteId)}
-        >
-          {compareIds.includes(selectedSiteId) ? 'Remove selected' : 'Add selected'}{' '}
-          <ArrowUpRight size={13} />
-        </button>
+        )}
       </div>
-
-      <div className="site-grid">
-        {visibleSites.map((site) => {
-          const index = sites.findIndex((item) => item.id === site.id);
-          const isSelected = compareIds.includes(site.id);
-
-          return (
-            <SiteCard
-              key={site.id}
-              site={site}
-              index={index}
-              selected={isSelected}
-              scenario={scenario}
-              onSelect={() => onToggleCompare(site.id)}
-              onOpen={() => {
-                onSelectSite(site.id);
-                onOpenSite(site.id);
-              }}
-            />
-          );
-        })}
-      </div>
-    </div>
+    </AnimatedContent>
   );
 };
 
