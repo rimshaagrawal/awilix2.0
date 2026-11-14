@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, ArrowUpRight, Mountain, Shield } from 'lucide-react';
+import { ArrowUpRight, Mountain, Shield } from 'lucide-react';
 import type { Site, Scenario } from '@/types';
 import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalculations';
 import { GlareHover } from '@/components/reactbits/GlareHover';
@@ -8,18 +8,14 @@ import { Magnet } from '@/components/reactbits/Magnet';
 interface SiteCardProps {
   site: Site;
   index: number;
-  selected: boolean;
   scenario: Scenario;
-  onSelect: () => void;
   onOpen: () => void;
 }
 
 export const SiteCard: React.FC<SiteCardProps> = ({
   site,
   index,
-  selected,
   scenario,
-  onSelect,
   onOpen,
 }) => {
   const summary = getSummary(site, scenario);
@@ -32,11 +28,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
       glareOpacity={0.4}
       style={{ borderRadius: '12px', height: '100%' }}
     >
-      <article
-        className={`site-card ${selected ? 'site-card-selected' : ''}`}
-        style={{ height: '100%', cursor: 'pointer' }}
-        onClick={onSelect}
-      >
+      <article className="site-card" style={{ height: '100%' }}>
         <div className="site-card-top">
           <span
             className="site-index"
@@ -44,16 +36,6 @@ export const SiteCard: React.FC<SiteCardProps> = ({
           >
             0{index + 1}
           </span>
-          <button
-            className={`selection-check ${selected ? 'checked' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect();
-            }}
-            aria-label={`${selected ? 'Remove' : 'Add'} ${site.name} ${selected ? 'from' : 'to'} comparison`}
-          >
-            {selected && <Check size={13} />}
-          </button>
         </div>
 
         <div className="site-card-heading">
@@ -99,10 +81,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
           <Magnet padding={40} magnetStrength={3} maxOffset={12}>
             <button
               className="text-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpen();
-              }}
+              onClick={onOpen}
             >
               Open site analysis <ArrowUpRight size={14} />
             </button>

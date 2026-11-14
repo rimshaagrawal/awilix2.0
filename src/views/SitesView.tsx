@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Info, Layers, LayoutGrid } from 'lucide-react';
+import { Layers, LayoutGrid } from 'lucide-react';
 import type { Scenario } from '@/types';
 import { sites } from '@/data/sites';
 import { SectionTitle } from '@/components/common/SectionTitle';
@@ -18,10 +18,7 @@ interface SitesViewProps {
 
 export const SitesView: React.FC<SitesViewProps> = ({
   scenario,
-  selectedSiteId,
-  compareIds,
   onSelectSite,
-  onToggleCompare,
   onOpenSite,
 }) => {
   const [layoutMode, setLayoutMode] = useState<'stack' | 'grid'>('grid');
@@ -80,57 +77,36 @@ export const SitesView: React.FC<SitesViewProps> = ({
           }
         />
 
-        <div className="sites-note">
-          <span>
-            <Info size={15} />
-            <strong>{compareIds.length} sites</strong> selected for comparison · Click any card to select or deselect
-          </span>
-        </div>
-
         {layoutMode === 'stack' ? (
           <ScrollStack topOffset={30} stackSpacing={18} scaleDecay={0.015}>
-            {sites.map((site) => {
-              const index = sites.findIndex((item) => item.id === site.id);
-              const isSelected = compareIds.includes(site.id);
-
-              return (
-                <div key={site.id} style={{ maxWidth: '780px', margin: '0 auto', width: '100%' }}>
-                  <SiteCard
-                    site={site}
-                    index={index}
-                    selected={isSelected}
-                    scenario={scenario}
-                    onSelect={() => onToggleCompare(site.id)}
-                    onOpen={() => {
-                      onSelectSite(site.id);
-                      onOpenSite(site.id);
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </ScrollStack>
-        ) : (
-          <div className="site-grid">
-            {sites.map((site) => {
-              const index = sites.findIndex((item) => item.id === site.id);
-              const isSelected = compareIds.includes(site.id);
-
-              return (
+            {sites.map((site, index) => (
+              <div key={site.id} style={{ maxWidth: '780px', margin: '0 auto', width: '100%' }}>
                 <SiteCard
-                  key={site.id}
                   site={site}
                   index={index}
-                  selected={isSelected}
                   scenario={scenario}
-                  onSelect={() => onToggleCompare(site.id)}
                   onOpen={() => {
                     onSelectSite(site.id);
                     onOpenSite(site.id);
                   }}
                 />
-              );
-            })}
+              </div>
+            ))}
+          </ScrollStack>
+        ) : (
+          <div className="site-grid">
+            {sites.map((site, index) => (
+              <SiteCard
+                key={site.id}
+                site={site}
+                index={index}
+                scenario={scenario}
+                onOpen={() => {
+                  onSelectSite(site.id);
+                  onOpenSite(site.id);
+                }}
+              />
+            ))}
           </div>
         )}
       </div>
