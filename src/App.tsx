@@ -107,7 +107,6 @@ export const App: React.FC = () => {
               scenario={scenario}
               selectedSiteId={selectedSiteId}
               onSelectSite={setSelectedSiteId}
-              onOpenSite={handleVisitTerrain}
             />
           )}
 

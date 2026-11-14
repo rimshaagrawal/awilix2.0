@@ -1,5 +1,5 @@
 import React from 'react';
-import { Move3d, Compass, Sun, Globe2, Radio, ArrowUpRight } from 'lucide-react';
+import { Move3d, Compass, Sun, Globe2, Radio } from 'lucide-react';
 import type { Scenario } from '@/types';
 import { sites, getSite } from '@/data/sites';
 import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalculations';
@@ -7,20 +7,17 @@ import { SectionTitle } from '@/components/common/SectionTitle';
 import { MoonGlobe3D } from '@/components/globe/MoonGlobe3D';
 import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
 import { GlareHover } from '@/components/reactbits/GlareHover';
-import { Magnet } from '@/components/reactbits/Magnet';
 
 interface GlobeViewProps {
   scenario: Scenario;
   selectedSiteId: string;
   onSelectSite: (id: string) => void;
-  onOpenSite: (id: string) => void;
 }
 
 export const GlobeView: React.FC<GlobeViewProps> = ({
   scenario,
   selectedSiteId,
   onSelectSite,
-  onOpenSite,
 }) => {
   const site = getSite(selectedSiteId);
   const summary = getSummary(site, scenario);
@@ -52,7 +49,6 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
             <MoonGlobe3D
               selectedSiteId={selectedSiteId}
               onSelectSite={onSelectSite}
-              onVisitTerrain={() => onOpenSite(selectedSiteId)}
             />
           </div>
 
@@ -102,18 +98,6 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
                   <span>Comms</span>
                   <strong>{summary.comm}%</strong>
                 </div>
-              </div>
-
-              {/* Magnetized Primary Button */}
-              <div style={{ width: '100%', marginTop: 8 }}>
-                <Magnet padding={45} magnetStrength={3} maxOffset={12} style={{ width: '100%' }}>
-                  <button
-                    className="primary-button full-button"
-                    onClick={() => onOpenSite(site.id)}
-                  >
-                    Open 3D terrain analysis <ArrowUpRight size={14} />
-                  </button>
-                </Magnet>
               </div>
 
               <div className="globe-legend">

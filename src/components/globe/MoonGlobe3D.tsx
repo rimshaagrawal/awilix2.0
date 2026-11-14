@@ -5,13 +5,12 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { sites } from '@/data/sites';
 import { SITE_COLORS } from '@/lib/scenarioCalculations';
 import { getSubPoints, computePositions } from '@/lib/ephemeris';
-import { Globe, ArrowRight, Info, RotateCcw } from 'lucide-react';
+import { Globe, Info, RotateCcw } from 'lucide-react';
 import { Crosshair } from '@/components/reactbits/Crosshair';
 
 interface MoonGlobe3DProps {
   selectedSiteId: string;
   onSelectSite: (id: string) => void;
-  onVisitTerrain?: () => void;
   compact?: boolean;
   date?: string;
 }
@@ -32,7 +31,6 @@ const NASA = {
 export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   selectedSiteId,
   onSelectSite,
-  onVisitTerrain,
   compact = false,
   date = '2026-03-01',
 }) => {
@@ -370,34 +368,47 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     scene.add(sunLight.target);
     sunLightRef.current = sunLight;
 
-    // ── 4. SITE MARKERS ──────────────────────────────────────
+    // ── 4. SITE PIN MARKERS ──────────────────────────────────
+    const PIN_STEM_HEIGHT = 0.07;   // Height of pin stem above Moon surface
+    const PIN_HEAD_RADIUS = 0.016;  // Radius of pin head sphere
+    const PIN_STEM_RADIUS = 0.003;  // Thickness of pin stem cylinder
+
     const markerMeshes: { id: string; mesh: THREE.Mesh }[] = [];
     sites.forEach((site, index) => {
-      const pos = latLonToVector3(site.lat, site.lon, 1.015);
       const surfacePos = latLonToVector3(site.lat, site.lon, 1.0);
+      const tipPos = latLonToVector3(site.lat, site.lon, 1.0 + PIN_STEM_HEIGHT);
       const colorHex = parseInt(SITE_COLORS[index % SITE_COLORS.length].replace('#', '0x'), 16);
 
-      // Spherical Beacon
-      const markerGeo = new THREE.SphereGeometry(0.024, 16, 16);
-      const markerMat = new THREE.MeshBasicMaterial({ color: colorHex });
-      const markerMesh = new THREE.Mesh(markerGeo, markerMat);
-      markerMesh.position.copy(pos);
-      markerMesh.userData = { siteId: site.id };
-      markersGroup.add(markerMesh);
-      markerMeshes.push({ id: site.id, mesh: markerMesh });
+      // Surface normal direction (points outward from Moon center)
+      const normal = surfacePos.clone().normalize();
 
-      // Grounding target ring
-      const ringGeo = new THREE.RingGeometry(0.032, 0.042, 24);
-      const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
-      ringMesh.position.copy(pos);
-      ringMesh.lookAt(0, 0, 0);
-      markersGroup.add(ringMesh);
+      // Pin head — small sphere at top of stem
+      const headGeo = new THREE.SphereGeometry(PIN_HEAD_RADIUS, 12, 12);
+      const headMat = new THREE.MeshBasicMaterial({ color: colorHex });
+      const headMesh = new THREE.Mesh(headGeo, headMat);
+      headMesh.position.copy(tipPos);
+      headMesh.userData = { siteId: site.id };
+      markersGroup.add(headMesh);
+      markerMeshes.push({ id: site.id, mesh: headMesh });
 
-      // Pin stem connecting exact Moon surface (radius 1.0) to beacon head (radius 1.015)
-      const stemGeom = new THREE.BufferGeometry().setFromPoints([surfacePos, pos]);
-      const stemMat = new THREE.LineBasicMaterial({ color: colorHex, transparent: true, opacity: 0.75 });
-      markersGroup.add(new THREE.Line(stemGeom, stemMat));
+      // Pin stem — thin cylinder from surface to head
+      const stemGeo = new THREE.CylinderGeometry(PIN_STEM_RADIUS, PIN_STEM_RADIUS, PIN_STEM_HEIGHT, 6);
+      const stemMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.9 });
+      const stemMesh = new THREE.Mesh(stemGeo, stemMat);
+      // Position at midpoint between surface and tip
+      const midPoint = surfacePos.clone().add(tipPos).multiplyScalar(0.5);
+      stemMesh.position.copy(midPoint);
+      // Orient cylinder along the surface normal (cylinder default axis is Y)
+      stemMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+      markersGroup.add(stemMesh);
+
+      // Tiny base dot on the Moon surface
+      const baseGeo = new THREE.CircleGeometry(0.008, 12);
+      const baseMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+      const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+      baseMesh.position.copy(surfacePos.clone().add(normal.clone().multiplyScalar(0.001)));
+      baseMesh.lookAt(0, 0, 0);
+      markersGroup.add(baseMesh);
     });
 
     // Raycaster for clicking site beacons
@@ -437,10 +448,10 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       if (sunModelRef.current) sunModelRef.current.rotation.y += 0.0008;
       starField.rotation.y += 0.0001;
 
-      // Pulse selected beacon
+      // Pulse selected pin head
       markerMeshes.forEach((item) => {
         if (item.id === selectedSiteIdRef.current) {
-          const s = 1.35 + Math.sin(Date.now() * 0.006) * 0.3;
+          const s = 1.4 + Math.sin(Date.now() * 0.005) * 0.35;
           item.mesh.scale.set(s, s, s);
         } else {
           item.mesh.scale.set(1, 1, 1);
@@ -678,31 +689,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
             }}
           >
             <Globe size={13} color="#f0a970" />
-            <span>3D Moon Globe · Click beacon to explore</span>
+            <span>3D Moon Globe · Click pin to explore</span>
           </div>
-          {onVisitTerrain && (
-            <button
-              onClick={onVisitTerrain}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                padding: '5px 12px',
-                background: '#f5cca0',
-                border: '1px solid #f0a970',
-                borderRadius: 8,
-                color: '#120e07',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer',
-                fontFamily: "'Manrope', sans-serif",
-                pointerEvents: 'auto',
-              }}
-            >
-              <span>3D Terrain</span>
-              <ArrowRight size={12} />
-            </button>
-          )}
         </div>
       ) : (
         <>
@@ -739,34 +727,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
               }}
             >
               <Globe size={16} color="#f0a970" />
-              <span>Interactive 3D Moon Globe · Click any beacon to explore</span>
+              <span>Interactive 3D Moon Globe · Click any pin to explore</span>
             </div>
-
-            {/* Visit 3D Terrain Button */}
-            {onVisitTerrain && (
-              <button
-                onClick={onVisitTerrain}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 14px',
-                  background: '#eef0f5',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: 6,
-                  color: '#07080d',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  fontFamily: "'Manrope', sans-serif",
-                  boxShadow: 'none',
-                  pointerEvents: 'auto',
-                }}
-              >
-                <span>Visit 3D Terrain</span>
-                <ArrowRight size={14} />
-              </button>
-            )}
           </div>
 
           {/* ────────────────────────────────────────────────────────── */}

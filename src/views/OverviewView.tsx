@@ -102,7 +102,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               <MoonGlobe3D
                 selectedSiteId={selectedSiteId}
                 onSelectSite={onSelectSite}
-                onVisitTerrain={() => onOpenSite(selectedSiteId)}
                 compact
               />
               <div className="hero-visual-label">
