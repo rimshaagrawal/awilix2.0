@@ -376,17 +376,6 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     scene.add(sunMesh);
     sunModelRef.current = sunMesh;
 
-    // Glowing sun corona billboard
-    const coronaGeo = new THREE.SphereGeometry(1.25, 32, 32);
-    const coronaMat = new THREE.MeshBasicMaterial({
-      color: 0xffaa22,
-      transparent: true,
-      opacity: 0.35,
-      side: THREE.BackSide,
-    });
-    const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
-    sunMesh.add(coronaMesh);
-
     // Glowing PointLight inside the Sun
     const sunPointLight = new THREE.PointLight(0xfff6dd, 4.0, 800);
     sunMesh.add(sunPointLight);
@@ -414,10 +403,6 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
             });
           }
         });
-
-        const cGeo = new THREE.SphereGeometry(maxDim * 0.65, 32, 32);
-        const cMesh = new THREE.Mesh(cGeo, coronaMat);
-        sunScene.add(cMesh);
 
         const pLight = new THREE.PointLight(0xfff6dd, 4.0, 800);
         sunScene.add(pLight);
@@ -759,41 +744,8 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       {/* React Bits Crosshair cursor specifically for the lunar visualization */}
       <Crosshair color="#91c6d4" lineStyle="dashed" thickness={1} smoothing={0.2} />
 
-      {/* ── COMPACT MODE: simple bottom-left label + terrain button ── */}
-      {compact ? (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 10,
-            left: 10,
-            right: 10,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            zIndex: 20,
-            pointerEvents: 'none',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              color: '#f0ebe1',
-              fontSize: 11,
-              fontWeight: 600,
-              fontFamily: "'Manrope', sans-serif",
-              textShadow: '0 2px 8px rgba(0,0,0,0.8)',
-              background: 'rgba(10,14,23,0.7)',
-              padding: '4px 10px',
-              borderRadius: 20,
-            }}
-          >
-            <Globe size={13} color="#f0a970" />
-            <span>3D Moon Globe · Click pin to explore</span>
-          </div>
-        </div>
-      ) : (
+      {/* ── ACCORDION CONTROL PANEL (Hidden in compact mode) ── */}
+      {!compact && (
         <>
           {/* ── LEFT VERTICAL ACCORDION CONTROL PANEL ── */}
           <div
