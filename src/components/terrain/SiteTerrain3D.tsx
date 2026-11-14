@@ -254,6 +254,7 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
     sunLight.shadow.camera.right = 10;
     sunLight.shadow.camera.top = 10;
     sunLight.shadow.camera.bottom = -10;
+    sunLight.shadow.camera.updateProjectionMatrix();
     sunLight.shadow.bias = -0.0005;
     scene.add(sunLight);
     sunLightRef.current = sunLight;

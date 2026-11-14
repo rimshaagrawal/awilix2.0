@@ -205,6 +205,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     sunLight.shadow.camera.right = 9;
     sunLight.shadow.camera.top = 9;
     sunLight.shadow.camera.bottom = -9;
+    sunLight.shadow.camera.updateProjectionMatrix();
     sunLight.shadow.bias = -0.0004;
     scene.add(sunLight);
     sunLightRef.current = sunLight;
