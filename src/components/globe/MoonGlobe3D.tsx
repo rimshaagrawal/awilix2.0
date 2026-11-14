@@ -5,6 +5,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { sites } from '@/data/sites';
 import { SITE_COLORS } from '@/lib/scenarioCalculations';
 import { getSubPoints, computePositions } from '@/lib/ephemeris';
+import gsap from 'gsap';
 import {
   Globe,
   Info,
@@ -712,6 +713,31 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     }
     controlsRef.current.update();
   };
+
+  // Fly-to-zoom: pan/zoom the camera to the selected site marker
+  useEffect(() => {
+    if (compact || !cameraRef.current || !controlsRef.current) return;
+    const site = sites.find((s) => s.id === selectedSiteId);
+    if (!site) return;
+
+    const latRad = (site.lat * Math.PI) / 180;
+    const lonRad = (site.lon * Math.PI) / 180;
+    const nx = Math.cos(latRad) * Math.sin(lonRad);
+    const ny = Math.sin(latRad);
+    const nz = Math.cos(latRad) * Math.cos(lonRad);
+    const dist = 2.2;
+
+    gsap.to(controlsRef.current.target, {
+      x: 0, y: 0, z: 0, duration: 0.7, ease: 'power2.out',
+      onUpdate: () => controlsRef.current?.update(),
+    });
+    gsap.to(cameraRef.current.position, {
+      x: nx * dist, y: ny * dist, z: nz * dist,
+      duration: 1.15, ease: 'power2.inOut',
+      onUpdate: () => controlsRef.current?.update(),
+    });
+    setFocusTarget('moon');
+  }, [selectedSiteId, compact]);
 
   // React to Display Settings toggles
   useEffect(() => {
