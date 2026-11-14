@@ -49,6 +49,11 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   const solarRaysGroupRef = useRef<THREE.Group | null>(null);
   const sunLightRef = useRef<THREE.DirectionalLight | null>(null);
   const updateEphemerisRef = useRef<() => void>(() => {});
+  const selectedSiteIdRef = useRef<string>(selectedSiteId);
+
+  useEffect(() => {
+    selectedSiteIdRef.current = selectedSiteId;
+  }, [selectedSiteId]);
 
   // UI States matching user's screenshot
   const [scaleMode, setScaleMode] = useState<'proportional' | 'true'>('proportional');
@@ -84,11 +89,18 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
 
   // Convert lunar latitude & longitude to 3D Cartesian coordinates on sphere
   const latLonToVector3 = (lat: number, lon: number, radius: number): THREE.Vector3 => {
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lon + 180) * (Math.PI / 180);
-    const x = -(radius * Math.sin(phi) * Math.cos(theta));
-    const z = radius * Math.sin(phi) * Math.sin(theta);
-    const y = radius * Math.cos(phi);
+    const latRad = (lat * Math.PI) / 180;
+    const lonRad = (lon * Math.PI) / 180;
+    // On the NASA Moon GLB model:
+    // +Y is Lunar North Pole (lat = +90°)
+    // -Y is Lunar South Pole (lat = -90°)
+    // +X is Lunar Prime Meridian (lon = 0°, lat = 0°)
+    // -Z is East limb (lon = +90°, lat = 0°)
+    // +Z is West limb (lon = -90°, lat = 0°)
+    // -X is Lunar Far Side (lon = 180°, lat = 0°)
+    const x = radius * Math.cos(latRad) * Math.cos(lonRad);
+    const y = radius * Math.sin(latRad);
+    const z = -radius * Math.cos(latRad) * Math.sin(lonRad);
     return new THREE.Vector3(x, y, z);
   };
 
@@ -191,14 +203,17 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
           scene.remove(moonMesh);
           const model = gltf.scene;
           const box = new THREE.Box3().setFromObject(model);
-          const sphere = box.getBoundingSphere(new THREE.Sphere());
-          const scale = 1.0 / (sphere.radius || 1);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          // Scale so Moon radius is exactly 1.0 (diameter 2.0)
+          const scale = 2.0 / (maxDim || 2.0);
           model.scale.set(scale, scale, scale);
 
           // Center geometry to (0,0,0)
           const center = new THREE.Vector3();
           box.getCenter(center);
-          model.position.sub(center.clone().multiplyScalar(scale));
+          model.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
 
           // Retain authentic NASA LRO 8k topography & crisp crater relief
           model.traverse((child) => {
@@ -358,9 +373,11 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     const markerMeshes: { id: string; mesh: THREE.Mesh }[] = [];
     sites.forEach((site, index) => {
       const pos = latLonToVector3(site.lat, site.lon, 1.015);
+      const surfacePos = latLonToVector3(site.lat, site.lon, 1.0);
       const colorHex = parseInt(SITE_COLORS[index % SITE_COLORS.length].replace('#', '0x'), 16);
 
-      const markerGeo = new THREE.SphereGeometry(0.028, 16, 16);
+      // Spherical Beacon
+      const markerGeo = new THREE.SphereGeometry(0.024, 16, 16);
       const markerMat = new THREE.MeshBasicMaterial({ color: colorHex });
       const markerMesh = new THREE.Mesh(markerGeo, markerMat);
       markerMesh.position.copy(pos);
@@ -368,12 +385,18 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       markersGroup.add(markerMesh);
       markerMeshes.push({ id: site.id, mesh: markerMesh });
 
-      const ringGeo = new THREE.RingGeometry(0.038, 0.048, 24);
+      // Grounding target ring
+      const ringGeo = new THREE.RingGeometry(0.032, 0.042, 24);
       const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
       const ringMesh = new THREE.Mesh(ringGeo, ringMat);
       ringMesh.position.copy(pos);
       ringMesh.lookAt(0, 0, 0);
       markersGroup.add(ringMesh);
+
+      // Pin stem connecting exact Moon surface (radius 1.0) to beacon head (radius 1.015)
+      const stemGeom = new THREE.BufferGeometry().setFromPoints([surfacePos, pos]);
+      const stemMat = new THREE.LineBasicMaterial({ color: colorHex, transparent: true, opacity: 0.75 });
+      markersGroup.add(new THREE.Line(stemGeom, stemMat));
     });
 
     // Raycaster for clicking site beacons
@@ -415,7 +438,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
 
       // Pulse selected beacon
       markerMeshes.forEach((item) => {
-        if (item.id === selectedSiteId) {
+        if (item.id === selectedSiteIdRef.current) {
           const s = 1.35 + Math.sin(Date.now() * 0.006) * 0.3;
           item.mesh.scale.set(s, s, s);
         } else {
@@ -446,15 +469,10 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     const time = new Date(`${date}T${hourStr}:00:00Z`);
 
     const { subsolar, subearth } = getSubPoints(time);
-    const toVector = (p: { lat: number; lon: number }) =>
-      new THREE.Vector3(
-        Math.cos((p.lat * Math.PI) / 180) * Math.sin((p.lon * Math.PI) / 180),
-        Math.sin((p.lat * Math.PI) / 180),
-        Math.cos((p.lat * Math.PI) / 180) * Math.cos((p.lon * Math.PI) / 180)
-      );
+    const toVector = (p: { lat: number; lon: number }) => latLonToVector3(p.lat, p.lon, 1.0);
 
-    const sunDir = toVector(subsolar);
-    const earthDir = toVector(subearth);
+    const sunDir = toVector(subsolar).normalize();
+    const earthDir = toVector(subearth).normalize();
     const sunMag = subsolar.distKm;
     const earthMag = subearth.distKm;
 
@@ -492,13 +510,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
 
       if (showDTE) {
         sites.forEach((site) => {
-          const latRad = (site.lat * Math.PI) / 180;
-          const lonRad = (site.lon * Math.PI) / 180;
-          const siteVec = new THREE.Vector3(
-            Math.cos(latRad) * Math.sin(lonRad),
-            Math.sin(latRad),
-            Math.cos(latRad) * Math.cos(lonRad)
-          );
+          const siteVec = latLonToVector3(site.lat, site.lon, 1.015);
 
           const isVisible = computePositions(site.lat, site.lon, time).earth.alt > 0;
           const color = isVisible ? 0x8fd3e8 : 0xef4444;
@@ -548,13 +560,13 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
             const cosP = Math.cos(phi);
             const sinP = Math.sin(phi);
 
-            // Vector Head on Moon's surface
-            const headX = (sinT * cosP * u.x + sinT * sinP * v.x + cosT * w.x) * 1.003;
-            const headY = (sinT * cosP * u.y + sinT * sinP * v.y + cosT * w.y) * 1.003;
-            const headZ = (sinT * cosP * u.z + sinT * sinP * v.z + cosT * w.z) * 1.003;
+            // Vector Head precisely on Moon's topographic surface (radius 1.002)
+            const headX = (sinT * cosP * u.x + sinT * sinP * v.x + cosT * w.x) * 1.002;
+            const headY = (sinT * cosP * u.y + sinT * sinP * v.y + cosT * w.y) * 1.002;
+            const headZ = (sinT * cosP * u.z + sinT * sinP * v.z + cosT * w.z) * 1.002;
 
             // Vector Tail on the Sun disk facing the Moon
-            const discRadius = Math.min(scaleConfig.sunRadius * 0.38, 12.0);
+            const discRadius = Math.min(scaleConfig.sunRadius * 0.45, 14.0);
             const tailX = sunPos.x + (sinT * cosP * u.x + sinT * sinP * v.x) * discRadius;
             const tailY = sunPos.y + (sinT * cosP * u.y + sinT * sinP * v.y) * discRadius;
             const tailZ = sunPos.z + (sinT * cosP * u.z + sinT * sinP * v.z) * discRadius;
@@ -599,7 +611,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
 
     if (target === 'moon') {
       controlsRef.current.target.set(0, 0, 0);
-      cameraRef.current.position.set(0, 0.8, 3.2);
+      cameraRef.current.position.set(0, -0.4, 3.0);
     } else if (target === 'earth') {
       if (earthModelRef.current) {
         const ep = earthModelRef.current.position;
