@@ -28,6 +28,7 @@ import { ScrollFloat } from '@/components/reactbits/ScrollFloat';
 import { ScrollReveal } from '@/components/reactbits/ScrollReveal';
 import { GlareHover } from '@/components/reactbits/GlareHover';
 import { Magnet } from '@/components/reactbits/Magnet';
+import { OptionWheel } from '@/components/reactbits/OptionWheel';
 
 interface AnalysisViewProps {
   site: Site;
@@ -88,16 +89,18 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
             </p>
           </div>
 
-          <div className="site-switcher">
-            <label>Active site</label>
-            <select value={site.id} onChange={(e) => onSelectSite(e.target.value)}>
-              {sites.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.shortName}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={14} />
+          <div className="site-switcher" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <OptionWheel
+              align="right"
+              label="Active site"
+              selectedId={site.id}
+              onChange={onSelectSite}
+              options={sites.map((item) => ({
+                id: item.id,
+                label: item.shortName,
+                sublabel: `${formatCoordinate(item.lat, 'N', 'S')} · ${formatCoordinate(item.lon, 'E', 'W')}`,
+              }))}
+            />
           </div>
         </div>
 

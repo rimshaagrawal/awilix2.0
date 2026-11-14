@@ -5,6 +5,7 @@ import { DEFAULT_SCENARIO, getSummary } from '@/lib/scenarioCalculations';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { AstraPanel } from '@/components/assistant/AstraPanel';
+import { CustomCursor } from '@/components/reactbits/CustomCursor';
 import { OverviewView } from '@/views/OverviewView';
 import { GlobeView } from '@/views/GlobeView';
 import { SitesView } from '@/views/SitesView';
@@ -72,6 +73,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-shell">
+      <CustomCursor />
       {/* Left Collapsible Navigation Sidebar */}
       <Sidebar
         activeView={activeView}

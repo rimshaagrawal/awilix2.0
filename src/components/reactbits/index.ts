@@ -8,4 +8,5 @@ export { ScrollFloat } from './ScrollFloat';
 export { ScrollStack } from './ScrollStack';
 export { Magnet } from './Magnet';
 export { GlareHover } from './GlareHover';
+export { OptionWheel, type OptionWheelItem } from './OptionWheel';
 

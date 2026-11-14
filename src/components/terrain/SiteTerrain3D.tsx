@@ -17,6 +17,7 @@ import {
   X,
   RotateCcw,
 } from 'lucide-react';
+import { OptionWheel } from '@/components/reactbits/OptionWheel';
 
 interface SiteTerrain3DProps {
   site: Site;
@@ -472,51 +473,16 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
       >
         {/* Left: Site Selector Dropdown & Coordinates */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, pointerEvents: 'auto' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 16px',
-              background: '#10161bf2',
-              border: '1px solid #283742',
-              borderRadius: 20,
-              color: '#f0ebe1',
-              fontSize: 12,
-              fontWeight: 600,
-              fontFamily: "'Manrope', sans-serif",
-            }}
-          >
-            <select
-              value={site.id}
-              onChange={(e) => onSelectSite?.(e.target.value)}
-              style={{
-                background: 'transparent',
-                color: '#f0ebe1',
-                border: 'none',
-                outline: 'none',
-                fontSize: 12,
-                fontWeight: 600,
-                fontFamily: "'Manrope', sans-serif",
-                cursor: 'pointer',
-                appearance: 'none',
-                WebkitAppearance: 'none',
-                paddingRight: 16,
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2382929a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 0 center',
-              }}
-            >
-              {sites.map((s) => (
-                <option key={s.id} value={s.id} style={{ background: '#10161b', color: '#f0ebe1' }}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-            <span style={{ color: '#82929a', fontSize: 11, fontFamily: "'DM Mono', monospace" }}>
-              ({site.lat.toFixed(1)}°S, {Math.abs(site.lon).toFixed(1)}°{site.lon < 0 ? 'W' : 'E'})
-            </span>
-          </div>
+          <OptionWheel
+            align="left"
+            selectedId={site.id}
+            onChange={(id) => onSelectSite?.(id)}
+            options={sites.map((s) => ({
+              id: s.id,
+              label: s.name,
+              sublabel: `${s.lat.toFixed(1)}°S · ${Math.abs(s.lon).toFixed(1)}°${s.lon < 0 ? 'W' : 'E'}`,
+            }))}
+          />
         </div>
 
         {/* Right: Lighting, Raw DEM, Settings, Grid icon */}
