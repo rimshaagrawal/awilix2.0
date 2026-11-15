@@ -851,7 +851,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Layers size={12} color="#91c6d4" />
-                      <span style={{ color: '#91c6d4', fontSize: 9, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase' }}>
+                      <span style={{ color: '#91c6d4', fontSize: 9, fontWeight: 600, letterSpacing: '0.4px' }}>
                         3D Controls
                       </span>
                     </div>
@@ -1312,7 +1312,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
             boxShadow: '0 12px 30px rgba(0,0,0,0.8)',
           }}
         >
-          <div style={{ color: '#f0a970', fontWeight: 700, marginBottom: 6 }}>NASA Physical Scale Calibrations</div>
+          <div style={{ color: '#f0a970', fontWeight: 600, marginBottom: 6 }}>NASA Physical Scale Calibrations</div>
           <div style={{ display: 'grid', gap: 4, lineHeight: 1.5, fontSize: 10, color: '#9bb0ba' }}>
             <div>• Moon Radius: 1,737.4 km (1.0x baseline)</div>
             <div>• Earth Radius: 6,371.0 km (3.67x Moon, 49.3x volume)</div>

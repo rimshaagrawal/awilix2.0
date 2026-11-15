@@ -419,11 +419,11 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
               DEM
             </div>
           </div>
-          <div className="text-xs font-mono font-bold text-[var(--ink)] tracking-widest uppercase">
+          <div className="text-xs font-mono font-bold text-[var(--ink)]">
             Loading masked terrain crop
           </div>
           <div className="text-[11px] font-mono text-[var(--mustard)] mt-1 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)] animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)]" />
             <span>{site.name} · ({coordinateText(site)})</span>
           </div>
           <div className="text-[10px] font-mono text-[var(--ink-faint)] mt-1.5">
@@ -568,7 +568,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
       {/* Bottom Left: Physical Terrain Metrics */}
       <div className="absolute bottom-16 left-4 z-10 bento-plate p-3.5 max-w-xs text-xs space-y-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-mono uppercase text-[var(--ink-faint)]">Elevation Relief</span>
+          <span className="text-[10px] font-mono text-[var(--ink-faint)]">Elevation Relief</span>
           <span className="font-mono font-bold text-[var(--emerald)]">
             {terrainData ? `${terrainData.elevationSpanM.toLocaleString()} m` : 'Loading...'}
           </span>
