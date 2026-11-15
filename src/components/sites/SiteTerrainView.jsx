@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { OptionWheel } from '../reactbits/OptionWheel';
 import { WakeSlider } from '../reactbits/WakeSlider';
+import { SpecularButton } from '../reactbits/SpecularButton';
 
 // Global in-memory cache for instant 0ms site switching
 const terrainCache = new Map();
@@ -539,7 +540,19 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={24} restHeight={5} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
         </div>
         <p className="text-[10px] leading-snug text-[var(--ink-mute)]">{surfaceMode === 'slope' ? 'Cyan 0° → peach ≥30°. Source-limited estimate.' : surfaceMode === 'thermal' ? 'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.' : surfaceMode === 'ice' ? 'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.' : surfaceMode === 'texture' ? 'Baked illumination; use elevation for dynamic lighting.' : 'Elevation color: low slate → high ivory.'}</p>
-        <button className="btn-ghost text-xs font-semibold text-left" onClick={() => { const extent = Math.max(terrainData?.widthKm ?? 10, terrainData?.heightKm ?? 10); cameraRef.current.position.set(0, extent * .6, extent * .9); controlsRef.current.target.set(0, 0, 0); }}>Reset camera</button>
+        <SpecularButton
+          size="sm"
+          radius={8}
+          lineColor="#65d5d0"
+          baseColor="#18252f"
+          textColor="#d6e4e4"
+          intensity={1.1}
+          idleIntensity={0.3}
+          className="font-mono text-xs self-start"
+          onClick={() => { const extent = Math.max(terrainData?.widthKm ?? 10, terrainData?.heightKm ?? 10); cameraRef.current.position.set(0, extent * .6, extent * .9); controlsRef.current.target.set(0, 0, 0); }}
+        >
+          Reset camera
+        </SpecularButton>
         <p className="text-[9px] leading-snug text-[var(--ink-mute)]">ENU north arrow · 1 scene unit = 1 km.<br />Exaggeration affects visuals only.</p>
       </div>
       {/* Bottom Left: Physical Terrain Metrics */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, ArrowUpRight, Plus, X } from 'lucide-react';
+import { BarChart3, ArrowUpRight, X } from 'lucide-react';
 import type { Scenario } from '@/types';
 import { sites, getSite } from '@/data/sites';
 import { getSummary, SITE_COLORS } from '@/lib/scenarioCalculations';
@@ -38,36 +38,22 @@ export const CompareView: React.FC<CompareViewProps> = ({
           title="Trade-offs, made legible"
           animateTitle={true}
           description="Compare the current mission window without collapsing the science into a single unexplained score."
-          action={
-            <Magnet padding={35} magnetStrength={3} maxOffset={10}>
-              <button
-                className="primary-button"
-                onClick={() =>
-                  onToggleCompare(
-                    sites.find((site) => !compareIds.includes(site.id))?.id ?? sites[0].id
-                  )
-                }
-              >
-                <Plus size={14} />
-                Add site
-              </button>
-            </Magnet>
-          }
         />
 
       <div className="compare-chips">
         {sites.map((site, index) => {
           const isSelected = compareIds.includes(site.id);
           return (
-            <button
-              key={site.id}
-              className={isSelected ? 'chip-active' : ''}
-              onClick={() => onToggleCompare(site.id)}
-            >
-              <i style={{ background: SITE_COLORS[index % SITE_COLORS.length] }} />
-              {site.shortName}
-              {isSelected && <X size={13} />}
-            </button>
+            <Magnet padding={25} magnetStrength={3} maxOffset={8} key={site.id}>
+              <button
+                className={isSelected ? 'chip-active' : ''}
+                onClick={() => onToggleCompare(site.id)}
+              >
+                <i style={{ background: SITE_COLORS[index % SITE_COLORS.length] }} />
+                {site.shortName}
+                {isSelected && <X size={13} />}
+              </button>
+            </Magnet>
           );
         })}
       </div>
@@ -152,13 +138,15 @@ export const CompareView: React.FC<CompareViewProps> = ({
                     return (
                       <tr key={site.id}>
                         <td>
-                          <button
-                            className="table-site"
-                            onClick={() => onOpenSite(site.id)}
-                          >
-                            <i style={{ background: siteColor }} />
-                            {site.shortName}
-                          </button>
+                          <Magnet padding={25} magnetStrength={3} maxOffset={8}>
+                            <button
+                              className="table-site"
+                              onClick={() => onOpenSite(site.id)}
+                            >
+                              <i style={{ background: siteColor }} />
+                              {site.shortName}
+                            </button>
+                          </Magnet>
                         </td>
                         <td>
                           <MiniBars value={summary.sunlight} color="#eac18b" />
