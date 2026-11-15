@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   Moon,
-  Database,
-  ExternalLink,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -74,16 +72,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onSelect={(id) => onNavigate(id as View)}
           />
         </nav>
-
-        {sidebarOpen && (
-          <div className="sidebar-bottom">
-            <button className="sidebar-source" onClick={() => onNavigate('overview')} style={{ marginTop: 0 }}>
-              <Database size={14} />
-              <span>Sources and methodology</span>
-              <ExternalLink size={12} />
-            </button>
-          </div>
-        )}
 
         <button
           className="sidebar-toggle"
