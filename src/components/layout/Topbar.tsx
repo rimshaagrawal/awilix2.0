@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, ChevronDown, Clock3 } from 'lucide-react';
+import { Menu, ChevronRight, Clock3 } from 'lucide-react';
 import type { View } from '@/types';
 import { NAVIGATION_ITEMS } from '@/lib/scenarioCalculations';
 
@@ -34,7 +34,7 @@ export const Topbar: React.FC<TopbarProps> = ({ activeView, onToggleSidebar }) =
 
       <div className="breadcrumb">
         <span>Awilix</span>
-        <ChevronDown size={13} />
+        <ChevronRight size={13} />
         <b>{currentLabel}</b>
       </div>
 
