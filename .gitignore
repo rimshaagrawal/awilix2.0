@@ -26,3 +26,8 @@ handoff/
 handoff-3d/
 brag-output*/
 tmp/
+
+# NASA raw datasets too large for Cloudflare Pages (25 MB per-file limit)
+public/models/Moon_NASA_LRO_8k_Topo_Small.glb
+public/terrain/ldem_16_uint.tif
+public/terrain/ldem_16_uint.png
