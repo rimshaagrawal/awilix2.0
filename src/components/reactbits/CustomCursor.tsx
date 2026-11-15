@@ -10,7 +10,8 @@ interface CustomCursorProps {
 
 /**
  * CustomCursor — React Bits Inspired Ring-and-Dot Cursor Component
- * Features a seamless outer tracking ring and pinpoint center dot.
+ * Features a seamless outer tracking ring (rendered as a translucent moon disc
+ * using the bundled LROC texture) and a pinpoint center dot.
  * Positions are stored in persistent refs so the ring never resets or flies in
  * abruptly from the screen edge when hovering over interactive cards.
  * Automatically disabled on mobile/touch devices (pointer: coarse) and reduced motion.
@@ -98,9 +99,10 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
       if (ringRef.current) {
         const scale = isHoveringRef.current ? hoverScale : 1;
         ringRef.current.style.transform = `translate3d(${ringPos.current.x}px, ${ringPos.current.y}px, 0) scale(${scale})`;
-        ringRef.current.style.borderColor = isHoveringRef.current ? '#f0a970' : ringColor;
-        ringRef.current.style.backgroundColor = isHoveringRef.current ? 'rgba(240, 169, 112, 0.08)' : 'transparent';
-        ringRef.current.style.boxShadow = isHoveringRef.current ? '0 0 14px rgba(240, 169, 112, 0.45)' : 'none';
+        ringRef.current.style.opacity = isHoveringRef.current ? '0.95' : '0.7';
+        ringRef.current.style.boxShadow = isHoveringRef.current
+          ? '0 0 18px rgba(240, 169, 112, 0.45), inset -7px -7px 14px rgba(0,0,0,0.55), inset 4px 4px 10px rgba(255,255,255,0.15)'
+          : '0 0 10px rgba(0,0,0,0.5), inset -7px -7px 14px rgba(0,0,0,0.6), inset 4px 4px 10px rgba(255,255,255,0.12)';
       }
 
       animId = requestAnimationFrame(render);
@@ -132,9 +134,12 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
         transition: 'opacity 0.2s ease',
       }}
     >
-      {/* Outer fluid ring */}
+      <style>{`@keyframes awilixMoonDrift { from { background-position: 0% 45%; } to { background-position: 100% 45%; } }`}</style>
+
+      {/* Outer fluid moon disc (translucent lunar surface) */}
       <div
         ref={ringRef}
+        aria-hidden="true"
         style={{
           position: 'absolute',
           top: 0,
@@ -144,10 +149,19 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
           marginTop: -ringSize / 2,
           marginLeft: -ringSize / 2,
           borderRadius: '50%',
-          border: `1.5px solid ${ringColor}`,
-          backgroundColor: 'transparent',
-          transition: 'border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease',
+          backgroundImage: 'url(/textures/lroc_color_2k.jpg)',
+          backgroundSize: '300% 300%',
+          backgroundPosition: 'center 38%',
+          backgroundRepeat: 'no-repeat',
+          opacity: 0.7,
+          border: '1px solid rgba(238, 240, 245, 0.18)',
+          // Soft limb fades the edges so the disc feels like a translucent moon
+          WebkitMaskImage: 'radial-gradient(circle, rgba(0,0,0,0.95) 55%, rgba(0,0,0,0.6) 78%, transparent 100%)',
+          maskImage: 'radial-gradient(circle, rgba(0,0,0,0.95) 55%, rgba(0,0,0,0.6) 78%, transparent 100%)',
+          boxShadow: '0 0 10px rgba(0,0,0,0.5), inset -7px -7px 14px rgba(0,0,0,0.6), inset 4px 4px 10px rgba(255,255,255,0.12)',
+          transition: 'opacity 0.15s ease, box-shadow 0.15s ease',
           willChange: 'transform',
+          animation: 'awilixMoonDrift 48s linear infinite alternate',
         }}
       />
 

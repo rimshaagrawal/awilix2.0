@@ -172,6 +172,16 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     camera.position.set(0, 5.0, 7.5);
     cameraRef.current = camera;
 
+    // Shift the frustum slightly right so the terrain renders a bit left of
+    // center, leaving room for the settings panel docked on the right edge.
+    const applyViewOffset = () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (!w || !h) return;
+      camera.setViewOffset(w, h, Math.round(w * 0.09), 0, w, h);
+    };
+    applyViewOffset();
+
     // RENDERER
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -302,6 +312,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     const handleResize = () => {
       if (!container) return;
       camera.aspect = container.clientWidth / container.clientHeight;
+      applyViewOffset();
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     };
@@ -453,7 +464,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
           }`}
           title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
+          style={{ fontFamily: "'DM Mono', monospace" }}
         >
           <Lightbulb className={`w-3.5 h-3.5 ${lightingMode ? 'text-[var(--paper-dark)] fill-current' : 'text-[var(--coral)]'}`} />
           <span>{lightingMode ? 'Lighting: ON' : 'Lighting: OFF'}</span>
@@ -468,7 +479,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--coral)] border-[rgba(255,171,94,0.3)] shadow-lg shadow-[rgba(255,171,94,0.1)]'
           }`}
           title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
+          style={{ fontFamily: "'DM Mono', monospace" }}
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>{useInterpolation ? 'Bilinear display mesh' : 'Source grid'}</span>
@@ -501,14 +512,43 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         </button>
       </div>
 
-      <div className="absolute top-24 right-4 z-10 bento-plate p-3 terrain-inspector">
-        <label className="text-xs block">Surface layer <select aria-label="Terrain surface layer" value={surfaceMode} onChange={e=>setSurfaceMode(e.target.value)} className="bg-[#111820] border border-[#34434e] rounded p-1 ml-2"><option value="elevation">Elevation</option><option value="slope">Slope estimate</option><option value="thermal">Thermal stability (proxy)</option><option value="ice">Ice evidence (Zenodo proxy)</option><option value="texture">Legacy hillshade</option></select></label>
-        <label className="text-xs block mt-2">Heatmap type <select aria-label="Heatmap type" value={heatmapType} onChange={e=>setHeatmapType(e.target.value)} className="bg-[#111820] border border-[#34434e] rounded p-1 ml-2"><option value="ice">Ice probability (blue)</option><option value="thermal">Thermal (blue→orange)</option></select></label>
-{heatmapOn && <div className="mt-2"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType==='ice'?'Ice probability':'Thermal (cold→warm)'}</div><div style={{height:8,borderRadius:4,background:heatmapType==='ice'?'linear-gradient(to right,#dbeafe,#1e3a8a)':'linear-gradient(to right,#2a6f97,#e39d75)'}}/></div>}
-<label className="text-xs block mt-2">Visual exaggeration: {exaggeration}×<input aria-label="Terrain vertical exaggeration" type="range" min="1" max="5" step="0.5" value={exaggeration} onChange={e=>setExaggeration(Number(e.target.value))} className="w-full"/></label>
-        <p className="text-[10px] text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='thermal'?'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.':surfaceMode==='ice'?'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
-        <button className="btn-ghost text-xs mt-2" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
-        <p className="text-[9px] text-[var(--ink-mute)] mt-1">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
+      <div className="absolute top-20 right-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'DM Mono', monospace", display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span className="font-medium">Surface layer</span>
+          <OptionWheel
+            align="right"
+            selectedId={surfaceMode}
+            onChange={setSurfaceMode}
+            options={[
+              { id: 'elevation', label: 'Elevation' },
+              { id: 'slope', label: 'Slope' },
+              { id: 'texture', label: 'Hillshade' },
+            ]}
+          />
+        </div>
+        <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span className="font-medium">Heatmap</span>
+          <OptionWheel
+            align="right"
+            selectedId={heatmapType}
+            onChange={setHeatmapType}
+            options={[
+              { id: 'ice', label: 'Ice' },
+              { id: 'thermal', label: 'Thermal' },
+            ]}
+          />
+        </div>
+        {heatmapOn && <div className="mt-1"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType==='ice'?'Ice probability':'Thermal (cold→warm)'}</div><div style={{height:8,borderRadius:4,background:heatmapType==='ice'?'linear-gradient(to right,#dbeafe,#1e3a8a)':'linear-gradient(to right,#2a6f97,#e39d75)'}}/></div>}
+        <div className="text-xs" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span className="flex justify-between items-center">
+            <span className="font-medium">Visual exaggeration</span>
+            <span className="font-mono text-[var(--coral)]">{exaggeration}×</span>
+          </span>
+          <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={24} restHeight={5} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
+        </div>
+        <p className="text-[10px] leading-snug text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='thermal'?'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.':surfaceMode==='ice'?'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
+        <button className="btn-ghost text-xs font-semibold text-left" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
+        <p className="text-[9px] leading-snug text-[var(--ink-mute)]">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
       </div>
       {/* Bottom Left: Physical Terrain Metrics */}
       <div className="absolute bottom-16 left-4 z-10 bento-plate p-3.5 max-w-xs text-xs space-y-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">

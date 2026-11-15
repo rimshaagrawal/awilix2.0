@@ -64,7 +64,7 @@ export const ChartPanel: React.FC<ChartPanelProps> = ({ site, scenario }) => {
       <div className="chart-footnote">
         <Info size={13} />
         <span>
-          Reference-sphere visibility estimate · 10-minute sampling synchronized with NASA 2026 lunar ephemeris tables
+          Legacy illustrative series. This chart is not generated from Scenario Lab's science-worker samples and must not be interpreted as a NASA ephemeris result.
         </span>
       </div>
     </div>
