@@ -13,8 +13,10 @@ import { AnalysisView } from '@/views/AnalysisView';
 import { CompareView } from '@/views/CompareView';
 import { ScenarioView } from '@/views/ScenarioView';
 import { AstraView } from '@/views/AstraView';
+import { TripView } from '@/views/TripView';
 import { SiteTerrain3D } from '@/components/terrain/SiteTerrain3D';
 import SiteTerrainView from '@/components/sites/SiteTerrainView';
+import { TripSimulationOverlay } from '@/components/trip/TripSimulationOverlay';
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('overview');
@@ -27,6 +29,7 @@ export const App: React.FC = () => {
   const [scenario, setScenario] = useState<Scenario>(DEFAULT_SCENARIO);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [astraOpen, setAstraOpen] = useState(false);
+  const [tripOpen, setTripOpen] = useState(false);
   const [analysisTab, setAnalysisTab] = useState<'charts' | 'terrain'>('charts');
 
   const selectedSite = getSite(selectedSiteId);
@@ -71,6 +74,12 @@ export const App: React.FC = () => {
     setScenario((current) => ({ ...current, [key]: value }));
   };
 
+  const handleStartTrip = () => setTripOpen(true);
+  const handleExitTrip = () => {
+    setTripOpen(false);
+    setActiveView('overview');
+  };
+
   return (
     <div className="app-shell">
       <CustomCursor />
@@ -108,6 +117,8 @@ export const App: React.FC = () => {
               onOpenSite={handleOpenSite}
             />
           )}
+
+          {activeView === 'trip' && <TripView onStart={handleStartTrip} />}
 
           {activeView === 'terrain' && (
             <div className="view-stack">
@@ -182,6 +193,9 @@ export const App: React.FC = () => {
         onToggle={() => setAstraOpen((prev) => !prev)}
         onClose={() => setAstraOpen(false)}
       />
+
+      {/* Full-screen Lunar Polar Explorer simulation launched from TripView */}
+      {tripOpen && <TripSimulationOverlay onExit={handleExitTrip} />}
     </div>
   );
 };
