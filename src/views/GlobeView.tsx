@@ -1,5 +1,5 @@
 import React from 'react';
-import { Move3d, Compass, Sun, Globe2, Radio } from 'lucide-react';
+import { Move3d, Compass, Sun, Globe2, Radio, ArrowUpRight } from 'lucide-react';
 import type { Scenario } from '@/types';
 import { sites, getSite } from '@/data/sites';
 import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalculations';
@@ -12,12 +12,14 @@ interface GlobeViewProps {
   scenario: Scenario;
   selectedSiteId: string;
   onSelectSite: (id: string) => void;
+  onOpenSite?: (id: string) => void;
 }
 
 export const GlobeView: React.FC<GlobeViewProps> = ({
   scenario,
   selectedSiteId,
   onSelectSite,
+  onOpenSite,
 }) => {
   const site = getSite(selectedSiteId);
   const summary = getSummary(site, scenario);
@@ -70,6 +72,17 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
 
               <h2>{site.name}</h2>
               <p>{site.targetRegion}</p>
+
+              {onOpenSite && (
+                <div style={{ marginTop: 10, marginBottom: 4 }}>
+                  <button
+                    className="text-button"
+                    onClick={() => onOpenSite(selectedSiteId)}
+                  >
+                    Learn more <ArrowUpRight size={14} />
+                  </button>
+                </div>
+              )}
 
               <div className="coordinate-block">
                 <div>
