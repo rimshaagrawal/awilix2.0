@@ -46,19 +46,17 @@ const lunarGrade={
       vec4 sampleColor=texture2D(tDiffuse,vUv);
       vec3 color=sampleColor.rgb;
       float luminance=dot(color,vec3(.2126,.7152,.0722));
-      // Cool blue-violet shadows with restrained warm highlights.
+      // Neutral charcoal shadows with restrained warm highlights.
       // The terrain supplies the palette; this pass unifies it.
       float highlights=smoothstep(.16,1.35,luminance);
-      color*=mix(vec3(.94,.95,1.12),vec3(1.055,1.025,.975),highlights);
+      color*=mix(vec3(.98,.99,1.025),vec3(1.055,1.025,.975),highlights);
       float shadowLift=(1.-smoothstep(.03,.4,luminance))*smoothstep(0.,.025,luminance);
-      color+=vec3(.012,.010,.023)*shadowLift;
+      color+=vec3(.003,.003,.006)*shadowLift;
       float gradedLuminance=dot(color,vec3(.2126,.7152,.0722));
-      color=mix(vec3(gradedLuminance),color,1.14);
-      // A broad feather leaves the central view clear and darkens every edge.
-      vec2 screen=abs(vUv-.5)*2.;
-      float edge=1.-(1.-screen.x*screen.x)*(1.-screen.y*screen.y);
-      float vignette=smoothstep(.28,1.,edge);
-      color*=1.-vignette*.14;
+      color=mix(vec3(gradedLuminance),color,.78);
+      // Restrained sensor texture; stable grain avoids flicker during driving.
+      float grain=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-.5;
+      color*=1.+grain*.035;
       gl_FragColor=vec4(max(color,vec3(0.)),sampleColor.a);
     }`
 };
@@ -68,15 +66,15 @@ export function createSurfaceEffects(scene,camera,ground,ice,rockMaterial,sunlig
   scene.background=new THREE.Color(0x000000);
   // Keep the playable crater clear; only very distant objects fade to black.
   scene.fog=new THREE.Fog(0x000000,300,1100);
-  ground.material.color.set(0x85868d);
+  ground.material.color.set(0x85837f);
   ground.material.bumpMap=null;
   ground.material.dithering=true;
   applyMineralFinish(ground.material);
   applyMineralFinish(rockMaterial,{rock:true});
   applyRadialBoundaryFade(ground.material);
   applyRadialBoundaryFade(rockMaterial);
-  rockMaterial.color.set(0x8b88a7);rockMaterial.emissive.set(0x000000);
-  scene.add(new THREE.HemisphereLight(0xa8bbef,0x494365,.32));
+  rockMaterial.color.set(0x64605a);rockMaterial.emissive.set(0x000000);
+  scene.add(new THREE.HemisphereLight(0xa8bbef,0x494365,.12));
   ice.material.dispose();
   // Frost shares the same lighting and shadow reception as the regolith.
   ice.material=new THREE.MeshPhysicalMaterial({color:0xb2cde6,roughness:.42,metalness:0,clearcoat:.25,clearcoatRoughness:.40,
@@ -195,11 +193,11 @@ export function createSurfaceEffects(scene,camera,ground,ice,rockMaterial,sunlig
       if(!reflectionTarget){
         reflectionTarget=createLunarEnvironment(renderer,sunOffset);
         scene.environment=reflectionTarget.texture;
-        scene.environmentIntensity=.8;
+        scene.environmentIntensity=.35;
       }
       if(!composer){
         composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
-        bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.27,.8,1.05);
+        bloom=new UnrealBloomPass(new THREE.Vector2(1,1),.32,.8,.95);
         composer.addPass(bloom);
         composer.addPass(new ShaderPass(lunarGrade));
         composer.addPass(new OutputPass());
@@ -208,7 +206,7 @@ export function createSurfaceEffects(scene,camera,ground,ice,rockMaterial,sunlig
       // Share the renderer with orbit view without changing its color treatment.
       const toneMapping=renderer.toneMapping,exposure=renderer.toneMappingExposure;
       renderer.toneMapping=THREE.AgXToneMapping;
-      renderer.toneMappingExposure=.95;
+      renderer.toneMappingExposure=1.12;
       try{composer.render();}
       finally{renderer.toneMapping=toneMapping;renderer.toneMappingExposure=exposure;}
     },

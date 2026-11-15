@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { clearCameraPosition } from './chase-camera.js';
 import { hudFrame } from './hud-frame.js';
 
-export function createPhotoEncounter({element,scene,camera,panel,width,height,position,rover,physics,sampleFloor,rocks,eyeHeight,clearInput,releaseMouse,promptText='Scan image',resultHtml='<h2>Aaryan Srivastava</h2><p>Lunar Creature.</p>',setupCard,getReturnView,reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false}) {
+export function createPhotoEncounter({element,scene,camera,panel,width,height,position,rover,physics,sampleFloor,rocks,eyeHeight,clearInput,releaseMouse,promptText='Scan image',resultHtml='<h2>Aaryan Srivastava</h2><p>Lunar Creature.</p>',setupCard,getReturnView,scanAudio,reducedMotion=()=>globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false}) {
   const ui=document.createElement('div');
   ui.className='photo-encounter';ui.hidden=true;
   ui.innerHTML=`<button class="scan-prompt hud-panel" hidden>${hudFrame()}<kbd>K</kbd><span><span class="hud-caption">TARGET IN RANGE</span>${promptText}</span></button>
@@ -52,6 +52,7 @@ export function createPhotoEncounter({element,scene,camera,panel,width,height,po
   const busy=()=>phase==='approach'||phase==='align'||phase==='scan'||phase==='return';
   function closeCard(){
     if(phase!=='done'||card.hidden)return;
+    scanAudio?.cancelScan();
     phase='return';elapsed=0;returnDuration=reducedMotion()?0:1.15;
     clearInput();physics.reset();cardMedia?.hide();
     card.setAttribute('data-closing','');
@@ -69,6 +70,7 @@ export function createPhotoEncounter({element,scene,camera,panel,width,height,po
   function nearby(){panel.getWorldPosition(target);return Math.hypot(position.x-target.x,position.z-target.z)<17 && Math.abs(position.y-eyeHeight-sampleFloor(position.x,position.z))<4;}
   function startScan(){
     if(!enabled||busy()||!nearby())return;
+    scanAudio?.prepareScan();
     normal.set(0,0,1).applyQuaternion(panel.getWorldQuaternion(rotation));
     destination.copy(target).addScaledVector(normal,9);
     clearInput();physics.reset();
@@ -91,6 +93,7 @@ export function createPhotoEncounter({element,scene,camera,panel,width,height,po
     resume:closeCard,
     start:startScan,
     setActive(value){
+      scanAudio?.cancelScan();
       enabled=value;ui.hidden=!value;phase='idle';elapsed=0;discovered=false;
       prompt.hidden=true;status.hidden=true;hideCard();grid.visible=false;beam.visible=false;
     },
@@ -132,6 +135,7 @@ export function createPhotoEncounter({element,scene,camera,panel,width,height,po
         grid.visible=true;beam.visible=true;
         rover.faceTowards(target,dt);
         const progress=Math.min(elapsed/3,1);gridMaterial.uniforms.progress.value=progress;
+        scanAudio?.scanProgress(progress);
         statusText.textContent=`SCANNING · ${Math.round(progress*100)}%`;
         panel.updateMatrixWorld(true);
         left.set(-width/2,height*(.5-progress),.09).applyMatrix4(panel.matrixWorld);
@@ -139,7 +143,7 @@ export function createPhotoEncounter({element,scene,camera,panel,width,height,po
         const vertices=beamGeometry.attributes.position;
         vertices.setXYZ(0,position.x,position.y-.35,position.z);
         vertices.setXYZ(1,left.x,left.y,left.z);vertices.setXYZ(2,right.x,right.y,right.z);vertices.needsUpdate=true;
-        if(progress===1){phase='done';discovered=true;grid.visible=false;beam.visible=false;status.hidden=true;card.hidden=false;clearInput();releaseMouse();}
+        if(progress===1){phase='done';discovered=true;grid.visible=false;beam.visible=false;status.hidden=true;card.hidden=false;clearInput();releaseMouse();scanAudio?.finishScan();}
       }
       // A wider, raised chase angle keeps both the rover and entire photo visible.
       viewTarget.copy(target).lerp(position,.28);
