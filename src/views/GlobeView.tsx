@@ -26,7 +26,7 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
     <AnimatedContent distance={45} direction="vertical">
       <div className="view-stack">
         <SectionTitle
-          eyebrow="Lunar globe / 01"
+          eyebrow=""
           title="The south pole, in context."
           animateTitle={true}
           description="Authentic 3D Celestial System with NASA 3D LRO topographic geometry. Rotate, zoom, and select candidate landing site markers."
@@ -62,7 +62,6 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
           >
             <div className="panel selected-readout">
               <div className="readout-label">
-                <span className="eyebrow">Selected site</span>
                 <span className="site-status">
                   <span />
                   Tracked

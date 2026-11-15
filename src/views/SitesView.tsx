@@ -27,7 +27,7 @@ export const SitesView: React.FC<SitesViewProps> = ({
     <AnimatedContent distance={50} direction="vertical">
       <div className="view-stack">
         <SectionTitle
-          eyebrow="Candidate sites / 03"
+          eyebrow=""
           title="Candidate landing sites"
           animateTitle={true}
           description="Shortlisted south-pole sites from the NASA and LOLA catalog. Telemetry updates with the active mission window."
