@@ -375,7 +375,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
 
       {/* High-Tech NASA Altimetry Acquisition HUD Overlay */}
       {loading && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#060910]/85 backdrop-blur-md animate-fade-in pointer-events-none">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#060910]/85 backdrop-blur-md animate-fade-in pointer-events-none" style={{ paddingLeft: '12%' }}>
           <div className="relative mb-3">
             <div className="w-12 h-12 rounded-full border-2 border-[var(--coral)] border-t-transparent animate-spin" />
             <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-[var(--coral)] font-bold">
@@ -427,6 +427,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
           }`}
           title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
+          style={{ fontFamily: "'Manrope', sans-serif" }}
         >
           <Lightbulb className={`w-3.5 h-3.5 ${lightingMode ? 'text-[var(--paper-dark)] fill-current' : 'text-[var(--coral)]'}`} />
           <span>{lightingMode ? 'Lighting: ON' : 'Lighting: OFF'}</span>
@@ -441,6 +442,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--coral)] border-[rgba(255,171,94,0.3)] shadow-lg shadow-[rgba(255,171,94,0.1)]'
           }`}
           title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
+          style={{ fontFamily: "'Manrope', sans-serif" }}
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>{useInterpolation ? 'Bilinear display mesh' : 'Source grid'}</span>
@@ -460,8 +462,20 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         </button>
       </div>
 
-      <div className="absolute top-24 right-4 z-10 bento-plate p-3 terrain-inspector">
-        <label className="text-xs block">Surface layer <select aria-label="Terrain surface layer" value={surfaceMode} onChange={e=>setSurfaceMode(e.target.value)} className="bg-[#111820] border border-[#34434e] rounded p-1 ml-2"><option value="elevation">Elevation</option><option value="slope">Slope estimate</option><option value="texture">Legacy hillshade</option></select></label>
+      <div className="absolute top-24 left-4 z-10 bento-plate p-3 terrain-inspector" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <div className="text-xs block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span>Surface layer</span>
+          <OptionWheel
+            align="left"
+            selectedId={surfaceMode}
+            onChange={setSurfaceMode}
+            options={[
+              { id: 'elevation', label: 'Elevation' },
+              { id: 'slope', label: 'Slope' },
+              { id: 'texture', label: 'Hillshade' },
+            ]}
+          />
+        </div>
         <div className="text-xs block mt-2">
           <span className="flex justify-between"><span>Visual exaggeration</span><span className="font-mono text-[var(--coral)]">{exaggeration}×</span></span>
           <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={28} restHeight={6} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
