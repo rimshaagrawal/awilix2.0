@@ -44,8 +44,10 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
   const [lightingMode, setLightingMode] = useState(false); // Global inspect fill
   const [useInterpolation, setUseInterpolation] = useState(true); // Raw DEM vs Continuous
   const [wireframe, setWireframe] = useState(false);
-  const [terrainData, setTerrainData] = useState(terrainCache.get(site.id) || null);
-  const [loading, setLoading] = useState(!terrainCache.has(site.id));
+  // terrainCache stores fetch promises, not resolved terrain objects. Starting
+  // state from that cache can render a Promise as terrainData on route revisit.
+  const [terrainData, setTerrainData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [telemetry, setTelemetry] = useState(null);
   const [exaggeration, setExaggeration] = useState(1.0); // 1.0 = Real 1:1 Physical Aspect Ratio
   const [surfaceMode, setSurfaceMode] = useState('elevation');
@@ -300,16 +302,24 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     };
     animate();
 
-    const handleResize = () => {
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
+    // Route transitions and sidebar changes can resize this container without
+    // a window resize event. Observe the element and measure after first layout.
+    const resizeRenderer = () => {
+      const { width, height } = container.getBoundingClientRect();
+      if (width < 1 || height < 1) return;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(Math.round(width), Math.round(height));
     };
-    window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(resizeRenderer);
+    resizeObserver.observe(container);
+    window.addEventListener('resize', resizeRenderer);
+    const initialResizeFrame = requestAnimationFrame(resizeRenderer);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', resizeRenderer);
+      resizeObserver.disconnect();
+      cancelAnimationFrame(initialResizeFrame);
       cancelAnimationFrame(animFrameRef.current);
       controls.dispose();
       renderer.dispose();
@@ -441,7 +451,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           {/* 20 MPP Resolution Badge - neatly capped with tooltip so it never overlaps buttons */}
           <div
             className="hidden xl:flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs font-mono bg-[var(--surface-raised)]/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-secondary)] whitespace-nowrap"
-            title={terrainData?.metadata.nativeResolutionDescription ?? 'Polar 80 m DEM · 20 m shadow mask'}
+            title={terrainData?.metadata?.nativeResolutionDescription ?? 'Polar 80 m DEM · 20 m shadow mask'}
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-[var(--semantic-positive)] shrink-0" />
             <span className="truncate max-w-[170px]">80m DEM · 20m mask</span>
