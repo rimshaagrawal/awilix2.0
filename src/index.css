@@ -269,7 +269,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   margin: 6px 0 6px;
   color: var(--text-primary);
   font: 600 20px var(--font-sans);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -505,7 +505,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   background: var(--text-primary);
   font-size: 12px;
   font-weight: 600;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .primary-button:hover {
@@ -562,7 +561,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   margin: 4px 0 0;
   color: var(--text-primary);
   font-size: 16px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   font-weight: 600;
 }
 
@@ -1028,7 +1027,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-primary);
   font-size: 22px;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .selected-readout > p {
@@ -1275,7 +1274,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .site-card-heading p {
@@ -1396,7 +1395,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .chart-legend {
@@ -1705,7 +1704,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   margin: 8px 0 8px;
   color: var(--text-primary);
   font-size: 16px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   font-weight: 600;
 }
 
@@ -2031,7 +2030,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .scenario-result-hero h2 {
   margin: 6px 0 4px;
   font-size: 20px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--text-primary);
 }
 
@@ -2062,7 +2061,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .delta-ring strong {
   color: var(--text-primary);
   font: 600 20px var(--font-sans);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2110,7 +2109,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .delta-values strong {
   color: var(--text-primary);
   font-size: 20px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 

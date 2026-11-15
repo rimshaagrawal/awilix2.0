@@ -97,7 +97,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
             </span>
             <span className="text-[11px] font-mono text-[var(--ink-mute)]">{(site as any).targetRegion}</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold font-sans text-[var(--ink)] mt-1">{site.name}</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold font-sans text-[var(--ink)] mt-1">{site.name}</h1>
           {(site as any).namedAfter && (
             <p className="text-xs text-[var(--ink-mute)] mt-0.5">Named after: {(site as any).namedAfter}</p>
           )}
@@ -123,7 +123,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
             <span className="telemetry-chip sun text-[10px]">Solar Power</span>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-extrabold font-mono text-[var(--coral)]">
+            <div className="text-3xl font-semibold font-mono text-[var(--coral)]">
               {scenario ? `${power.hours}h` : '…'}
             </div>
             <div className="text-[11px] font-mono text-[var(--ink-mute)] mt-1 flex justify-between">
@@ -147,7 +147,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
             <span className="telemetry-chip earth text-[10px]">Radio Link</span>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-extrabold font-mono text-[var(--mustard)]">
+            <div className="text-3xl font-semibold font-mono text-[var(--mustard)]">
               {scenario ? `${comm.hours}h` : '…'}
             </div>
             <div className="text-[11px] font-mono text-[var(--ink-mute)] mt-1 flex justify-between">
@@ -171,7 +171,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
             <span className="text-[10px] font-mono text-[var(--ink-faint)]">NASA LOLA</span>
           </div>
           <div className="mt-3">
-            <div className="text-3xl font-extrabold font-mono text-[var(--ink)]">
+            <div className="text-3xl font-semibold font-mono text-[var(--ink)]">
               {((site as any).elevationReliefM || 0).toLocaleString()} m
             </div>
             <div className="text-[11px] font-mono text-[var(--ink-mute)] mt-1 flex justify-between">
@@ -192,7 +192,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
             <span className="text-[10px] font-mono text-[var(--coral)]">South Pole</span>
           </div>
           <div className="mt-3">
-            <div className="text-sm font-bold text-[var(--ink)] truncate">
+            <div className="text-sm font-semibold text-[var(--ink)] truncate">
               {(site as any).mission?.split('(')[0]?.trim()}
             </div>
             <div className="text-[11px] font-mono text-[var(--ink-mute)] mt-1">
@@ -211,7 +211,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
       {/* LFM Ice Prospectivity Panel */}
       <div className="bento-plate p-5 space-y-3">
         <div className="flex items-center justify-between border-b border-[var(--line-soft)] pb-3">
-          <h2 className="text-base font-bold text-[var(--ink)] flex items-center gap-2">
+          <h2 className="text-base font-semibold text-[var(--ink)] flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[var(--coral)]" />
             NASA-IBM Lunar Foundation Model - Ice Prospectivity
           </h2>
@@ -233,25 +233,25 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
                     <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">AI Prospectivity</div>
-                    <div className="text-2xl font-extrabold font-mono mt-1" style={{ color }}>{pct}%</div>
+                    <div className="text-2xl font-semibold font-mono mt-1" style={{ color }}>{pct}%</div>
                   </div>
                   <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
                     <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">Expert (Coyan)</div>
-                    <div className="text-2xl font-extrabold font-mono text-[var(--ink)] mt-1">{Math.round(d.expertProspectivity * 100)}%</div>
+                    <div className="text-2xl font-semibold font-mono text-[var(--ink)] mt-1">{Math.round(d.expertProspectivity * 100)}%</div>
                   </div>
                   <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
                     <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">PSR Coverage</div>
-                    <div className="text-2xl font-extrabold font-mono text-[var(--mustard)] mt-1">{d.psrPercent}%</div>
+                    <div className="text-2xl font-semibold font-mono text-[var(--mustard)] mt-1">{d.psrPercent}%</div>
                   </div>
                   <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
                     <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">Max Temp</div>
-                    <div className="text-2xl font-extrabold font-mono text-[var(--ink)] mt-1">{d.maxTempK} K</div>
+                    <div className="text-2xl font-semibold font-mono text-[var(--ink)] mt-1">{d.maxTempK} K</div>
                   </div>
                 </div>
                 <div className="bg-[var(--paper-dark)] rounded-xl p-3 space-y-1.5">
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-[var(--ink-mute)]">Model agreement (|AI - Expert|)</span>
-                    <span className="text-[var(--ink)] font-bold">{d.disagreement.toFixed(2)}</span>
+                    <span className="text-[var(--ink)] font-semibold">{d.disagreement.toFixed(2)}</span>
                   </div>
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-[var(--ink-mute)]">Slope</span>
@@ -275,7 +275,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
       <div className="bento-plate p-5 space-y-4" data-guide="telemetry-chart">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[var(--line-soft)] pb-4">
           <div>
-            <h2 className="text-base font-bold text-[var(--ink)] flex items-center gap-2">
+            <h2 className="text-base font-semibold text-[var(--ink)] flex items-center gap-2">
               <Sun className="w-4 h-4 text-[var(--coral)]" /> Sun & Earth Elevation Above Horizon
             </h2>
             <p className="text-xs text-[var(--ink-mute)] font-sans">
@@ -336,24 +336,24 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
         <div className="bg-[var(--paper-dark)] border border-[var(--line-soft)] rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 text-[var(--ink-mute)]" />
-            <span className="text-[var(--ink)] font-bold">{activePoint.label || '00:00 UTC'}</span>
+            <span className="text-[var(--ink)] font-semibold">{activePoint.label || '00:00 UTC'}</span>
           </div>
           <div className="flex items-center gap-5">
             <div>
               <span className="text-[var(--ink-faint)] text-[10px] block">Sun Height:</span>
-              <span className="text-[var(--coral)] font-bold">{activePoint.sunAlt}°</span>
+              <span className="text-[var(--coral)] font-semibold">{activePoint.sunAlt}°</span>
             </div>
             <div>
               <span className="text-[var(--ink-faint)] text-[10px] block">Earth Height:</span>
-              <span className="text-[var(--mustard)] font-bold">{activePoint.earthAlt}°</span>
+              <span className="text-[var(--mustard)] font-semibold">{activePoint.earthAlt}°</span>
             </div>
             <div>
               <span className="text-[var(--ink-faint)] text-[10px] block">Solar Angle:</span>
-              <span className="text-[var(--ink)] font-bold">{activePoint.powerEfficiency}%</span>
+              <span className="text-[var(--ink)] font-semibold">{activePoint.powerEfficiency}%</span>
             </div>
             <div>
               <span className="text-[var(--ink-faint)] text-[10px] block">Earth Contact:</span>
-              <span className={`font-bold ${activePoint.commActive ? 'text-green-400' : 'text-red-400'}`}>
+              <span className={`font-semibold ${activePoint.commActive ? 'text-green-400' : 'text-red-400'}`}>
                 {activePoint.commActive === null ? 'UNKNOWN' : activePoint.commActive ? 'ACTIVE' : 'BLOCKED'}
               </span>
             </div>
@@ -364,7 +364,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
       {/* Science insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bento-plate p-5 space-y-3">
-          <h3 className="font-bold text-[var(--ink)] text-sm flex items-center gap-2">
+          <h3 className="font-semibold text-[var(--ink)] text-sm flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[var(--coral)]" /> Why Scientists Chose This Site
           </h3>
           <p className="text-xs text-[var(--ink-soft)] leading-relaxed">{(site as any).whyNASAChose}</p>
@@ -378,7 +378,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
           )}
         </div>
         <div className="bento-plate p-5 space-y-3">
-          <h3 className="font-bold text-[var(--ink)] text-sm flex items-center gap-2">
+          <h3 className="font-semibold text-[var(--ink)] text-sm flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[var(--mustard)]" /> Key Science Goals & Equipment
           </h3>
           <ul className="space-y-2 text-xs text-[var(--ink-soft)]">

@@ -13,7 +13,7 @@
     "illuminationProfile": "Peak illumination (~86-92% annual sunlight on ridge points)",
     "waterIcePotential": "Extremely High (permanently shadowed interior trapped at <40 Kelvin)",
     "whyNASAChose": "The rim towers over 4 kilometers above the floor, capturing grazing sunlight almost continuously while shielding deep cold-traps where volatile water ice has accumulated over billions of years.",
-    "funFact": "Because the Moon's axial tilt is only 1.54°, the Sun glides along the horizon here like a golden beacon. While the rim bathes in solar rays, the crater floor has not seen sunlight in over 2 billion years!",
+    "funFact": "Because the Moon's axial tilt is only 1.54°, the Sun glides along the horizon here like a golden beacon. While the rim bathes in solar rays, the crater floor has not seen sunlight in over 2 billion years.",
     "dteCommVisibility": "Direct-to-Earth link oscillates between +6° and -6° elevation due to lunar libration.",
     "contractor": "Illustrative region; no assigned mission",
     "keyScienceGoals": ["Sample volatile water ice deposits", "Long-duration solar power tower testing", "Direct-to-Earth continuous X-band relay"]
@@ -32,7 +32,7 @@
     "illuminationProfile": "Seasonal high illumination (~70-80% during southern summer)",
     "waterIcePotential": "Moderate to High in localized micro-cold traps",
     "whyNASAChose": "Provides a high vantage point adjacent to Mons Malapert, offering steady Earth line-of-sight and ample solar incidence while serving as the inaugural commercial lunar landing site.",
-    "funFact": "Intuitive Machines' Odysseus became the first American spacecraft to touch down softly on the Moon in more than 50 years (since Apollo 17 in 1972) and the first commercial lander in history to succeed!",
+    "funFact": "Intuitive Machines' Odysseus became the first American spacecraft to touch down softly on the Moon in more than 50 years (since Apollo 17 in 1972) and the first commercial lander in history to succeed.",
     "dteCommVisibility": "High Earth elevation window with exceptional line-of-sight to NASA Deep Space Network.",
     "contractor": "Intuitive Machines (CLPS TO2-IM)",
     "keyScienceGoals": ["Radio astronomy precursor (ROLSES)", "Plume-surface interaction physics", "Autonomous precision navigation demo"]
@@ -51,7 +51,7 @@
     "illuminationProfile": "Broad plateau with prolonged illumination windows (~14 days)",
     "waterIcePotential": "Subsurface volatiles detectable within 1 meter drill depth",
     "whyNASAChose": "A sprawling, flat-topped lunar mountain that stands ~6 km above surrounding terrain, providing a smooth landing zone for the ice-drilling rover.",
-    "funFact": "Officially named by the IAU in 2023, Mons Mouton honors Melba Mouton, who computed orbital trajectories for NASA's early Echo 1 & 2 satellites before the Apollo era!",
+    "funFact": "Officially named by the IAU in 2023, Mons Mouton honors Melba Mouton, who computed orbital trajectories for NASA's early Echo 1 & 2 satellites before the Apollo era.",
     "dteCommVisibility": "Unobstructed line-of-sight to Earth across the entire 14-day landing sequence.",
     "contractor": "Intuitive Machines (CLPS PR-1 / PRIME-1)",
     "keyScienceGoals": ["TRIDENT 1-meter ice drill", "MSolo mass spectrometer volatile analysis", "Nokia lunar 4G/LTE cellular communications test"]
@@ -70,7 +70,7 @@
     "illuminationProfile": "Complex rim-valley lighting with dramatic ridge-cast shadows",
     "waterIcePotential": "Very High (extensive permanently shadowed craters and micro-cold traps)",
     "whyNASAChose": "Nobile's rim features gentle slopes allowing rovers to enter and exit extreme permanently shadowed regions (PSRs) safely to sample ground ice.",
-    "funFact": "Nobile Crater's topography was sculpted by collisions over 3.9 billion years ago; temperatures inside its permanent shadows hover around -248°C (-415°F) — colder than the surface of Pluto!",
+    "funFact": "Nobile Crater's topography was sculpted by collisions over 3.9 billion years ago; temperatures inside its permanent shadows hover around -248°C (-415°F) — colder than the surface of Pluto.",
     "dteCommVisibility": "Requires careful rover trajectory planning to maintain line-of-sight over the crater rim.",
     "contractor": "No mission assignment in this regional catalog",
     "keyScienceGoals": ["Search for water ice and other volatiles", "Map volatile distribution across thermal environments", "Subsurface neutron spectrometry"]
@@ -89,7 +89,7 @@
     "illuminationProfile": "Ultra-prolonged sunlight; one of the highest sunlit points on the Moon",
     "waterIcePotential": "High access to adjacent Permanently Shadowed Regions",
     "whyNASAChose": "Offers an extraordinary combination of continuous solar power generation and proximity to massive volatile deposits in two deep neighboring craters.",
-    "funFact": "The ridge is only a few hundred meters wide in places! Standing on it, you would look down into two dark abysses on either side with the Earth hanging motionless right on your horizon.",
+    "funFact": "The ridge is only a few hundred meters wide in places. Standing on it, you would look down into two dark abysses on either side with the Earth hanging motionless right on your horizon.",
     "dteCommVisibility": "Earth hovers continuously 1° to 8° above the horizon with near 100% direct line-of-sight.",
     "contractor": "Illustrative region; no assigned mission",
     "keyScienceGoals": ["Artemis Base Camp power generation hub", "Cryogenic propellant depot infrastructure", "Long-range robotic traverses"]
@@ -108,7 +108,7 @@
     "illuminationProfile": "Sun never rises more than 1.54° above or below horizon year-round",
     "waterIcePotential": "Variable depending on local rim topography",
     "whyNASAChose": "The geodetic anchor point for all lunar cartography, coordinate systems, and polar stereographic projections.",
-    "funFact": "At the true south pole, all lunar longitudes converge, and all directions point North! The Sun makes a 360° circle around the horizon every 29.5 Earth days.",
+    "funFact": "At the true south pole, all lunar longitudes converge, and all directions point North. The Sun makes a 360° circle around the horizon every 29.5 Earth days.",
     "dteCommVisibility": "Earth stays within ±6.7° of the horizon due to libration.",
     "contractor": "International Astronomical Union / NASA Geodesy",
     "keyScienceGoals": ["Lunar coordinate frame calibration", "Fundamental gravitational physics", "Long-baseline interferometry"]

@@ -57,7 +57,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     >
       {label && (
         <span
-          className="block font-medium tracking-wider uppercase mb-1.5"
+          className="block font-medium mb-1.5"
           style={{ color: '#9ca3af', textAlign: isLeft ? 'left' : 'right', fontSize: 10 }}
         >
           {label}

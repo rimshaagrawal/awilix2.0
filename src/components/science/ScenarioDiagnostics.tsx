@@ -100,7 +100,7 @@ export function ScenarioDiagnostics({ scenario }: { scenario: SiteScenario | nul
     >
       <div className="flex items-center justify-between pb-2 border-b border-[var(--line-soft)]">
         <div>
-          <h3 className="text-xs font-bold text-[var(--ink)] flex items-center gap-1.5">
+          <h3 className="text-xs font-semibold text-[var(--ink)] flex items-center gap-1.5">
             <Clock className="w-3.5 h-3.5 text-[var(--coral)]" />
             Detailed Sunlight & Radio Windows
           </h3>
