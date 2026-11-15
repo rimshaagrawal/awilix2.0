@@ -20,7 +20,7 @@ function framePaths(w,h){
 
 export function hudFrame(tall=false){
   const h=tall?440:100;
-  return `<svg class="hud-frame" viewBox="0 0 320 ${h}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">${framePaths(320,h)}</svg>`;
+  return `<svg class="hud-frame" viewBox="0 0 320 ${h}" preserveAspectRatio="none" aria-hidden="true" focusable="false">${framePaths(320,h)}</svg>`;
 }
 
 export function observeHudFrames(host){
