@@ -6,6 +6,7 @@ interface CustomCursorProps {
   dotSize?: number;
   ringSize?: number;
   hoverScale?: number;
+  hidden?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   dotSize = 6,
   ringSize = 32,
   hoverScale = 1.5,
+  hidden = false,
 }) => {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
@@ -33,6 +35,14 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
   const ringPos = useRef({ x: -200, y: -200 });
   const isHoveringRef = useRef(false);
   const hasInitialized = useRef(false);
+
+  useEffect(() => {
+    if (hidden) {
+      setVisible(false);
+    } else {
+      setVisible(true);
+    }
+  }, [hidden]);
 
   useEffect(() => {
     // Check for touch / mobile device or reduced motion
@@ -130,7 +140,8 @@ export const CustomCursor: React.FC<CustomCursorProps> = ({
         inset: 0,
         pointerEvents: 'none',
         zIndex: 99999,
-        opacity: visible ? 1 : 0,
+        opacity: hidden || !visible ? 0 : 1,
+        visibility: hidden ? 'hidden' : 'visible',
         transition: 'opacity 0.2s ease',
       }}
     >

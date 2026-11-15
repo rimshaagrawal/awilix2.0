@@ -15,6 +15,7 @@ import { CompareView } from '@/views/CompareView';
 import { ScenarioView } from '@/views/ScenarioView';
 import { AstraView } from '@/views/AstraView';
 import { TripView } from '@/views/TripView';
+import SiteTerrainView from '@/components/sites/SiteTerrainView';
 import { TripSimulationOverlay } from '@/components/trip/TripSimulationOverlay';
 import SiteTerrainView from '@/components/sites/SiteTerrainView';
 
@@ -94,7 +95,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-shell">
-      <CustomCursor />
+      <CustomCursor hidden={tripOpen} />
       {/* Left Collapsible Navigation Sidebar */}
       <Sidebar
         activeView={activeView}
