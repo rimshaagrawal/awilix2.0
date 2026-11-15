@@ -62,10 +62,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 <Orbit size={13} style={{ color: 'var(--accent-teal)' }} />
                 <span>Lunar south pole · Mission window 04</span>
               </div>
-              <h1>
-                Lunar landing site
-                <br />
-                ephemeris and terrain.
+              <h1 className="hero-heading">
+                <span className="hero-title-main">Lunar landing site</span>
+                <span className="hero-title-sub">Ephemeris and terrain</span>
               </h1>
               <p>
                 Awilix computes time-dependent solar illumination, direct Earth visibility, and 20-meter LOLA altimetry for six candidate south-pole sites.
