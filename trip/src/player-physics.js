@@ -72,6 +72,8 @@ export function createPlayerPhysics(position, terrain, rocks=[], options={}) {
       const normalLength=slope||1,ux=gx/normalLength,uz=gz/normalLength;
       const uphill=Math.max(0,velocity.x*ux+velocity.z*uz);
       velocity.x-=ux*uphill;velocity.z-=uz*uphill;
+      // Stall the drive instead of sliding along or around the obstruction.
+      velocity.x=0;velocity.z=0;
       position.x=oldX+velocity.x*dt;position.z=oldZ+velocity.z*dt;
       if(terrainFloor(position.x,position.z)>Math.max(oldFloor,feet+stepHeight)+.001){position.x=oldX;position.z=oldZ;}
     }
