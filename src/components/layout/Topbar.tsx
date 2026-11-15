@@ -44,8 +44,6 @@ export const Topbar: React.FC<TopbarProps> = ({ activeView, onToggleSidebar }) =
           <span>UTC</span>
           <strong>{utcTime || '14:32:07'}</strong>
         </div>
-
-
       </div>
     </header>
   );
