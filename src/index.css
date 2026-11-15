@@ -2193,11 +2193,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-primary);
   font-family: var(--font-display);
   font-size: 36px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.15;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  text-shadow: 0 0 32px rgba(94, 196, 190, 0.16);
+  letter-spacing: 0.02em;
 }
 
 .astra-hero p {

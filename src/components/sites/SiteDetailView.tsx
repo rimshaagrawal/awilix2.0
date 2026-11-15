@@ -133,7 +133,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
           </div>
           <div className="w-full bg-[var(--paper-dark)] h-1.5 rounded-full overflow-hidden mt-3">
             <div
-              className="bg-[var(--coral)] h-full rounded-full transition-all duration-300"
+              className="bg-[var(--coral)] h-full rounded-full transition-[width] duration-300"
               style={{ width: `${Math.min(100, (power.hours / (timeRange || 24)) * 100)}%` }}
             />
           </div>
@@ -157,7 +157,7 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
           </div>
           <div className="w-full bg-[var(--paper-dark)] h-1.5 rounded-full overflow-hidden mt-3">
             <div
-              className="bg-[var(--mustard)] h-full rounded-full transition-all duration-300"
+              className="bg-[var(--mustard)] h-full rounded-full transition-[width] duration-300"
               style={{ width: `${Math.min(100, comm.availabilityPercent)}%` }}
             />
           </div>
