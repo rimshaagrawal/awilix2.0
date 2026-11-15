@@ -462,9 +462,9 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         </button>
       </div>
 
-      <div className="absolute top-24 left-4 z-10 bento-plate p-3 terrain-inspector" style={{ fontFamily: "'Manrope', sans-serif" }}>
-        <div className="text-xs block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <span>Surface layer</span>
+      <div className="absolute top-20 left-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'Manrope', sans-serif", display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span className="font-medium">Surface layer</span>
           <OptionWheel
             align="left"
             selectedId={surfaceMode}
@@ -476,13 +476,16 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
             ]}
           />
         </div>
-        <div className="text-xs block mt-2">
-          <span className="flex justify-between"><span>Visual exaggeration</span><span className="font-mono text-[var(--coral)]">{exaggeration}×</span></span>
-          <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={28} restHeight={6} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
+        <div className="text-xs" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span className="flex justify-between items-center">
+            <span className="font-medium">Visual exaggeration</span>
+            <span className="font-mono text-[var(--coral)]">{exaggeration}×</span>
+          </span>
+          <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={24} restHeight={5} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
         </div>
-        <p className="text-[10px] text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
-        <button className="btn-ghost text-xs mt-2" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
-        <p className="text-[9px] text-[var(--ink-mute)] mt-1">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
+        <p className="text-[10px] leading-snug text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
+        <button className="btn-ghost text-xs font-semibold text-left" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
+        <p className="text-[9px] leading-snug text-[var(--ink-mute)]">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
       </div>
       {/* Bottom Left: Physical Terrain Metrics */}
       <div className="absolute bottom-16 left-4 z-10 bento-plate p-3.5 max-w-xs text-xs space-y-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">
