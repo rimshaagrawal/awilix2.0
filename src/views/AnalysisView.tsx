@@ -26,7 +26,6 @@ import iceData from '@/data/ice-prospectivity.json';
 import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
 import { ScrollFloat } from '@/components/reactbits/ScrollFloat';
 import { ScrollReveal } from '@/components/reactbits/ScrollReveal';
-import { GlareHover } from '@/components/reactbits/GlareHover';
 import { Magnet } from '@/components/reactbits/Magnet';
 import { OptionWheel } from '@/components/reactbits/OptionWheel';
 
@@ -246,14 +245,8 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
         </div>
 
         <div className="analysis-lower">
-          <GlareHover
-            glareColor="rgba(145, 198, 212, 0.18)"
-            glareSize={360}
-            glareOpacity={0.35}
-            style={{ borderRadius: '14px', flex: '1 1 500px' }}
-          >
-            <div className="panel detail-panel" style={{ height: '100%' }}>
-              <div className="panel-heading">
+          <div className="panel detail-panel" style={{ flex: '1 1 500px' }}>
+            <div className="panel-heading">
                 <div>
                   <span className="eyebrow">Site record</span>
                   <h2>NASA and LOLA altimetry parameters</h2>
@@ -336,16 +329,10 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
                 ))}
               </div>
             </div>
-          </GlareHover>
+          </div>
 
-          <GlareHover
-            glareColor="rgba(240, 169, 112, 0.16)"
-            glareSize={320}
-            glareOpacity={0.3}
-            style={{ borderRadius: '14px', flex: '1 1 300px' }}
-          >
-            <div className="panel limitation-panel" style={{ height: '100%' }}>
-              <div className="limitation-icon">
+          <div className="panel limitation-panel" style={{ flex: '1 1 300px' }}>
+            <div className="limitation-icon">
                 <CircleHelp size={18} />
               </div>
               <span className="eyebrow">Scientific fidelity notice</span>
@@ -363,7 +350,6 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
                 </Magnet>
               </div>
             </div>
-          </GlareHover>
         </div>
       </div>
     </AnimatedContent>

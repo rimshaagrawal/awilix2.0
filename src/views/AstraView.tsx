@@ -25,7 +25,7 @@ export const AstraView: React.FC<AstraViewProps> = ({
           <h1>
             Telemetry guidance
             <br />
-            and mission context.
+            and mission context
           </h1>
           <p>
             Astra is context-aware by design. The assistant reads active site coordinates, scenario parameters,
