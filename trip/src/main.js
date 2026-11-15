@@ -11,8 +11,6 @@ import { layoutWaypoints } from './waypoint-layout.js';
 
 const assetUrl = path => `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
 
-// The simulation is embedded by the Awilix app. Escape returns from a surface
-// scene as before, then asks the host page to close the full-screen view.
 const embedded = window.parent !== window;
 const notifyHost = type => {
   if (embedded) window.parent.postMessage({ type }, window.location.origin);

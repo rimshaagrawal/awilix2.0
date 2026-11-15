@@ -144,7 +144,7 @@ export function createSurface(element) {
   }
   function updateRover(dt){
     roverFeet.copy(roverPosition);roverFeet.y-=ROVER_COLLIDER.eyeHeight;
-    rover.update(dt,roverFeet,physics.velocity,physics.throttle,physics.grounded,sampleWheelSupport,physics.support);
+    rover.update(dt,roverFeet,physics.velocity,physics.throttle,physics.grounded,sampleWheelSupport);
   }
   const effects=createSurfaceEffects(scene,camera,ground,iceMesh,rockMaterial,sunlight);
   function look(dx,dy){angles.y-=dx*.003;angles.x=THREE.MathUtils.clamp(angles.x-dy*.003,-.85,.12);}
@@ -264,7 +264,7 @@ export function createSurface(element) {
       const r=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
       direction.addScaledVector(forward,f).addScaledVector(right,r);
       if(direction.lengthSq()>1)direction.normalize();
-      physics.update(dt,{x:direction.x,z:direction.z,sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),jetpack:keys.has('Space'),heading:rover.root.rotation.y});
+      physics.update(dt,{x:direction.x,z:direction.z,sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),jetpack:keys.has('Space')});
       updateRover(dt);roverAudio.update(physics.velocity,physics.grounded,physics.throttle);wheelParticles.update(dt,physics.velocity,physics.grounded);followCamera(dt);
     }
   };
