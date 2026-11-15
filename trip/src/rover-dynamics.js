@@ -21,15 +21,16 @@ export function createRoverDynamics(scale=.6,{halfWheelbase=.72}={}){
       const [x,z]=contacts[i];
       const height=sample(position.x+scale*(x*cos+z*sin),position.z+scale*(-x*sin+z*cos));
       // A wheel hanging over a cliff cannot pull the entire chassis toward its floor.
-      heights[i]=THREE.MathUtils.clamp(height,position.y-.35,position.y+.35);
+      // Widen the band so steep slopes (crater walls) still compute correct pitch.
+      heights[i]=THREE.MathUtils.clamp(height,position.y-1.2,position.y+1.2);
     }
     const front=(heights[0]+heights[2])*.5,back=(heights[1]+heights[3])*.5;
     const left=(heights[0]+heights[1])*.5,right=(heights[2]+heights[3])*.5;
     const forward=-velocity.x*sin-velocity.z*cos,side=velocity.x*cos-velocity.z*sin;
     const accel=initialized&&dt>0?THREE.MathUtils.clamp((forward-lastForward)/dt,-24,24):0;
     const sideAccel=initialized&&dt>0?THREE.MathUtils.clamp((side-lastSide)/dt,-24,24):0;
-    const targetPitch=THREE.MathUtils.clamp(Math.atan2(front-back,2*halfWheelbase*scale)+accel*.004,-.65,.65);
-    const targetRoll=THREE.MathUtils.clamp(Math.atan2(right-left,2*scale)-sideAccel*.005,-.65,.65);
+    const targetPitch=THREE.MathUtils.clamp(Math.atan2(front-back,2*halfWheelbase*scale),-1.05,1.05);
+    const targetRoll=THREE.MathUtils.clamp(Math.atan2(right-left,2*scale),-1.05,1.05);
     const targetHeave=THREE.MathUtils.clamp(((front+back)*.5-position.y)/scale,-.45,.15);
     if(!initialized){
       if(grounded){state.pitch=targetPitch;state.roll=targetRoll;state.heave=targetHeave;}
@@ -45,8 +46,8 @@ export function createRoverDynamics(scale=.6,{halfWheelbase=.72}={}){
     while(accumulator+1e-10>=1/120){
       const h=1/120;
       if(grounded){
-        state.pitchVelocity+=((targetPitch-state.pitch)*95-state.pitchVelocity*19)*h;
-        state.rollVelocity+=((targetRoll-state.roll)*105-state.rollVelocity*20)*h;
+        state.pitchVelocity+=((targetPitch-state.pitch)*200-state.pitchVelocity*24)*h;
+        state.rollVelocity+=((targetRoll-state.roll)*200-state.rollVelocity*24)*h;
         state.heaveVelocity+=((targetHeave-state.heave)*145-state.heaveVelocity*24)*h;
       }else{
         // Carry the takeoff rotation into flight; boosters gently stabilize it.
@@ -56,7 +57,7 @@ export function createRoverDynamics(scale=.6,{halfWheelbase=.72}={}){
       }
       for(const key of ['pitch','roll','heave']){
         state[key]+=state[key+'Velocity']*h;
-        const limit=key==='heave'?1.2:.78;
+        const limit=key==='heave'?1.2:1.1;
         if(Math.abs(state[key])>limit){state[key]=Math.sign(state[key])*limit;state[key+'Velocity']=0;}
       }
       accumulator=Math.max(0,accumulator-h);

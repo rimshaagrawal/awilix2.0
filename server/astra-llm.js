@@ -45,7 +45,7 @@ function factSheet() {
 
 let cachedSheet = null;
 
-export function astraConfig(env = process.env) {
+export function astraConfig(env = {}) {
   return {
     apiKey: env.OPENAI_API_KEY || '',
     model: env.OPENAI_MODEL || 'gpt-4o-mini',
