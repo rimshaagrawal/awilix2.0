@@ -26,6 +26,7 @@ import iceData from '@/data/ice-prospectivity.json';
 import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
 import { ScrollFloat } from '@/components/reactbits/ScrollFloat';
 import { ScrollReveal } from '@/components/reactbits/ScrollReveal';
+import { GlareHover } from '@/components/reactbits/GlareHover';
 import { Magnet } from '@/components/reactbits/Magnet';
 import { OptionWheel } from '@/components/reactbits/OptionWheel';
 
@@ -245,11 +246,27 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
         </div>
 
         <div className="analysis-lower">
+<<<<<<< HEAD
           <div className="panel detail-panel" style={{ flex: '1 1 500px' }}>
             <div className="panel-heading">
               <div>
                 <span className="eyebrow">Site record</span>
                 <h2>NASA and LOLA altimetry parameters</h2>
+=======
+          <GlareHover
+            glareColor="rgba(145, 198, 212, 0.18)"
+            glareSize={360}
+            glareOpacity={0.35}
+            style={{ borderRadius: '14px', flex: '1 1 500px' }}
+          >
+            <div className="panel detail-panel" style={{ height: '100%' }}>
+              <div className="panel-heading">
+                <div>
+                  <span className="eyebrow">Site record</span>
+                  <h2>NASA and LOLA altimetry parameters</h2>
+                </div>
+                <Database size={16} />
+>>>>>>> parent of fac9d7f (Merge branch 'main' of https://github.com/rimshaagrawal/awilix2.0)
               </div>
               <Database size={16} />
             </div>
@@ -328,8 +345,9 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
                 </span>
               ))}
             </div>
-          </div>
+          </GlareHover>
 
+<<<<<<< HEAD
           <div className="panel limitation-panel" style={{ flex: '1 1 300px' }}>
             <div className="limitation-icon">
               <CircleHelp size={18} />
@@ -349,6 +367,36 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
               </Magnet>
             </div>
           </div>
+=======
+          <GlareHover
+            glareColor="rgba(240, 169, 112, 0.16)"
+            glareSize={320}
+            glareOpacity={0.3}
+            style={{ borderRadius: '14px', flex: '1 1 300px' }}
+          >
+            <div className="panel limitation-panel" style={{ height: '100%' }}>
+              <div className="limitation-icon">
+                <CircleHelp size={18} />
+              </div>
+              <span className="eyebrow">Scientific fidelity notice</span>
+              <h3>Local 20m altimetry vs far-field terrain</h3>
+              <p>
+                Calculations combine official NASA 2026 lunar ephemeris tables with 20-meter LOLA altimetry models.
+                While local slopes and crater walls are mapped at meter resolution, distant horizon rims beyond the 20km tile
+                boundary are modeled via the reference sphere.
+              </p>
+              <div style={{ marginTop: 'auto', paddingTop: 12 }}>
+                <Magnet padding={35} magnetStrength={3} maxOffset={10}>
+                  <Magnet padding={35} magnetStrength={3} maxOffset={10}>
+                    <button className="text-button" onClick={() => onNavigate('scenario')}>
+                      Review scenario assumptions <ArrowUpRight size={13} />
+                    </button>
+                  </Magnet>
+                </Magnet>
+              </div>
+            </div>
+          </GlareHover>
+>>>>>>> parent of fac9d7f (Merge branch 'main' of https://github.com/rimshaagrawal/awilix2.0)
         </div>
       </div>
     </AnimatedContent>

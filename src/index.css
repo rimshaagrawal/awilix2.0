@@ -607,6 +607,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   line-height: 1.05;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  text-shadow: 0 0 36px rgba(94, 196, 190, 0.22);
 }
 
 .hero-title-sub {
@@ -2191,6 +2192,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   line-height: 1.15;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  text-shadow: 0 0 32px rgba(94, 196, 190, 0.16);
 }
 
 .astra-hero p {

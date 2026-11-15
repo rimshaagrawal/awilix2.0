@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowUpRight, Mountain, Shield } from 'lucide-react';
 import type { Site, Scenario } from '@/types';
 import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalculations';
+import { GlareHover } from '@/components/reactbits/GlareHover';
 import { Magnet } from '@/components/reactbits/Magnet';
 
 interface SiteCardProps {
@@ -21,8 +22,14 @@ export const SiteCard: React.FC<SiteCardProps> = ({
   const color = SITE_COLORS[index % SITE_COLORS.length];
 
   return (
-    <article className="site-card" style={{ height: '100%' }}>
-      <div className="site-card-top">
+    <GlareHover
+      glareColor="rgba(145, 198, 212, 0.22)"
+      glareSize={320}
+      glareOpacity={0.4}
+      style={{ borderRadius: '12px', height: '100%' }}
+    >
+      <article className="site-card" style={{ height: '100%' }}>
+        <div className="site-card-top">
           <span
             className="site-index"
             style={{ color }}
@@ -81,6 +88,7 @@ export const SiteCard: React.FC<SiteCardProps> = ({
           </Magnet>
         </div>
       </article>
+    </GlareHover>
   );
 };
 

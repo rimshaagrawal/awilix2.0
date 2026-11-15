@@ -886,11 +886,11 @@ export default function MoonGlobe({ selectedSite, date, onSiteClick, ephemerisRe
 }
 
 // ── BUILD SLEEK CANDIDATE SITE MARKERS ──────────────────────
-// Sleek map push-pins: fine metallic needle shaft + glossy spherical bead head
+// Obsidian black pedestal ring (#030712) + laser crimson beacon (#ef4444)
 function buildSiteMarkers(group, activeSiteId) {
   group.clear();
 
-  sites.forEach((site, index) => {
+  sites.forEach((site) => {
     const latRad = (site.lat * Math.PI) / 180;
     const lonRad = (site.lon * Math.PI) / 180;
 
@@ -904,54 +904,35 @@ function buildSiteMarkers(group, activeSiteId) {
 
     const isSelected = site.id === activeSiteId;
     const normal = new THREE.Vector3(x, y, z).normalize();
-    const colorHex = isSelected ? 0xffab5e : 0xef4444;
 
-    // 1. Sleek minimal pinhole surface disc (non-overlapping)
-    const baseGeom = new THREE.CircleGeometry(0.0035, 12);
-    const baseMat = new THREE.MeshBasicMaterial({
-      color: colorHex,
+    // 1. Sleek Obsidian Black Pedestal Ring
+    const ringGeom = new THREE.RingGeometry(0.04, 0.055, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: isSelected ? 0xffab5e : 0x030712,
       side: THREE.DoubleSide,
       transparent: true,
-      opacity: 0.85,
+      opacity: isSelected ? 0.95 : 0.75,
     });
-    const baseMesh = new THREE.Mesh(baseGeom, baseMat);
-    baseMesh.lookAt(normal);
-    markerGroup.add(baseMesh);
+    const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+    ringMesh.lookAt(normal);
+    markerGroup.add(ringMesh);
 
-    // 2. Slender Needle Shaft (ultra thin, sleek metallic)
-    const stemHeight = 0.075;
-    const stalkGeom = new THREE.CylinderGeometry(0.00085, 0.00085, stemHeight, 8);
-    const stalkMat = new THREE.MeshStandardMaterial({
-      color: 0xd8dde8,
-      metalness: 0.9,
-      roughness: 0.18,
-    });
+    // 2. Classy Vertical Stalk
+    const stalkGeom = new THREE.CylinderGeometry(0.003, 0.003, 0.09, 8);
+    const stalkMat = new THREE.MeshBasicMaterial({ color: isSelected ? 0xffab5e : 0xe11d48 });
     const stalk = new THREE.Mesh(stalkGeom, stalkMat);
     stalk.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
-    stalk.position.copy(normal.clone().multiplyScalar(stemHeight * 0.5));
+    stalk.position.copy(normal.clone().multiplyScalar(0.045));
     markerGroup.add(stalk);
 
-    // 3. Spherical Bead Head (compact, glossy, non-overlapping)
-    const headRadius = isSelected ? 0.009 : 0.0075;
-    const headGeom = new THREE.SphereGeometry(headRadius, 16, 16);
-    const headMat = new THREE.MeshStandardMaterial({
-      color: colorHex,
-      roughness: 0.12,
-      metalness: 0.1,
-      emissive: colorHex,
-      emissiveIntensity: isSelected ? 0.85 : 0.35,
+    // 3. Glowing Laser Crimson Beacon Head
+    const headGeom = new THREE.SphereGeometry(isSelected ? 0.024 : 0.016, 16, 16);
+    const headMat = new THREE.MeshBasicMaterial({
+      color: isSelected ? 0xffc791 : 0xef4444,
     });
     const headMesh = new THREE.Mesh(headGeom, headMat);
-    headMesh.position.copy(normal.clone().multiplyScalar(stemHeight));
+    headMesh.position.copy(normal.clone().multiplyScalar(0.09));
     markerGroup.add(headMesh);
-
-    // 4. Hit proxy for reliable clicks
-    const hitGeom = new THREE.SphereGeometry(0.022, 8, 8);
-    const hitMat = new THREE.MeshBasicMaterial({ visible: false });
-    const hitMesh = new THREE.Mesh(hitGeom, hitMat);
-    hitMesh.position.copy(normal.clone().multiplyScalar(stemHeight));
-    hitMesh.userData = { siteId: site.id };
-    markerGroup.add(hitMesh);
 
     group.add(markerGroup);
   });

@@ -1,24 +1,23 @@
 import React from 'react';
-import { Move3d, Compass, Sun, Globe2, Radio, ArrowUpRight } from 'lucide-react';
+import { Move3d, Compass, Sun, Globe2, Radio } from 'lucide-react';
 import type { Scenario } from '@/types';
 import { sites, getSite } from '@/data/sites';
 import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalculations';
 import { SectionTitle } from '@/components/common/SectionTitle';
 import { MoonGlobe3D } from '@/components/globe/MoonGlobe3D';
 import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
+import { GlareHover } from '@/components/reactbits/GlareHover';
 
 interface GlobeViewProps {
   scenario: Scenario;
   selectedSiteId: string;
   onSelectSite: (id: string) => void;
-  onOpenSite?: (id: string) => void;
 }
 
 export const GlobeView: React.FC<GlobeViewProps> = ({
   scenario,
   selectedSiteId,
   onSelectSite,
-  onOpenSite,
 }) => {
   const site = getSite(selectedSiteId);
   const summary = getSummary(site, scenario);
@@ -28,7 +27,7 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
       <div className="view-stack">
         <SectionTitle
           eyebrow=""
-          title="The south pole, in context"
+          title="The south pole, in context."
           animateTitle={true}
           description="Authentic 3D Celestial System with NASA 3D LRO topographic geometry. Rotate, zoom, and select candidate landing site markers."
           action={
@@ -54,8 +53,14 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
             />
           </div>
 
-          {/* Selected Site Readout Panel */}
-          <div className="panel selected-readout">
+          {/* Selected Site Readout Panel with Glare Hover Sheen */}
+          <GlareHover
+            glareColor="rgba(145, 198, 212, 0.18)"
+            glareSize={360}
+            glareOpacity={0.4}
+            style={{ borderRadius: '14px' }}
+          >
+            <div className="panel selected-readout">
               <div className="readout-label">
                 <span className="site-status">
                   <span />
@@ -65,17 +70,6 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
 
               <h2>{site.name}</h2>
               <p>{site.targetRegion}</p>
-
-              {onOpenSite && (
-                <div style={{ marginTop: 10, marginBottom: 4 }}>
-                  <button
-                    className="text-button"
-                    onClick={() => onOpenSite(selectedSiteId)}
-                  >
-                    Learn more <ArrowUpRight size={14} />
-                  </button>
-                </div>
-              )}
 
               <div className="coordinate-block">
                 <div>
@@ -121,6 +115,7 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
                 ))}
               </div>
             </div>
+          </GlareHover>
         </div>
       </div>
     </AnimatedContent>
