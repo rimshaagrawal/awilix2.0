@@ -57,8 +57,8 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     >
       {label && (
         <span
-          className="block text-[11px] font-medium tracking-wider uppercase mb-1.5"
-          style={{ color: '#6b7280', textAlign: isLeft ? 'left' : 'right' }}
+          className="block font-medium tracking-wider uppercase mb-1.5"
+          style={{ color: '#9ca3af', textAlign: isLeft ? 'left' : 'right', fontSize: 10 }}
         >
           {label}
         </span>
@@ -71,39 +71,39 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         aria-haspopup="listbox"
         disabled={disabled}
         onClick={() => setIsOpen((p) => !p)}
-        className="clickable flex items-center gap-2.5 transition-all duration-200 outline-none"
+        className="clickable flex items-center gap-2 transition-all duration-200 outline-none"
         style={{
-          height: 40,
-          padding: isLeft ? '0 12px 0 10px' : '0 10px 0 12px',
+          height: 36,
+          padding: isLeft ? '0 10px 0 8px' : '0 8px 0 10px',
           flexDirection: isLeft ? 'row' : 'row-reverse',
-          background: isOpen ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.75)',
-          border: '1px solid rgba(0,0,0,0.08)',
-          borderRadius: 8,
-          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          background: isOpen ? 'rgba(12, 18, 24, 0.72)' : 'rgba(12, 18, 24, 0.55)',
+          border: '1px solid rgba(255, 255, 255, 0.12)',
+          borderRadius: 6,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.35)',
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.55 : 1,
-          minWidth: 220,
+          minWidth: 200,
         }}
       >
         <span
-          className="w-2 h-2 rounded-full shrink-0"
-          style={{ background: '#4b5563' }}
+          className="w-1.5 h-1.5 rounded-full shrink-0"
+          style={{ background: '#9ca3af' }}
         />
         <span
           className="flex flex-col min-w-0 flex-1"
           style={{ alignItems: isLeft ? 'flex-start' : 'flex-end', textAlign: isLeft ? 'left' : 'right' }}
         >
           <span
-            className="text-[13px] font-semibold tracking-wide truncate w-full"
-            style={{ color: '#1f2937' }}
+            className="font-semibold tracking-wide truncate w-full"
+            style={{ color: '#e5e7eb', fontSize: 12 }}
           >
             {selectedItem?.label ?? 'Select option'}
           </span>
         </span>
         <ChevronDown
-          size={16}
+          size={14}
           className="shrink-0 transition-transform duration-300 ease-out"
-          style={{ color: '#4b5563', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          style={{ color: '#9ca3af', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
         />
       </button>
 
@@ -116,11 +116,13 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
               top: 'calc(100% + 6px)',
               left: isLeft ? 0 : 'auto',
               right: !isLeft ? 0 : 'auto',
-              width: 280,
-              background: 'rgba(255,255,255,0.96)',
-              border: '1px solid rgba(0,0,0,0.08)',
-              borderRadius: 8,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
+              width: 260,
+              background: 'rgba(8, 13, 22, 0.65)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: 6,
+              boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               overflow: 'hidden',
             }}
           >
@@ -136,25 +138,26 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
                     type="button"
                     role="option"
                     aria-selected={isSel}
-                    className="clickable w-full text-left px-3 py-2 outline-none transition-colors duration-150"
+                    className="clickable w-full text-left px-3 py-1.5 outline-none transition-colors duration-150"
                     style={{
-                      background: isSel ? 'rgba(0,0,0,0.06)' : 'transparent',
-                      color: isSel ? '#111827' : '#374151',
+                      background: isSel ? 'rgba(255,255,255,0.08)' : 'transparent',
+                      color: isSel ? '#f3f4f6' : '#d1d5db',
                       fontWeight: isSel ? 600 : 500,
+                      fontSize: 12,
                     }}
                     onClick={() => {
                       onChange(opt.id);
                       setIsOpen(false);
                     }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = 'rgba(0,0,0,0.04)';
+                      (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)';
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.background = isSel ? 'rgba(0,0,0,0.06)' : 'transparent';
+                      (e.currentTarget as HTMLElement).style.background = isSel ? 'rgba(255,255,255,0.08)' : 'transparent';
                     }}
                   >
                     <span className="flex items-center gap-2" style={{ justifyContent: isLeft ? 'flex-start' : 'flex-end', flexDirection: isLeft ? 'row' : 'row-reverse' }}>
-                      {isSel && <Check size={14} style={{ color: '#374151', flexShrink: 0 }} />}
+                      {isSel && <Check size={13} style={{ color: '#e5e7eb', flexShrink: 0 }} />}
                       <span className="truncate">{opt.label}</span>
                     </span>
                   </button>
