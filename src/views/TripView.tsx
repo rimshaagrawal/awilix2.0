@@ -53,7 +53,7 @@ export const TripView: React.FC<TripViewProps> = ({ onStart }) => {
             </div>
 
             <h1 className="trip-title">
-              Trip to the <span>Moon</span>
+              Trip to the Moon
             </h1>
 
             <p className="trip-lede">
