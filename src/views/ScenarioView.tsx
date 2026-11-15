@@ -21,7 +21,6 @@ import { Magnet } from '@/components/reactbits/Magnet';
 import { RangeControl } from '@/components/common/RangeControl';
 import { DeltaCard } from '@/components/common/DeltaCard';
 import { ScenarioScienceChart } from '@/components/charts/ScenarioScienceChart';
-import validationSummary from '@/data/horizons-validation-summary.json';
 
 interface ScenarioViewProps {
   site: Site;
@@ -119,13 +118,6 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
     outage: results.reference.comm.longestOutageHours,
   }) : null, [results]);
 
-  const sources = results?.custom.sources ?? [];
-  const sourceSummary = sources.length
-    ? sources.join(' · ')
-    : 'Source will be reported after the calculation completes.';
-  const terrainMetadata = results?.custom.terrainMetadata;
-  const terrainQuality = terrainMetadata?.quality || 'Terrain product metadata unavailable';
-  const currentRunUsesTable = sources.length > 0 && sources.every((source) => source.includes('NASA SVS 5587'));
   const sunDelta = customMetrics && referenceMetrics && Number.isFinite(customMetrics.sunlight) && Number.isFinite(referenceMetrics.sunlight)
     ? customMetrics.sunlight - referenceMetrics.sunlight
     : null;
@@ -222,18 +214,10 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
 
               <ScenarioScienceChart analysis={results.custom} />
 
-              <div className="panel" style={{ padding: 16, display: 'grid', gap: 10 }}>
-                <div className="panel-heading" style={{ marginBottom: 0 }}><strong><Database size={14} /> Calculation provenance & limits</strong></div>
-                <p><b>Ephemeris source:</b> {sourceSummary}. {sources.some((source) => source.includes('fallback')) ? 'The analytical fallback is approximate and is not equivalent to the bundled NASA table.' : 'NASA table records are interpolated between hourly samples; the interpolation does not add source information.'}</p>
-                <p><b>Horizon:</b> {results.custom.method}. {horizonMode === 'terrain' ? `Terrain quality: ${terrainQuality}; ${results.custom.terrainExtent ? `crop ${results.custom.terrainExtent.widthKm.toFixed(1)} × ${results.custom.terrainExtent.heightKm.toFixed(1)} km` : 'terrain extent unavailable'}. Far-field terrain is not modeled.` : 'Terrain obstruction is not included.'}</p>
-                <p><b>Known-time coverage:</b> Sun {results.custom.power.coveragePercent.toFixed(1)}% · Earth {results.custom.comm.coveragePercent.toFixed(1)}%. Unknown intervals are excluded from availability percentages and are not counted as confirmed outages.</p>
-                <p><b>Independent ephemeris check:</b> {validationSummary.passed ? 'PASS' : 'NOT PASSED'} against NASA/JPL Horizons DE441. This run {currentRunUsesTable ? 'uses the bundled 2026 NASA table and its interpolated directions' : 'uses the approximate analytic fallback and is not covered by this table comparison'}. Across {validationSummary.sampleCount} Sun/Earth direction samples for every combination of six catalog coordinates and three 2026 dates, maximum absolute azimuth/altitude errors were {Math.max(...Object.values(validationSummary.stats).flatMap((target: any) => [target.azimuth.maxAbsoluteDeg, target.altitude.maxAbsoluteDeg])).toFixed(6)}° (acceptance ≤ {validationSummary.toleranceDeg}°). The check validates sampled direction geometry only; it does not validate terrain, electrical power, or a communication link.</p>
-                <p><b>Interpretation:</b> panel incidence is a geometric cosine factor, not generated watts. Earth-center visibility is geometric and does not establish antenna, relay, DSN, or radio-link performance.</p>
-                <div className="scenario-method">
-                  <Info size={15} />
-                  <span>Baseline values use the same selected site and horizon mode. A positive availability delta means more of the known interval clears the modeled horizon; it is not a mission-feasibility verdict.</span>
-                  <Magnet padding={35} magnetStrength={3} maxOffset={10}><button className="text-button" onClick={() => onNavigate('analysis')}>Open full analysis <ArrowUpRight size={13} /></button></Magnet>
-                </div>
+              <div className="scenario-method">
+                <Info size={15} />
+                <span>Open the full site analysis to see charts and terrain.</span>
+                <Magnet padding={35} magnetStrength={3} maxOffset={10}><button className="text-button" onClick={() => onNavigate('analysis')}>Open full analysis <ArrowUpRight size={13} /></button></Magnet>
               </div>
             </>
           )}
