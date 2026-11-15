@@ -382,7 +382,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         hColors.set([col.r,col.g,col.b],idx*3);
       }
       hGeom.setAttribute('color',new THREE.BufferAttribute(hColors,3));
-      const hMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.42,depthWrite:false,side:THREE.DoubleSide});
+      const hMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.6,depthWrite:false,side:THREE.DoubleSide});
       const hMesh=new THREE.Mesh(hGeom,hMat);
       hMesh.rotation.x=-Math.PI/2;
       hMesh.position.y=0.02;
@@ -497,14 +497,13 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           }`}
           title="Overlay a semi-transparent probability heatmap on the terrain"
         >
-          <span>Heatmap {heatmapOn ? 'ON' : 'OFF'}</span>
+          <span>Heatmap overlay {heatmapOn ? 'ON' : 'OFF'}</span>
         </button>
       </div>
 
-<<<<<<< Updated upstream
-      <div className="absolute top-24 left-4 z-10 bento-plate p-3 terrain-inspector" style={{ fontFamily: "'Manrope', sans-serif" }}>
-        <div className="text-xs block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <span>Surface layer</span>
+      <div className="absolute top-20 left-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'Manrope', sans-serif", display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span className="font-medium">Surface layer</span>
           <OptionWheel
             align="left"
             selectedId={surfaceMode}
@@ -512,24 +511,35 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
             options={[
               { id: 'elevation', label: 'Elevation' },
               { id: 'slope', label: 'Slope' },
+              { id: 'thermal', label: 'Thermal' },
+              { id: 'ice', label: 'Ice' },
               { id: 'texture', label: 'Hillshade' },
             ]}
           />
         </div>
-        <div className="text-xs block mt-2">
-          <span className="flex justify-between"><span>Visual exaggeration</span><span className="font-mono text-[var(--coral)]">{exaggeration}×</span></span>
-          <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={28} restHeight={6} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
+        <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span className="font-medium">Heatmap</span>
+          <OptionWheel
+            align="left"
+            selectedId={heatmapType}
+            onChange={setHeatmapType}
+            options={[
+              { id: 'ice', label: 'Ice' },
+              { id: 'thermal', label: 'Thermal' },
+            ]}
+          />
         </div>
-        <p className="text-[10px] text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
-=======
-      <div className="absolute top-24 right-4 z-10 bento-plate p-3 terrain-inspector">
-        <label className="text-xs block">Surface layer <select aria-label="Terrain surface layer" value={surfaceMode} onChange={e=>setSurfaceMode(e.target.value)} className="bg-[#111820] border border-[#34434e] rounded p-1 ml-2"><option value="elevation">Elevation</option><option value="slope">Slope estimate</option><option value="thermal">Thermal stability (proxy)</option><option value="ice">Ice evidence (Zenodo proxy)</option><option value="texture">Legacy hillshade</option></select></label>
-        <label className="text-xs block mt-2">Heatmap type <select aria-label="Heatmap type" value={heatmapType} onChange={e=>setHeatmapType(e.target.value)} className="bg-[#111820] border border-[#34434e] rounded p-1 ml-2"><option value="ice">Ice probability (blue)</option><option value="thermal">Thermal (blue→orange)</option></select></label>
-<label className="text-xs block mt-2">Visual exaggeration: {exaggeration}×<input aria-label="Terrain vertical exaggeration" type="range" min="1" max="5" step="0.5" value={exaggeration} onChange={e=>setExaggeration(Number(e.target.value))} className="w-full"/></label>
-        <p className="text-[10px] text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='thermal'?'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.':surfaceMode==='ice'?'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
->>>>>>> Stashed changes
-        <button className="btn-ghost text-xs mt-2" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
-        <p className="text-[9px] text-[var(--ink-mute)] mt-1">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
+        {heatmapOn && <div className="mt-1"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType==='ice'?'Ice probability':'Thermal (cold→warm)'}</div><div style={{height:8,borderRadius:4,background:heatmapType==='ice'?'linear-gradient(to right,#dbeafe,#1e3a8a)':'linear-gradient(to right,#2a6f97,#e39d75)'}}/></div>}
+        <div className="text-xs" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span className="flex justify-between items-center">
+            <span className="font-medium">Visual exaggeration</span>
+            <span className="font-mono text-[var(--coral)]">{exaggeration}×</span>
+          </span>
+          <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={24} restHeight={5} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
+        </div>
+        <p className="text-[10px] leading-snug text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='thermal'?'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.':surfaceMode==='ice'?'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
+        <button className="btn-ghost text-xs font-semibold text-left" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
+        <p className="text-[9px] leading-snug text-[var(--ink-mute)]">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
       </div>
       {/* Bottom Left: Physical Terrain Metrics */}
       <div className="absolute bottom-16 left-4 z-10 bento-plate p-3.5 max-w-xs text-xs space-y-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">
