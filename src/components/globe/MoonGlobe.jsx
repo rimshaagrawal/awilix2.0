@@ -757,25 +757,25 @@ export default function MoonGlobe({ selectedSite, date, onSiteClick, ephemerisRe
           <span className="text-[var(--ink-faint)] px-1.5 text-[10px]">Anchor:</span>
           <button
             onClick={() => handleFocus('moon')}
-            className={`px-2 py-0.5 rounded transition-colors ${focusTarget === 'moon' ? 'bg-white/15 text-white font-bold' : 'text-[var(--ink-mute)] hover:text-white'}`}
+            className={`px-2 py-0.5 rounded transition-colors ${focusTarget === 'moon' ? 'bg-white/15 text-white font-semibold' : 'text-[var(--ink-mute)] hover:text-white'}`}
           >
             Moon
           </button>
           <button
             onClick={() => handleFocus('earth')}
-            className={`px-2 py-0.5 rounded transition-colors ${focusTarget === 'earth' ? 'bg-[var(--mustard)] text-[#060910] font-bold' : 'text-[var(--ink-mute)] hover:text-white'}`}
+            className={`px-2 py-0.5 rounded transition-colors ${focusTarget === 'earth' ? 'bg-[var(--mustard)] text-[#060910] font-semibold' : 'text-[var(--ink-mute)] hover:text-white'}`}
           >
             Earth
           </button>
           <button
             onClick={() => handleFocus('sun')}
-            className={`px-2 py-0.5 rounded transition-colors ${focusTarget === 'sun' ? 'bg-[var(--coral)] text-[#120e07] font-bold' : 'text-[var(--ink-mute)] hover:text-white'}`}
+            className={`px-2 py-0.5 rounded transition-colors ${focusTarget === 'sun' ? 'bg-[var(--coral)] text-[#120e07] font-semibold' : 'text-[var(--ink-mute)] hover:text-white'}`}
           >
             Sun
           </button>
           <button
             onClick={() => handleFocus('system')}
-            className={`px-2 py-0.5 rounded transition-colors ${focusTarget === 'system' ? 'bg-white/20 text-white font-bold' : 'text-[var(--ink-mute)] hover:text-white'}`}
+            className={`px-2 py-0.5 rounded transition-colors ${focusTarget === 'system' ? 'bg-white/20 text-white font-semibold' : 'text-[var(--ink-mute)] hover:text-white'}`}
           >
             Full System
           </button>
@@ -785,25 +785,25 @@ export default function MoonGlobe({ selectedSite, date, onSiteClick, ephemerisRe
         {showScaleDetails && (
           <div className="bento-plate p-3.5 max-w-sm text-xs font-mono space-y-2 animate-fade-in shadow-2xl">
             <div className="flex items-center justify-between border-b border-[var(--line-soft)] pb-1.5">
-              <span className="text-[var(--coral)] font-bold">NASA Scientific Measurement Datum</span>
+              <span className="text-[var(--coral)] font-semibold">NASA Scientific Measurement Datum</span>
               <button onClick={() => setShowScaleDetails(false)} className="text-[var(--ink-faint)] hover:text-white">✕</button>
             </div>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               <div>
                 <span className="text-[var(--ink-faint)] block text-[10px]">Earth / Moon Diam:</span>
-                <span className="text-[var(--ink)] font-bold">3.667 : 1</span>
+                <span className="text-[var(--ink)] font-semibold">3.667 : 1</span>
               </div>
               <div>
                 <span className="text-[var(--ink-faint)] block text-[10px]">Earth / Moon Vol:</span>
-                <span className="text-[var(--mustard)] font-bold">49.30 : 1</span>
+                <span className="text-[var(--mustard)] font-semibold">49.30 : 1</span>
               </div>
               <div>
                 <span className="text-[var(--ink-faint)] block text-[10px]">Sun / Moon Diam:</span>
-                <span className="text-[var(--ink)] font-bold">400.8 : 1</span>
+                <span className="text-[var(--ink)] font-semibold">400.8 : 1</span>
               </div>
               <div>
                 <span className="text-[var(--ink-faint)] block text-[10px]">Sun / Moon Vol:</span>
-                <span className="text-[var(--coral)] font-bold">64.3M : 1</span>
+                <span className="text-[var(--coral)] font-semibold">64.3M : 1</span>
               </div>
             </div>
             <div className="pt-1.5 border-t border-[var(--line-soft)] text-[10px] text-[var(--ink-mute)] leading-relaxed">
@@ -863,7 +863,7 @@ export default function MoonGlobe({ selectedSite, date, onSiteClick, ephemerisRe
             <span className="text-[10px] text-[var(--ink-faint)]">({(telemetry.earthDistKm / NASA.MOON_R_KM).toFixed(1)} R_moon)</span>
           </div>
           <div className="hidden sm:inline-flex text-[var(--ink-mute)]">
-            Phase: <span className="text-[var(--ink)] ml-1 font-bold">{telemetry.earthPhase}%</span>
+            Phase: <span className="text-[var(--ink)] ml-1 font-semibold">{telemetry.earthPhase}%</span>
           </div>
         </div>
 

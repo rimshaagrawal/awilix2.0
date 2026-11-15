@@ -115,7 +115,7 @@ export function ScenarioLab({
         <div>
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-[var(--coral)]" />
-            <h2 className="text-base sm:text-lg font-bold font-sans text-[var(--ink)]">
+            <h2 className="text-base sm:text-lg font-semibold font-sans text-[var(--ink)]">
               Landing Date & Delay Explorer
             </h2>
           </div>
@@ -133,7 +133,7 @@ export function ScenarioLab({
         {pins.map((pin, i) => (
           <div key={i} className="p-4 rounded-xl bg-[var(--paper-dark)] border border-[var(--line-soft)] space-y-3">
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-bold uppercase tracking-wider ${i === 0 ? 'text-[var(--coral)]' : 'text-[var(--mustard)]'}`}>
+              <span className={`text-xs font-semibold ${i === 0 ? 'text-[var(--coral)]' : 'text-[var(--mustard)]'}`}>
                 Plan {i === 0 ? 'A (Baseline)' : 'B (Alternate / Delay)'}
               </span>
               <button
@@ -182,7 +182,7 @@ export function ScenarioLab({
           <label className="text-xs text-[var(--ink)] font-semibold flex items-center gap-2">
             <Clock className="w-3.5 h-3.5 text-[var(--coral)]" />
             <span>Launch Delay for Plan B:</span>
-            <span className="font-mono text-[var(--coral)] font-bold text-sm">
+            <span className="font-mono text-[var(--coral)] font-semibold text-sm">
               {delay > 0 ? `+${delay} days` : delay === 0 ? 'Same Day (0 days)' : `${delay} days earlier`}
             </span>
           </label>
@@ -223,7 +223,7 @@ export function ScenarioLab({
       </div>
 
       {current.loading && (
-        <div className="p-3 text-center text-xs text-[var(--coral)] font-mono animate-pulse">
+        <div className="p-3 text-center text-xs text-[var(--coral)] font-mono">
           Computing solar and Earth visibility for both plans…
         </div>
       )}
@@ -248,7 +248,7 @@ export function ScenarioLab({
                   {label}
                 </span>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className={`text-2xl font-bold font-mono ${Number(delta) >= 0 ? `text-[var(--${color})]` : 'text-red-400'}`}>
+                  <span className={`text-2xl font-semibold font-mono ${Number(delta) >= 0 ? `text-[var(--${color})]` : 'text-red-400'}`}>
                     {Number(delta) >= 0 ? `+${delta}h` : `${delta}h`}
                   </span>
                   <span className="text-[10px] text-[var(--ink-mute)]">
@@ -265,7 +265,7 @@ export function ScenarioLab({
           {/* Sun angle chart */}
           <div className="p-4 rounded-xl bg-[var(--paper-dark)] border border-[var(--line-soft)] space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-[var(--ink)]">Sun Angle Above the Horizon (°)</h3>
+              <h3 className="text-xs font-semibold text-[var(--ink)]">Sun Angle Above the Horizon (°)</h3>
               <span className="text-[10px] text-[var(--ink-faint)]">
                 Above 0° = visible · Below 0° = behind crater ridge
               </span>

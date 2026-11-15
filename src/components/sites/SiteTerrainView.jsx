@@ -415,15 +415,15 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#060910]/85 backdrop-blur-md animate-fade-in pointer-events-none" style={{ paddingLeft: '12%' }}>
           <div className="relative mb-3">
             <div className="w-12 h-12 rounded-full border-2 border-[var(--coral)] border-t-transparent animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-[var(--coral)] font-bold">
+            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-[var(--coral)] font-semibold">
               DEM
             </div>
           </div>
-          <div className="text-xs font-mono font-bold text-[var(--ink)] tracking-widest uppercase">
+          <div className="text-xs font-mono font-semibold text-[var(--ink)]">
             Loading masked terrain crop
           </div>
           <div className="text-[11px] font-mono text-[var(--mustard)] mt-1 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)] animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)]" />
             <span>{site.name} · ({coordinateText(site)})</span>
           </div>
           <div className="text-[10px] font-mono text-[var(--ink-faint)] mt-1.5">
@@ -460,7 +460,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           onClick={() => setLightingMode(!lightingMode)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
             lightingMode
-              ? 'bg-[var(--coral)] text-[var(--paper-dark)] border-[var(--coral)] shadow-lg shadow-[rgba(255,171,94,0.25)]'
+              ? 'bg-[var(--coral)] text-[var(--paper-dark)] border-[var(--coral)] shadow-lg'
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
           }`}
           title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
@@ -475,8 +475,8 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           onClick={() => setUseInterpolation(!useInterpolation)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
             useInterpolation
-              ? 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--mustard)] border-[rgba(143,211,232,0.3)] shadow-lg shadow-[rgba(143,211,232,0.1)]'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--coral)] border-[rgba(255,171,94,0.3)] shadow-lg shadow-[rgba(255,171,94,0.1)]'
+              ? 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--mustard)] border-[rgba(143,211,232,0.3)] shadow-lg'
+              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--coral)] border-[rgba(255,171,94,0.3)] shadow-lg'
           }`}
           title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
           style={{ fontFamily: "'DM Mono', monospace" }}
@@ -554,7 +554,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
       <div className="absolute bottom-16 left-4 z-10 bento-plate p-3.5 max-w-xs text-xs space-y-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono uppercase text-[var(--ink-faint)]">Elevation Relief</span>
-          <span className="font-mono font-bold text-[var(--emerald)]">
+          <span className="font-mono font-semibold text-[var(--emerald)]">
             {terrainData ? `${terrainData.elevationSpanM.toLocaleString()} m` : 'Loading...'}
           </span>
         </div>
@@ -574,7 +574,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
       <div className="absolute bottom-3 left-4 right-4 z-20 flex items-center gap-3 bento-plate px-4 py-2 bg-[var(--paper-warm)]/95 backdrop-blur-md">
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className="btn-ghost text-xs font-mono font-bold px-2.5 py-1 text-[var(--coral)] border border-[rgba(255,171,94,0.3)] hover:bg-[rgba(255,171,94,0.1)]"
+          className="btn-ghost text-xs font-mono font-semibold px-2.5 py-1 text-[var(--coral)] border border-[rgba(255,171,94,0.3)] hover:bg-[rgba(255,171,94,0.1)]"
         >
           {isPlaying ? 'PAUSE' : 'PLAY'}
         </button>

@@ -26,7 +26,7 @@ export const sites: Site[] = [
     craterDiameterKm: 21.0,
     craterDepthKm: 4.2,
     whyNASAChose: 'The rim towers over 4 kilometers above the floor, capturing grazing sunlight almost continuously while shielding deep cold-traps where volatile water ice has accumulated over billions of years.',
-    funFact: "Because the Moon's axial tilt is only 1.54°, the Sun glides along the horizon here like a golden beacon. While the rim bathes in solar rays, the crater floor has not seen sunlight in over 2 billion years!"
+    funFact: "Because the Moon's axial tilt is only 1.54°, the Sun glides along the horizon here like a golden beacon. While the rim bathes in solar rays, the crater floor has not seen sunlight in over 2 billion years."
   },
   {
     id: 'malapert-a',
@@ -53,7 +53,7 @@ export const sites: Site[] = [
     craterDiameterKm: 24.0,
     craterDepthKm: 3.2,
     whyNASAChose: 'Provides a high vantage point adjacent to Mons Malapert, offering steady Earth line-of-sight and ample solar incidence while serving as the inaugural commercial lunar landing site.',
-    funFact: "Intuitive Machines' Odysseus became the first American spacecraft to touch down softly on the Moon in more than 50 years and the first commercial lander in history to succeed!"
+    funFact: "Intuitive Machines' Odysseus became the first American spacecraft to touch down softly on the Moon in more than 50 years and the first commercial lander in history to succeed."
   },
   {
     id: 'mons-mouton',
@@ -80,7 +80,7 @@ export const sites: Site[] = [
     craterDiameterKm: 100.0,
     craterDepthKm: 0.0,
     whyNASAChose: 'A sprawling, flat-topped lunar mountain that stands ~6 km above surrounding terrain, providing a smooth landing zone for the ice-drilling rover.',
-    funFact: 'Officially named by the IAU in 2023, Mons Mouton honors Melba Mouton, who computed orbital trajectories for NASA early Echo satellites before Apollo!'
+    funFact: 'Officially named by the IAU in 2023, Mons Mouton honors Melba Mouton, who computed orbital trajectories for NASA early Echo satellites before Apollo.'
   },
   {
     id: 'nobile',
@@ -107,7 +107,7 @@ export const sites: Site[] = [
     craterDiameterKm: 73.0,
     craterDepthKm: 3.8,
     whyNASAChose: 'Features gentle rolling hills dotted with permanently shadowed regions, making it accessible to mobile exploration rovers probing volatile cold traps.',
-    funFact: 'Temperatures inside Nobile permanently shadowed craters drop below 40 Kelvin (-233°C), cold enough to freeze water, carbon dioxide, and methane for billions of years!'
+    funFact: 'Temperatures inside Nobile permanently shadowed craters drop below 40 Kelvin (-233°C), cold enough to freeze water, carbon dioxide, and methane for billions of years.'
   },
   {
     id: 'shackleton-ridge',
@@ -134,7 +134,7 @@ export const sites: Site[] = [
     craterDiameterKm: 15.0,
     craterDepthKm: 2.5,
     whyNASAChose: 'This narrow elevated ridge enjoys some of the longest continuous solar illumination periods on the lunar surface, paired with exceptional direct Earth visibility.',
-    funFact: 'Because of its extreme elevation near the pole, astronauts standing on Shackleton Ridge will see the Earth perpetually hovering just above the horizon without ever setting!'
+    funFact: 'Because of its extreme elevation near the pole, astronauts standing on Shackleton Ridge will see the Earth perpetually hovering just above the horizon without ever setting.'
   },
   {
     id: 'south-pole',
@@ -161,7 +161,7 @@ export const sites: Site[] = [
     craterDiameterKm: 0.0,
     craterDepthKm: 0.0,
     whyNASAChose: 'Serves as the geodetic anchor point for lunar cartography and mission planning calculations.',
-    funFact: 'At the exact geographic pole, all lines of longitude converge! A single step can take you from the western hemisphere to the eastern hemisphere in less than a second!'
+    funFact: 'At the exact geographic pole, all lines of longitude converge. A single step can take you from the western hemisphere to the eastern hemisphere in less than a second.'
   },
 ];
 
