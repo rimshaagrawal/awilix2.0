@@ -27,6 +27,7 @@ interface MoonGlobe3DProps {
   onSelectSite: (id: string) => void;
   compact?: boolean;
   date?: string;
+  initialVectorMode?: 'all' | 'dte' | 'solar' | 'off';
 }
 
 // NASA Physical Dimensions
@@ -47,6 +48,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   onSelectSite,
   compact = false,
   date = '2026-03-01',
+  initialVectorMode = 'off',
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
@@ -71,7 +73,7 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
   // UI States matching user's screenshot
   const [scaleMode, setScaleMode] = useState<'proportional' | 'true'>('proportional');
   const [focusTarget, setFocusTarget] = useState<'moon' | 'earth' | 'sun' | 'system'>('moon');
-  const [vectorMode, setVectorMode] = useState<'all' | 'dte' | 'solar' | 'off'>('all');
+  const [vectorMode, setVectorMode] = useState<'all' | 'dte' | 'solar' | 'off'>(initialVectorMode);
   const [showScaleDetails, setShowScaleDetails] = useState(false);
   const [currentHour] = useState(12);
 

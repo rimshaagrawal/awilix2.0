@@ -49,6 +49,7 @@ export const GlobeView: React.FC<GlobeViewProps> = ({
             <MoonGlobe3D
               selectedSiteId={selectedSiteId}
               onSelectSite={onSelectSite}
+              initialVectorMode="all"
             />
           </div>
 
