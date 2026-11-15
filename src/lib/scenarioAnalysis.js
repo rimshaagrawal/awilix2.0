@@ -9,15 +9,18 @@ export function analyzeScenario({site,date,hours=24,mode='reference',solarHeight
   if(!Number.isFinite(start)||!Number.isFinite(hours)||hours<=0||hours>744)throw new RangeError('Invalid date or window');
   for(const [v,min,max] of [[solarHeight,0,100],[antennaHeight,0,100],[panelTilt,0,90],[panelAzimuth,0,360]])if(!Number.isFinite(v)||v<min||v>max)throw new RangeError('Invalid observer/panel settings');
   if(!['reference','terrain'].includes(mode))throw new RangeError('Unknown visibility mode');
+  if(mode==='terrain'&&!terrain)throw new Error('Terrain horizon mode requested, but no terrain product is available. Select reference-sphere mode or retry after the terrain data loads.');
+  if(mode==='terrain'&&(!Array.isArray(terrain.rawElev)||!terrain.gridSize))throw new Error('Terrain horizon mode received an invalid terrain product; no visibility result was computed.');
   const solarProfile=terrain?profileFor(terrain,solarHeight):null,earthProfile=terrain?profileFor(terrain,antennaHeight):null;
   const local=mode==='terrain',ground=local?(solarProfile?.centerElevationM??0):0;
   const evaluate=ms=>{
     const p=computePositions(site.lat,site.lon,new Date(ms),{observerHeightM:ground+solarHeight});
     p.earth=topocentricAltAz(site.lat,site.lon,p.subearth.lat,p.subearth.lon,p.subearth.distKm,ground+antennaHeight);
-    const solarMask=local?horizonAt(solarProfile,p.sun.az):0,earthMask=local?horizonAt(earthProfile,p.earth.az):0;
+    const referenceHorizon=height=>-Math.acos(1737400/(1737400+Math.max(0,height)))*180/Math.PI;
+    const solarMask=local?horizonAt(solarProfile,p.sun.az):referenceHorizon(solarHeight),earthMask=local?horizonAt(earthProfile,p.earth.az):referenceHorizon(antennaHeight);
     p.sunHorizon=solarMask;p.earthHorizon=earthMask;
     p.sunMargin=solarMask===null?NaN:p.sun.alt-solarMask;p.earthMargin=earthMask===null?NaN:p.earth.alt-earthMask;
-    p.powerEfficiency=p.sunMargin>0?panelIncidence(p.sun.alt,p.sun.az,panelTilt,panelAzimuth):0;
+    p.powerEfficiency=Number.isFinite(p.sunMargin)?(p.sunMargin>0?panelIncidence(p.sun.alt,p.sun.az,panelTilt,panelAzimuth):0):NaN;
     p.commActive=Number.isFinite(p.earthMargin)?p.earthMargin>0:null;
     return p;
   };
@@ -33,5 +36,6 @@ export function analyzeScenario({site,date,hours=24,mode='reference',solarHeight
   }
   const path=[...base,...extra].sort((a,b)=>+a.time-+b.time).filter((p,i,a)=>i===0||+p.time>+a[i-1].time);
   const power=powerWindow(path),comm=commWindow(path),reference=local?{power:powerWindow(path.map(p=>({...p,sunMargin:p.sun.alt}))),comm:commWindow(path.map(p=>({...p,earthMargin:p.earth.alt})))}:null;
-  return {site,date,hours,mode,solarHeight,antennaHeight,panelTilt,panelAzimuth,path,power,comm,reference,solarProfile,earthProfile,terrainMetadata:terrain?.metadata??null,terrainExtent:terrain?{widthKm:terrain.widthKm,heightKm:terrain.heightKm}:null,sources:[...new Set(path.map(p=>p.source))],stepMinutes,method:local?'Local terrain crop + reference horizon · experimental':'Reference-sphere horizon · center-of-disk visibility',validation:'Independent SPICE/reference validation pending; numerical crossing refinement is not an accuracy guarantee'};
+  const startTime=new Date(start).toISOString(),endTime=new Date(end).toISOString();
+  return {site,date,startTime,endTime,hours,mode,solarHeight,antennaHeight,panelTilt,panelAzimuth,path,power,comm,reference,solarProfile,earthProfile,terrainMetadata:terrain?.metadata??null,terrainExtent:terrain?{widthKm:terrain.widthKm,heightKm:terrain.heightKm}:null,sources:[...new Set(path.map(p=>p.source))],stepMinutes,method:local?'Local terrain crop + spherical-curvature horizon · experimental':'Spherical reference horizon · center-of-disk visibility',validation:'Ephemeris cross-check is recorded separately. Terrain mode remains experimental when product registration/datum or horizon coverage is unverified.'};
 }

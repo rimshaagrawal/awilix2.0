@@ -31,5 +31,7 @@ export function positiveWindow(path,margin,value){
   // Unknown intervals are excluded rather than described as a confirmed outage.
   const exclusions=[...intervals,...unknown].sort((a,b)=>a.start-b.start);let cursor=start;
   for(const e of exclusions){if(e.start>cursor)append(blocked,cursor,e.start);cursor=Math.max(cursor,e.end);}if(cursor<end)append(blocked,cursor,end);
-  return {hours:Math.round(integral/360000)/10,exactHours:integral/3600000,totalHours:(end-start)/3600000,knownHours:knownMs/3600000,unknownHours:((end-start)-knownMs)/3600000,avgAlt:integral?Math.round(altIntegral/integral*10)/10:0,maxAlt:Number.isFinite(maxAlt)?Math.round(maxAlt*10)/10:0,avgEfficiency:integral?Math.round(effIntegral/integral*100):0,availabilityPercent:end>start?Math.round(integral/(end-start)*1000)/10:0,intervals,blocked,longestOutageHours:blocked.reduce((v,r)=>Math.max(v,(r.end-r.start)/3600000),0),nextSet:intervals.find(r=>r.end<end)?.end??null};
+  const totalHours=(end-start)/3600000,knownHours=knownMs/3600000;
+  const longestOutageHours=blocked.reduce((v,r)=>Math.max(v,(r.end-r.start)/3600000),0);
+  return {hours:knownMs?Math.round(integral/360000)/10:null,exactHours:knownMs?integral/3600000:null,totalHours,knownHours,unknownHours:Math.max(0,totalHours-knownHours),coveragePercent:totalHours?Math.round(knownHours/totalHours*1000)/10:0,avgAlt:integral?Math.round(altIntegral/integral*10)/10:0,maxAlt:Number.isFinite(maxAlt)?Math.round(maxAlt*10)/10:null,avgEfficiency:integral?Math.round(effIntegral/integral*100):knownMs?0:null,availabilityPercent:knownMs?Math.round(integral/knownMs*1000)/10:null,intervals,blocked,longestOutageHours:knownMs?longestOutageHours:null,nextSet:intervals.find(r=>r.end<end)?.end??null};
 }
