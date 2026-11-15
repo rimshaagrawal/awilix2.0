@@ -121,7 +121,7 @@ canvas { display: block; width: 100%; height: 100%; }
 .region-label { position: absolute; top: 72px; left: 22px; color: #cbd8df; font: 12px/1.6 system-ui, sans-serif; text-shadow: 0 1px 5px #000; }
 
 /* Mission exhibits share the existing scan HUD and remain readable on phones. */
-.creature-card:has(.mission-scan-content) { width: min(380px, calc(100% - 32px)); max-height: calc(100dvh - 106px); padding: 24px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.creature-card:has(.mission-scan-content) { width: min(380px, calc(100% - 32px)); height: auto; max-height: none; overflow: visible; padding: 24px; }
 .mission-scan-content h2 { margin: 5px 0 8px; font-size: 28px; letter-spacing: -.035em; }
 .mission-tag { color: #8be6fa; font-size: 12px; line-height: 1.5; }
 .mission-facts { display: grid; gap: 10px; margin: 20px 0; padding: 13px 0; border-block: 1px solid #8acbe329; }
@@ -130,7 +130,7 @@ canvas { display: block; width: 100%; height: 100%; }
 .creature-card .mission-scan-content p { font-size: 13px; line-height: 1.7; color: #bfd0de; }
 .creature-card .mission-scan-content .mission-connection { margin-top: 14px; padding-left: 12px; border-left: 2px solid #6cbed5; color: #91afc2; font-size: 12px; }
 .mission-scan-content a:focus-visible { outline: 2px solid #83dffa; outline-offset: 4px; }
-@media (max-width: 560px) { .creature-card:has(.mission-scan-content) { top: 72px; right: 16px; max-height: calc(100dvh - 88px); padding: 20px; } .scan-prompt { max-width: calc(100% - 32px); } }
+@media (max-width: 560px) { .creature-card:has(.mission-scan-content) { top: 16px; width: calc(100% - 32px); height: auto; max-height: none; overflow: visible; padding: 20px; } .scan-prompt { max-width: calc(100% - 32px); } }
 
 .mission-scan-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 18px 0 0; }
 .mission-scan-photos figure { margin: 0; min-width: 0; }
