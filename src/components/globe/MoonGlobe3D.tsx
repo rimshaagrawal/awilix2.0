@@ -435,11 +435,12 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
     sunLightRef.current = sunLight;
 
     // ── 4. SITE PIN MARKERS ──────────────────────────────────
-    const PIN_STEM_HEIGHT = 0.07;   // Height of pin stem above Moon surface
-    const PIN_HEAD_RADIUS = 0.016;  // Radius of pin head sphere
-    const PIN_STEM_RADIUS = 0.003;  // Thickness of pin stem cylinder
+    // Authentic sleek map-pin / push-pin styling: slender metallic needle with glossy spherical bead
+    const PIN_STEM_HEIGHT = 0.075;   // Slender pin shaft height
+    const PIN_HEAD_RADIUS = 0.0075;  // Refined non-overlapping spherical bead head
+    const PIN_STEM_RADIUS = 0.00085; // Fine needle shaft radius (~3.5x thinner)
 
-    const markerMeshes: { id: string; mesh: THREE.Mesh }[] = [];
+    const markerMeshes: { id: string; mesh: THREE.Mesh; hitMesh: THREE.Mesh }[] = [];
     sites.forEach((site, index) => {
       const surfacePos = latLonToVector3(site.lat, site.lon, 1.0);
       const tipPos = latLonToVector3(site.lat, site.lon, 1.0 + PIN_STEM_HEIGHT);
@@ -448,33 +449,57 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       // Surface normal direction (points outward from Moon center)
       const normal = surfacePos.clone().normalize();
 
-      // Pin head — small sphere at top of stem
-      const headGeo = new THREE.SphereGeometry(PIN_HEAD_RADIUS, 12, 12);
-      const headMat = new THREE.MeshBasicMaterial({ color: colorHex });
+      // Pin head — smooth glossy spherical bead perched at needle tip
+      const headGeo = new THREE.SphereGeometry(PIN_HEAD_RADIUS, 16, 16);
+      const headMat = new THREE.MeshStandardMaterial({
+        color: colorHex,
+        roughness: 0.12,
+        metalness: 0.1,
+        emissive: colorHex,
+        emissiveIntensity: 0.35,
+      });
       const headMesh = new THREE.Mesh(headGeo, headMat);
       headMesh.position.copy(tipPos);
       headMesh.userData = { siteId: site.id };
       markersGroup.add(headMesh);
-      markerMeshes.push({ id: site.id, mesh: headMesh });
 
-      // Pin stem — thin cylinder from surface to head
-      const stemGeo = new THREE.CylinderGeometry(PIN_STEM_RADIUS, PIN_STEM_RADIUS, PIN_STEM_HEIGHT, 6);
-      const stemMat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.9 });
+      // Pin stem — slender metallic needle from lunar surface to head
+      const stemGeo = new THREE.CylinderGeometry(PIN_STEM_RADIUS, PIN_STEM_RADIUS, PIN_STEM_HEIGHT, 8);
+      const stemMat = new THREE.MeshStandardMaterial({
+        color: 0xd8dde8,
+        metalness: 0.9,
+        roughness: 0.18,
+      });
       const stemMesh = new THREE.Mesh(stemGeo, stemMat);
       // Position at midpoint between surface and tip
       const midPoint = surfacePos.clone().add(tipPos).multiplyScalar(0.5);
       stemMesh.position.copy(midPoint);
-      // Orient cylinder along the surface normal (cylinder default axis is Y)
+      // Orient cylinder along surface normal
       stemMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
       markersGroup.add(stemMesh);
 
-      // Tiny base dot on the Moon surface
-      const baseGeo = new THREE.CircleGeometry(0.008, 12);
-      const baseMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+      // Tiny surface anchor collar / flush pinhole disc
+      const baseGeo = new THREE.CircleGeometry(0.0035, 12);
+      const baseMat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85,
+      });
       const baseMesh = new THREE.Mesh(baseGeo, baseMat);
-      baseMesh.position.copy(surfacePos.clone().add(normal.clone().multiplyScalar(0.001)));
+      baseMesh.position.copy(surfacePos.clone().add(normal.clone().multiplyScalar(0.0008)));
       baseMesh.lookAt(0, 0, 0);
       markersGroup.add(baseMesh);
+
+      // Invisible hit proxy sphere for easy, friction-free clicking
+      const hitGeo = new THREE.SphereGeometry(0.022, 8, 8);
+      const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+      const hitMesh = new THREE.Mesh(hitGeo, hitMat);
+      hitMesh.position.copy(tipPos);
+      hitMesh.userData = { siteId: site.id };
+      markersGroup.add(hitMesh);
+
+      markerMeshes.push({ id: site.id, mesh: headMesh, hitMesh });
     });
 
     // Raycaster for clicking site beacons
@@ -485,7 +510,10 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
-      const hits = raycaster.intersectObjects(markerMeshes.map((m) => m.mesh));
+      const hits = raycaster.intersectObjects([
+        ...markerMeshes.map((m) => m.hitMesh),
+        ...markerMeshes.map((m) => m.mesh),
+      ]);
       if (hits.length > 0) {
         const id = hits[0].object.userData.siteId;
         if (id) onSelectSite(id);
@@ -514,13 +542,20 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
       if (sunModelRef.current) sunModelRef.current.rotation.y += 0.0008;
       starField.rotation.y += 0.0001;
 
-      // Pulse selected pin head
+      // Pulse selected pin head subtly without inflating into adjacent pins
       markerMeshes.forEach((item) => {
+        const mat = item.mesh.material as THREE.MeshStandardMaterial;
         if (item.id === selectedSiteIdRef.current) {
-          const s = 1.4 + Math.sin(Date.now() * 0.005) * 0.35;
+          const s = 1.15 + Math.sin(Date.now() * 0.006) * 0.1;
           item.mesh.scale.set(s, s, s);
+          if (mat && mat.emissive) {
+            mat.emissiveIntensity = 0.85 + Math.sin(Date.now() * 0.006) * 0.25;
+          }
         } else {
           item.mesh.scale.set(1, 1, 1);
+          if (mat && mat.emissive) {
+            mat.emissiveIntensity = 0.35;
+          }
         }
       });
 
