@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:science": "node --test tests/scenario-science.test.mjs",
+    "test:astra": "node --test tests/astra-agent.test.mjs",
     "validate:horizons": "node scripts/validate-horizons.mjs"
   },
   "dependencies": {

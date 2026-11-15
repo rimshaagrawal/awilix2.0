@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import type { View, Scenario } from '@/types';
 import { sites, getSite } from '@/data/sites';
 import { DEFAULT_SCENARIO, getSummary } from '@/lib/scenarioCalculations';
+import { ensureEphemeris, type AstraAppState, type HorizonMode } from '@/astra/runtime';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { AstraPanel } from '@/components/assistant/AstraPanel';
@@ -14,8 +15,6 @@ import { CompareView } from '@/views/CompareView';
 import { ScenarioView } from '@/views/ScenarioView';
 import { AstraView } from '@/views/AstraView';
 import { TripView } from '@/views/TripView';
-import { SiteTerrain3D } from '@/components/terrain/SiteTerrain3D';
-import SiteTerrainView from '@/components/sites/SiteTerrainView';
 import { TripSimulationOverlay } from '@/components/trip/TripSimulationOverlay';
 
 export const App: React.FC = () => {
@@ -31,15 +30,21 @@ export const App: React.FC = () => {
   const [astraOpen, setAstraOpen] = useState(false);
   const [tripOpen, setTripOpen] = useState(false);
   const [analysisTab, setAnalysisTab] = useState<'charts' | 'terrain'>('charts');
+  // State Astra reads (previously local to individual views).
+  const [horizonMode, setHorizonMode] = useState<HorizonMode>('reference');
+  const [terrainHour, setTerrainHour] = useState(12);
+  const [ephemerisRevision, setEphemerisRevision] = useState(0);
+
+  // Load the NASA 2026 table on the main thread so the globe, terrain renderer
+  // and Astra use it instead of the approximate analytic fallback.
+  useEffect(() => {
+    ensureEphemeris().then((ok) => { if (ok) setEphemerisRevision((r) => r + 1); }).catch(() => {});
+  }, []);
 
   const selectedSite = getSite(selectedSiteId);
   const selectedSummary = useMemo(
     () => getSummary(selectedSite, scenario),
     [selectedSite, scenario]
-  );
-  const comparisonSites = useMemo(
-    () => compareIds.map(getSite),
-    [compareIds]
   );
 
   const handleNavigate = (view: View) => {
@@ -80,9 +85,15 @@ export const App: React.FC = () => {
     setActiveView('overview');
   };
 
+  const astraState: AstraAppState = useMemo(() => ({
+    activeView, selectedSiteId, compareIds, scenario, horizonMode, analysisTab, terrainHour,
+  }), [activeView, selectedSiteId, compareIds, scenario, horizonMode, analysisTab, terrainHour]);
+
+  const openAstra = useCallback(() => setAstraOpen(true), []);
+
   return (
     <div className="app-shell">
-      {activeView !== 'trip' && !tripOpen && <CustomCursor />}
+      <CustomCursor />
       {/* Left Collapsible Navigation Sidebar */}
       <Sidebar
         activeView={activeView}
@@ -102,6 +113,7 @@ export const App: React.FC = () => {
           {activeView === 'overview' && (
             <OverviewView
               scenario={scenario}
+              ephemerisRevision={ephemerisRevision}
               selectedSiteId={selectedSiteId}
               onSelectSite={setSelectedSiteId}
               onOpenSite={handleVisitTerrain}
@@ -112,6 +124,7 @@ export const App: React.FC = () => {
           {activeView === 'globe' && (
             <GlobeView
               scenario={scenario}
+              ephemerisRevision={ephemerisRevision}
               selectedSiteId={selectedSiteId}
               onSelectSite={setSelectedSiteId}
               onOpenSite={handleOpenSite}
@@ -127,6 +140,9 @@ export const App: React.FC = () => {
                     site={selectedSite}
                     date={scenario.date}
                     onSelectSite={setSelectedSiteId}
+                    hour={terrainHour}
+                    onHourChange={setTerrainHour}
+                    ephemerisRevision={ephemerisRevision}
                 />
               </div>
             </div>
@@ -150,6 +166,10 @@ export const App: React.FC = () => {
               onSelectSite={setSelectedSiteId}
               onNavigate={handleNavigate}
               initialTab={analysisTab}
+              onTabChange={setAnalysisTab}
+              terrainHour={terrainHour}
+              onTerrainHourChange={setTerrainHour}
+              ephemerisRevision={ephemerisRevision}
             />
           )}
 
@@ -169,6 +189,8 @@ export const App: React.FC = () => {
               onUpdateScenario={handleUpdateScenario}
               onSelectSite={setSelectedSiteId}
               onNavigate={handleNavigate}
+              horizonMode={horizonMode}
+              onHorizonModeChange={setHorizonMode}
             />
           )}
 
@@ -186,14 +208,16 @@ export const App: React.FC = () => {
       {/* Floating Context-Aware Astra Mission Assistant */}
       <AstraPanel
         isOpen={astraOpen}
-        selectedSite={selectedSite}
-        scenario={scenario}
-        summary={selectedSummary}
-        comparisonSites={comparisonSites}
+        state={astraState}
         onToggle={() => setAstraOpen((prev) => !prev)}
+        onOpen={openAstra}
         onClose={() => setAstraOpen(false)}
+        onNavigate={handleNavigate}
+        onSelectSite={setSelectedSiteId}
+        onSetCompare={(ids) => setCompareIds(ids.filter((id, i, a) => a.indexOf(id) === i).slice(0, 6))}
+        onApplyScenario={(changes) => setScenario((current) => ({ ...current, ...changes }))}
+        onSetTerrainHour={setTerrainHour}
       />
-
       {/* Full-screen Lunar Polar Explorer simulation launched from TripView */}
       {tripOpen && <TripSimulationOverlay onExit={handleExitTrip} />}
     </div>
