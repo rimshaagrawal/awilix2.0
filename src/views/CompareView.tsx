@@ -1,12 +1,11 @@
 import React from 'react';
-import { BarChart3, ArrowUpRight, Plus, X } from 'lucide-react';
+import { BarChart3, ArrowUpRight, X } from 'lucide-react';
 import type { Scenario } from '@/types';
 import { sites, getSite } from '@/data/sites';
 import { getSummary, SITE_COLORS } from '@/lib/scenarioCalculations';
 import { SectionTitle } from '@/components/common/SectionTitle';
 import { MiniBars } from '@/components/common/MiniBars';
 import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
-import { Magnet } from '@/components/reactbits/Magnet';
 
 interface CompareViewProps {
   scenario: Scenario;
@@ -38,21 +37,6 @@ export const CompareView: React.FC<CompareViewProps> = ({
           title="Trade-offs, made legible"
           animateTitle={true}
           description="Compare the current mission window without collapsing the science into a single unexplained score."
-          action={
-            <Magnet padding={35} magnetStrength={3} maxOffset={10}>
-              <button
-                className="primary-button"
-                onClick={() =>
-                  onToggleCompare(
-                    sites.find((site) => !compareIds.includes(site.id))?.id ?? sites[0].id
-                  )
-                }
-              >
-                <Plus size={14} />
-                Add site
-              </button>
-            </Magnet>
-          }
         />
 
       <div className="compare-chips">
