@@ -209,7 +209,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
             <Sparkles size={16} />
           </div>
           {lfmLoading ? (
-            <LFMLoadingScreen message="Analyzing terrain with NASA-IBM LFM..." subtext="Running ice prospectivity inference on south-pole patch" />
+            <LFMLoadingScreen message="Preparing site analysis..." subtext="Loading terrain, ephemeris and mission telemetry" />
           ) : (
             (() => {
               const d = (iceData as any)?.sites?.[site.id];

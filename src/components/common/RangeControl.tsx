@@ -1,4 +1,5 @@
 import React from 'react';
+import { WakeSlider } from '@/components/reactbits/WakeSlider';
 
 interface RangeControlProps {
   label: string;
@@ -28,17 +29,24 @@ export const RangeControl: React.FC<RangeControlProps> = ({
           {unit}
         </b>
       </span>
-      <input
-        type="range"
+      <WakeSlider
+        value={value}
         min={min}
         max={max}
         step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
+        onChange={onChange}
+        ariaLabel={label}
+        bars={32}
+        height={40}
+        restHeight={8}
+        gap={4}
+        fillColor="#5ec4be"
+        trackColor="rgba(238, 240, 245, 0.10)"
+        crestColor="#eac18b"
+        showValue={false}
       />
     </label>
   );
 };
 
 export default RangeControl;
-
