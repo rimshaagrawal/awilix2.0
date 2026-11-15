@@ -30,9 +30,16 @@ try {
   renderer.setClearColor(0x000000,1);
   scene.background = new THREE.Color(0x000000);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.AgXToneMapping;
+  renderer.toneMappingExposure = 1.15;
   renderer.shadowMap.enabled=true;
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   host.appendChild(renderer.domElement);
+  // Lens falloff covers the image while later HUD layers remain crisp.
+  const vignette = document.createElement('div');
+  vignette.className = 'lens-vignette';
+  vignette.setAttribute('aria-hidden', 'true');
+  host.appendChild(vignette);
   const camera = new THREE.PerspectiveCamera(36,1,.1,100);
   const controls = new OrbitControls(camera,renderer.domElement);
   controls.enableDamping = true; controls.enablePan = false;
@@ -50,12 +57,12 @@ try {
   const globe = new THREE.Mesh(new THREE.SphereGeometry(1,256,160),new THREE.MeshStandardMaterial({
     map:texture,bumpMap:elevation,bumpScale:.018,
     displacementMap:elevation,displacementScale:.006,displacementBias:-.003,
-    roughness:1,metalness:0
+    color:0x77797f,roughness:1,metalness:0
   }));
   // Present the familiar near side initially, while retaining free orbit controls.
   globe.rotation.y = -1.0;
   moon.add(globe);
-  scene.add(new THREE.AmbientLight(0xc5d1e0,.075));
+  scene.add(new THREE.AmbientLight(0xc5d1e0,.025));
   const sun = new THREE.DirectionalLight(0xfff7ed,2.6); scene.add(sun);
   sun.position.set(5,2.3,1);
 
@@ -107,6 +114,8 @@ try {
   const hud = document.createElement('div');
   hud.className='surface-hud';hud.hidden=true;
   hud.innerHTML=`<button id="back" class="hud-panel" aria-label="Return to Moon">${hudFrame()}<span>← Moon</span></button>
+    <button id="rover-sound" class="hud-panel" type="button" aria-label="Mute rover sound" aria-pressed="false">${hudFrame()}<span>Sound on</span></button>
+    <output id="rover-physics-status" class="hud-panel" role="status" hidden>${hudFrame()}<span></span></output>
     <div class="flight-pad">${[['KeyW','Forward','↑'],['KeyA','Left','←'],['KeyS','Backward','↓'],['KeyD','Right','→'],['Space','Hold for rover boosters','Boosters']].map(([key,label,text])=>`<button class="hud-panel" data-key="${key}" aria-label="${label}">${hudFrame()}<span>${text}</span></button>`).join('')}</div>`;
   host.appendChild(hud);
   const regionLabel=document.createElement('div');regionLabel.className='region-label hud-panel';
@@ -198,10 +207,15 @@ try {
   coordinates.title='Map coordinates in scene units: X = world X, Y = world Z';
   coordinates.setAttribute('aria-label','Rover map coordinates');
   hud.appendChild(coordinates);
+  const physicsStatus=hud.querySelector('#rover-physics-status'),physicsStatusText=physicsStatus.querySelector('span');
   observeHudFrames(host);
   function updateCoordinates(){
     const {x,y}=surface.getMapPosition();
     coordinateValues.textContent=`X: ${x.toFixed(2)}  Y: ${y.toFixed(2)}`;
+    const {boundaryDistance}=surface.getPhysicsStatus();
+    const notice=boundaryDistance<8?'Survey boundary · turn back to explore':'';
+    if(physicsStatusText.textContent!==notice)physicsStatusText.textContent=notice;
+    physicsStatus.hidden=!notice;
   }
   updateCoordinates();
   function leave(){
@@ -209,6 +223,12 @@ try {
     descent=null;veil.style.opacity=0;onSurface=false;waypointLayer.hidden=false;controls.autoRotate=true;surface.setActive(false);controls.enabled=true;hud.hidden=true;host.style.cursor='grab';
   }
   hud.querySelector('#back').addEventListener('click',leave);
+  hud.querySelector('#rover-sound').addEventListener('click',event=>{
+    const muted=surface.toggleSound(),button=event.currentTarget;
+    button.setAttribute('aria-pressed',String(muted));
+    button.setAttribute('aria-label',muted?'Unmute rover sound':'Mute rover sound');
+    button.querySelector('span').textContent=muted?'Sound off':'Sound on';
+  });
   window.addEventListener('keydown',e=>{
     if(e.code!=='Escape')return;
     if(onSurface||descent){leave();return;}

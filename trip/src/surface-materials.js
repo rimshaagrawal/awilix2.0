@@ -52,25 +52,30 @@ export function applyMineralFinish(material,{rock=false}={}) {
     shader.fragmentShader=shader.fragmentShader
       .replace('#include <common>','#include <common>\nvarying vec3 vMineralWorld;\n'+mineralNoise)
       .replace('#include <color_fragment>',`#include <color_fragment>
-        float deposit=mineralNoise(vMineralWorld*.37);
-        float vein=mineralNoise(vMineralWorld*2.8+vec3(deposit*3.));
-        float ridge=1.-abs(2.*vein-1.);
-        float dust=smoothstep(.36,.68,deposit);
-        diffuseColor.rgb*=mix(vec3(.72,.76,.88),vec3(.98,.94,.90),deposit);
-        diffuseColor.rgb*=mix(.84,1.04,ridge);
+        // Broad, irregular deposits rather than repeated bright-edged dimples.
+        float deposit=mineralNoise(vMineralWorld*.055);
+        float drift=mineralNoise(vMineralWorld*.31+vec3(deposit*2.));
+        float aggregate=mineralNoise(vMineralWorld*7.3);
+        float footprint=length(fwidth(vMineralWorld));
+        float aggregateFade=1.-smoothstep(.045,.22,footprint);
+        float grainFade=1.-smoothstep(.008,.055,footprint);
+        float powder=mineralNoise(vMineralWorld*53.);
+        float dust=smoothstep(.28,.74,deposit*.65+drift*.35);
+        // Neutral charcoal with small areas of muted umber, never metallic gold.
+        diffuseColor.rgb*=mix(vec3(.82,.81,.79),vec3(1.08,1.00,.86),dust);
+        diffuseColor.rgb*=.91+.14*drift;
+        diffuseColor.rgb*=1.+(aggregate-.5)*.065*aggregateFade+(powder-.5)*.055*grainFade;
       `)
       .replace('#include <roughnessmap_fragment>',`#include <roughnessmap_fragment>
-        // Exposed mineral faces catch broad highlights; loose dust stays matte.
-        roughnessFactor=clamp(mix(${rock?'.47':'.52'},.91,dust)+(.5-vein)*.10,.43,.95);
+        // Packed powder stays matte; exposed rock retains a little more sheen.
+        roughnessFactor=clamp(${rock?'.86':'.97'}+(drift-.5)*.045,${rock?'.82':'.94'},1.);
       `)
       .replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
-        // World-space strata continue over slopes. Derivative filtering removes
-        // fine relief in the distance instead of producing sparkling pixels.
-        float fineFade=1.-smoothstep(.035,.16,length(fwidth(vMineralWorld)));
-        float relief=${rock?'.065':'.038'}*ridge;
-        relief+=.010*sin(vMineralWorld.x*3.2+vMineralWorld.z*1.3+deposit*7.);
-        relief+=fineFade*.003*mineralNoise(vMineralWorld*22.);
-        relief*=1.-smoothstep(.15,.65,length(fwidth(vMineralWorld)));
+        // Millimetric aggregate and fine powder, not centimetric ridges.
+        // Fade each frequency before it becomes smaller than a screen pixel.
+        float relief=${rock?'.018':'.008'}*(aggregate-.5)*aggregateFade;
+        relief+=${rock?'.0008':'.0008'}*(powder-.5)*grainFade;
+        ${rock?'relief+=.028*mineralNoise(vMineralWorld*1.7);':''}
         vec3 dpdx=dFdx(-vViewPosition),dpdy=dFdy(-vViewPosition);
         vec3 rx=cross(dpdy,normal),ry=cross(normal,dpdx);
         float det=dot(dpdx,rx);
@@ -78,7 +83,7 @@ export function applyMineralFinish(material,{rock=false}={}) {
         normal=normalize(abs(det)*normal-grad);
       `);
   };
-  material.customProgramCacheKey=()=>`lunar-mineral-${rock?'rock':'ground'}-v1`;
+  material.customProgramCacheKey=()=>`lunar-mineral-${rock?'rock':'ground'}-v3`;
 }
 
 // Install after the rover's cloned armor materials have been built: Three.js

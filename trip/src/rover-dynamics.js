@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { SUSPENSION_LIMITS } from './vehicle-support.js';
 
 export const WHEEL_CONTACTS=[[-1,-.72],[-1,.72],[1,-.72],[1,.72]];
 
@@ -30,7 +31,7 @@ export function createRoverDynamics(scale=.6,{halfWheelbase=.72}={}){
     const sideAccel=initialized&&dt>0?THREE.MathUtils.clamp((side-lastSide)/dt,-24,24):0;
     const targetPitch=THREE.MathUtils.clamp(Math.atan2(front-back,2*halfWheelbase*scale)+accel*.004,-.65,.65);
     const targetRoll=THREE.MathUtils.clamp(Math.atan2(right-left,2*scale)-sideAccel*.005,-.65,.65);
-    const targetHeave=THREE.MathUtils.clamp(((front+back)*.5-position.y)/scale,-.45,.15);
+    const targetHeave=THREE.MathUtils.clamp(((front+back)*.5-position.y)/scale,-.12,.12);
     if(!initialized){
       if(grounded){state.pitch=targetPitch;state.roll=targetRoll;state.heave=targetHeave;}
       initialized=true;
@@ -56,7 +57,7 @@ export function createRoverDynamics(scale=.6,{halfWheelbase=.72}={}){
       }
       for(const key of ['pitch','roll','heave']){
         state[key]+=state[key+'Velocity']*h;
-        const limit=key==='heave'?1.2:.78;
+        const limit=key==='heave'?.12:.78;
         if(Math.abs(state[key])>limit){state[key]=Math.sign(state[key])*limit;state[key+'Velocity']=0;}
       }
       accumulator=Math.max(0,accumulator-h);
@@ -71,7 +72,7 @@ export function createRoverDynamics(scale=.6,{halfWheelbase=.72}={}){
           position.z+scale*(-wheelPoint.x*sin+wheelPoint.z*cos));
         clearance=Math.max(clearance,(floor-position.y)/scale-wheelPoint.y-state.heave+.025);
       }
-      if(clearance>0){state.heave+=clearance;state.heaveVelocity=Math.max(0,state.heaveVelocity);}
+      if(clearance>0){state.heave=Math.min(.12,state.heave+clearance);state.heaveVelocity=Math.max(0,state.heaveVelocity);}
     }
     // Solve within the physical travel bracket. Unbounded Newton corrections can
     // jump across a rock edge repeatedly as tilted suspension changes footprint.
@@ -84,9 +85,9 @@ export function createRoverDynamics(scale=.6,{halfWheelbase=.72}={}){
           position.z+scale*(-wheelPoint.x*sin+wheelPoint.z*cos));
         return position.y+scale*(state.heave+wheelPoint.y)-floor;
       }
-      let target=-.32,reachable=false;
+      let target=-SUSPENSION_LIMITS.droop,reachable=false;
       if(grounded){
-        let low=-.5,high=.5;
+        let low=-SUSPENSION_LIMITS.droop,high=SUSPENSION_LIMITS.compression;
         const bottom=clearance(low),top=clearance(high);
         reachable=bottom<=.015&&top>=-.015;
         if(bottom>0)target=low;
@@ -105,8 +106,8 @@ export function createRoverDynamics(scale=.6,{halfWheelbase=.72}={}){
         const h=Math.min(remaining,1/120);
         wheel.velocity+=((target-wheel.offset)*225-wheel.velocity*30)*h;
         wheel.velocity=THREE.MathUtils.clamp(wheel.velocity,-3,3);
-        wheel.offset=THREE.MathUtils.clamp(wheel.offset+wheel.velocity*h,-.5,.5);
-        if((wheel.offset===-.5&&wheel.velocity<0)||(wheel.offset===.5&&wheel.velocity>0))wheel.velocity=0;
+        wheel.offset=THREE.MathUtils.clamp(wheel.offset+wheel.velocity*h,-SUSPENSION_LIMITS.droop,SUSPENSION_LIMITS.compression);
+        if((wheel.offset===-SUSPENSION_LIMITS.droop&&wheel.velocity<0)||(wheel.offset===SUSPENSION_LIMITS.compression&&wheel.velocity>0))wheel.velocity=0;
         remaining-=h;
       }
       wheel.contact=grounded&&reachable&&Math.abs(clearance(wheel.offset))<.06;

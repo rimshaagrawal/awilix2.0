@@ -1,0 +1,46 @@
+{
+  "license": "CC0 1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "assets": [
+    {
+      "file": "rover-tracks.wav",
+      "title": "Tank Tread",
+      "author": "77Pacer",
+      "source": "https://freesound.org/people/77Pacer/sounds/425271/",
+      "download": "https://cdn.freesound.org/previews/425/425271_8545280-hq.mp3",
+      "modifications": "Trimmed to 0.12–2.55 seconds, high-pass at 180 Hz, low-pass at 3800 Hz, 80 ms wrap crossfade, level normalized, resampled to mono 22050 Hz PCM WAV. The original is garage-door foley intended for use as tank treads."
+    },
+    {
+      "file": "rover-drive.wav",
+      "title": "engine4_loop.wav",
+      "author": "ReadeOnly",
+      "source": "https://freesound.org/people/ReadeOnly/sounds/186934/",
+      "download": "https://cdn.freesound.org/previews/186/186934_545448-hq.mp3",
+      "modifications": "Trimmed to 0.3–5.6 seconds, high-pass at 65 Hz, low-pass at 1400 Hz, 80 ms wrap crossfade, level normalized, resampled to mono 22050 Hz PCM WAV."
+    },
+    {
+      "file": "rover-jet.wav",
+      "title": "Thrust Loop",
+      "author": "unfa",
+      "source": "https://freesound.org/people/unfa/sounds/584181/",
+      "download": "https://cdn.freesound.org/previews/584/584181_1038806-hq.mp3",
+      "modifications": "Trimmed to 0–1.62 seconds, high-pass at 55 Hz, low-pass at 6500 Hz, 60 ms wrap crossfade, level normalized, resampled to mono 22050 Hz PCM WAV."
+    },
+    {
+      "file": "rover-scan.wav",
+      "title": "sci-fi long scan",
+      "author": "pyth0n11",
+      "source": "https://freesound.org/people/pyth0n11/sounds/706447/",
+      "download": "https://cdn.freesound.org/previews/706/706447_10485202-hq.mp3",
+      "modifications": "Trimmed to 0.15–3.85 seconds, high-pass at 180 Hz, low-pass at 7000 Hz, 60 ms wrap crossfade, level normalized, resampled to mono 22050 Hz PCM WAV."
+    },
+    {
+      "file": "rover-scan-complete.wav",
+      "title": "Objective Complete",
+      "author": "Jerimee",
+      "source": "https://freesound.org/people/Jerimee/sounds/527530/",
+      "download": "https://cdn.freesound.org/previews/527/527530_3202600-hq.mp3",
+      "modifications": "High-pass at 180 Hz, low-pass at 6500 Hz, 8 ms edge fades, level normalized, resampled to mono 22050 Hz PCM WAV."
+    }
+  ]
+}
