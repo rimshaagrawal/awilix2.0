@@ -104,7 +104,7 @@ export async function handleAstra(method, rawBody, cfg = astraConfig()) {
           .map((m) => ({ role: m.role, content: m.content.slice(0, 800) })),
         { role: 'user', content: question },
       ];
-      const out = await chat(cfg, messages, { temperature: 0.3, timeoutMs: 60_000 });
+      const out = await chat(cfg, messages, { temperature: 0.3, timeoutMs: 300_000 });
       return { status: 200, body: { text: out, model: cfg.model } };
     }
     return { status: 400, body: { error: 'mode must be "phrase" or "answer"' } };
