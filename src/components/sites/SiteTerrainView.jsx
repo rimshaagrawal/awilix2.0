@@ -458,65 +458,6 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           </div>
         </div>
 
-<<<<<<< Updated upstream
-      {/* Top Right: View Modes & Lighting Button */}
-      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center gap-2" data-guide="terrain-controls">
-        {/* LIGHTING BUTTON (Inspection fill) */}
-        <button
-          onClick={() => setLightingMode(!lightingMode)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
-            lightingMode
-              ? 'bg-[var(--coral)] text-[var(--paper-dark)] border-[var(--coral)] shadow-lg'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
-          }`}
-          title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
-          style={{ fontFamily: "'DM Mono', monospace" }}
-        >
-          <Lightbulb className={`w-3.5 h-3.5 ${lightingMode ? 'text-[var(--paper-dark)] fill-current' : 'text-[var(--coral)]'}`} />
-          <span>{lightingMode ? 'Lighting: ON' : 'Lighting: OFF'}</span>
-        </button>
-
-        {/* Dual Surface Toggle Button (Raw DEM vs Continuous Surface) */}
-        <button
-          onClick={() => setUseInterpolation(!useInterpolation)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
-            useInterpolation
-              ? 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--mustard)] border-[rgba(143,211,232,0.3)] shadow-lg'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--coral)] border-[rgba(255,171,94,0.3)] shadow-lg'
-          }`}
-          title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
-          style={{ fontFamily: "'DM Mono', monospace" }}
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>{useInterpolation ? 'Bilinear display mesh' : 'Source grid'}</span>
-        </button>
-
-        {/* Wireframe Mesh Toggle */}
-        <button
-          onClick={() => setWireframe(!wireframe)}
-          className={`p-1.5 rounded-lg text-xs font-medium backdrop-blur-md border transition-colors ${
-            wireframe
-              ? 'bg-[var(--ink)] text-[var(--paper)] border-[var(--ink)]'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-mute)]'
-          }`}
-          title="Toggle Wireframe Grid"
-        >
-          <Grid className="w-4 h-4" />
-        </button>
-
-        {/* Heatmap overlay toggle */}
-        <button
-          onClick={() => setHeatmapOn(!heatmapOn)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
-            heatmapOn
-              ? 'bg-[var(--mustard)] text-[var(--paper-dark)] border-[var(--mustard)] shadow-lg'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
-          }`}
-          title="Overlay a semi-transparent probability heatmap on the terrain"
-        >
-          <span>Heatmap overlay {heatmapOn ? 'ON' : 'OFF'}</span>
-        </button>
-=======
         {/* Right: Uniformly Sized & Aligned Action Controls */}
         <div className="flex items-center gap-2 shrink-0 pointer-events-auto" data-guide="terrain-controls">
           {/* Lighting Button */}
@@ -574,7 +515,6 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
             <span>Heatmap: {heatmapOn ? 'ON' : 'OFF'}</span>
           </button>
         </div>
->>>>>>> Stashed changes
       </div>
 
       <div className="absolute top-20 right-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'DM Mono', monospace", display: 'flex', flexDirection: 'column', gap: 6 }}>
