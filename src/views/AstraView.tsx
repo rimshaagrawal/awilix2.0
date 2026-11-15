@@ -2,7 +2,6 @@ import React from 'react';
 import { MessageCircle, Bot, Check, ArrowUpRight, Cpu, Info } from 'lucide-react';
 import type { Site, Scenario, SiteSummary } from '@/types';
 import { AstraAvatar } from '@/components/common/AstraAvatar';
-import { Magnet } from '@/components/reactbits/Magnet';
 
 interface AstraViewProps {
   selectedSite: Site;
@@ -26,17 +25,15 @@ export const AstraView: React.FC<AstraViewProps> = ({
           <h1>
             Telemetry guidance
             <br />
-            and mission context
+            and mission context.
           </h1>
           <p>
             Astra is context-aware by design. The assistant reads active site coordinates, scenario parameters,
             candidate comparisons, and LOLA altimetry models to explain the science on screen.
           </p>
-          <Magnet padding={40} magnetStrength={3} maxOffset={10}>
-            <button className="primary-button" onClick={onOpenChat}>
+          <button className="primary-button" onClick={onOpenChat}>
             Open Astra channel <MessageCircle size={15} />
           </button>
-          </Magnet>
         </div>
 
         <div className="astra-stage">

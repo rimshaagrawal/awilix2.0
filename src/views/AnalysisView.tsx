@@ -26,6 +26,7 @@ import iceData from '@/data/ice-prospectivity.json';
 import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
 import { ScrollFloat } from '@/components/reactbits/ScrollFloat';
 import { ScrollReveal } from '@/components/reactbits/ScrollReveal';
+import { GlareHover } from '@/components/reactbits/GlareHover';
 import { Magnet } from '@/components/reactbits/Magnet';
 import { OptionWheel } from '@/components/reactbits/OptionWheel';
 
@@ -190,9 +191,9 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
         ) : (
           <div style={{ width: '100%', minHeight: 560 }}>
             <SiteTerrainView
-              site={site}
-              date={scenario.date}
-              onBack={() => onNavigate('globe')}
+            site={site}
+            date={scenario.date}
+            onBack={() => onNavigate('globe')}
             />
           </div>
         )}
@@ -245,110 +246,124 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
         </div>
 
         <div className="analysis-lower">
-          <div className="panel detail-panel" style={{ flex: '1 1 500px' }}>
-            <div className="panel-heading">
-              <div>
-                <span className="eyebrow">Site record</span>
-                <h2>NASA and LOLA altimetry parameters</h2>
-              </div>
-              <Database size={16} />
-            </div>
-
-            <div className="detail-grid">
-              <div>
-                <span>Coordinates</span>
-                <strong>
-                  {formatCoordinate(site.lat, 'N', 'S')} · {formatCoordinate(site.lon, 'E', 'W')}
-                </strong>
-              </div>
-              <div>
-                <span>Elevation relief</span>
-                <strong>{site.elevationReliefM.toLocaleString()} m</strong>
-              </div>
-              <div>
-                <span>Water-ice potential</span>
-                <strong>{site.waterIcePotential}</strong>
-              </div>
-              <div>
-                <span>Mission partner</span>
-                <strong>{site.contractor}</strong>
-              </div>
-              {site.craterDiameterKm !== undefined && site.craterDiameterKm > 0 && (
+          <GlareHover
+            glareColor="rgba(145, 198, 212, 0.18)"
+            glareSize={360}
+            glareOpacity={0.35}
+            style={{ borderRadius: '14px', flex: '1 1 500px' }}
+          >
+            <div className="panel detail-panel" style={{ height: '100%' }}>
+              <div className="panel-heading">
                 <div>
-                  <span>Crater diameter</span>
-                  <strong>{site.craterDiameterKm} km</strong>
+                  <span className="eyebrow">Site record</span>
+                  <h2>NASA and LOLA altimetry parameters</h2>
+                </div>
+                <Database size={16} />
+              </div>
+
+              <div className="detail-grid">
+                <div>
+                  <span>Coordinates</span>
+                  <strong>
+                    {formatCoordinate(site.lat, 'N', 'S')} · {formatCoordinate(site.lon, 'E', 'W')}
+                  </strong>
+                </div>
+                <div>
+                  <span>Elevation relief</span>
+                  <strong>{site.elevationReliefM.toLocaleString()} m</strong>
+                </div>
+                <div>
+                  <span>Water-ice potential</span>
+                  <strong>{site.waterIcePotential}</strong>
+                </div>
+                <div>
+                  <span>Mission partner</span>
+                  <strong>{site.contractor}</strong>
+                </div>
+                {site.craterDiameterKm !== undefined && site.craterDiameterKm > 0 && (
+                  <div>
+                    <span>Crater diameter</span>
+                    <strong>{site.craterDiameterKm} km</strong>
+                  </div>
+                )}
+                {site.craterDepthKm !== undefined && site.craterDepthKm > 0 && (
+                  <div>
+                    <span>Crater depth</span>
+                    <strong>{site.craterDepthKm} km</strong>
+                  </div>
+                )}
+              </div>
+
+              {site.whyNASAChose && (
+                <div style={{ marginTop: 16, borderTop: '1px solid var(--border-subtle)', paddingTop: 14 }}>
+                  <span className="eyebrow">NASA site rationale</span>
+                  <p style={{ margin: '6px 0 0', color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.6 }}>
+                    <ScrollReveal key={`rationale-${site.id}`} blurStrength={3} stagger={0.02}>
+                      {site.whyNASAChose}
+                    </ScrollReveal>
+                  </p>
                 </div>
               )}
-              {site.craterDepthKm !== undefined && site.craterDepthKm > 0 && (
-                <div>
-                  <span>Crater depth</span>
-                  <strong>{site.craterDepthKm} km</strong>
+
+              {site.funFact && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    background: 'var(--surface-raised)',
+                    padding: '12px 14px',
+                    borderRadius: 'var(--radius-control)',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  <span className="eyebrow" style={{ color: 'var(--accent-solar)' }}>
+                    Site observation
+                  </span>
+                  <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.55 }}>
+                    <ScrollReveal key={`fact-${site.id}`} blurStrength={3} stagger={0.02}>
+                      {site.funFact}
+                    </ScrollReveal>
+                  </p>
                 </div>
               )}
-            </div>
 
-            {site.whyNASAChose && (
-              <div style={{ marginTop: 16, borderTop: '1px solid var(--border-subtle)', paddingTop: 14 }}>
-                <span className="eyebrow">NASA site rationale</span>
-                <p style={{ margin: '6px 0 0', color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.6 }}>
-                  <ScrollReveal key={`rationale-${site.id}`} blurStrength={3} stagger={0.02}>
-                    {site.whyNASAChose}
-                  </ScrollReveal>
-                </p>
+              <div className="goal-list">
+                <span className="eyebrow">Primary science objectives</span>
+                {site.keyScienceGoals.map((goal) => (
+                  <span key={goal}>
+                    <Check size={13} />
+                    {goal}
+                  </span>
+                ))}
               </div>
-            )}
+            </div>
+          </GlareHover>
 
-            {site.funFact && (
-              <div
-                style={{
-                  marginTop: 14,
-                  background: 'var(--surface-raised)',
-                  padding: '12px 14px',
-                  borderRadius: 'var(--radius-control)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
-                <span className="eyebrow" style={{ color: 'var(--accent-solar)' }}>
-                  Site observation
-                </span>
-                <p style={{ margin: '4px 0 0', color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.55 }}>
-                  <ScrollReveal key={`fact-${site.id}`} blurStrength={3} stagger={0.02}>
-                    {site.funFact}
-                  </ScrollReveal>
-                </p>
+          <GlareHover
+            glareColor="rgba(240, 169, 112, 0.16)"
+            glareSize={320}
+            glareOpacity={0.3}
+            style={{ borderRadius: '14px', flex: '1 1 300px' }}
+          >
+            <div className="panel limitation-panel" style={{ height: '100%' }}>
+              <div className="limitation-icon">
+                <CircleHelp size={18} />
               </div>
-            )}
-
-            <div className="goal-list">
-              <span className="eyebrow">Primary science objectives</span>
-              {site.keyScienceGoals.map((goal) => (
-                <span key={goal}>
-                  <Check size={13} />
-                  {goal}
-                </span>
-              ))}
+              <span className="eyebrow">Scientific fidelity notice</span>
+              <h3>Local 20m altimetry vs far-field terrain</h3>
+              <p>
+                Calculations combine official NASA 2026 lunar ephemeris tables with 20-meter LOLA altimetry models.
+                While local slopes and crater walls are mapped at meter resolution, distant horizon rims beyond the 20km tile
+                boundary are modeled via the reference sphere.
+              </p>
+              <div style={{ marginTop: 'auto', paddingTop: 12 }}>
+                <Magnet padding={35} magnetStrength={3} maxOffset={10}>
+                  <button className="text-button" onClick={() => onNavigate('scenario')}>
+                    Review scenario assumptions <ArrowUpRight size={13} />
+                  </button>
+                </Magnet>
+              </div>
             </div>
-          </div>
-
-          <div className="panel limitation-panel" style={{ flex: '1 1 300px' }}>
-            <div className="limitation-icon">
-              <CircleHelp size={18} />
-            </div>
-            <span className="eyebrow">Scientific fidelity notice</span>
-            <h3>Local 20m altimetry vs far-field terrain</h3>
-            <p>
-              Calculations combine official NASA 2026 lunar ephemeris tables with 20-meter LOLA altimetry models.
-              While local slopes and crater walls are mapped at meter resolution, distant horizon rims beyond the 20km tile
-              boundary are modeled via the reference sphere.
-            </p>
-            <div style={{ marginTop: 'auto', paddingTop: 12 }}>
-              <Magnet padding={35} magnetStrength={3} maxOffset={10}>
-                <button className="text-button" onClick={() => onNavigate('scenario')}>
-                  Review scenario assumptions <ArrowUpRight size={13} />
-                </button>
-              </Magnet>
-            </div>
-          </div>
+          </GlareHover>
         </div>
       </div>
     </AnimatedContent>
