@@ -7,6 +7,8 @@ interface DeltaCardProps {
   reference: number;
   custom: number;
   icon: LucideIcon;
+  unit?: '%' | 'h';
+  higherIsBetter?: boolean;
 }
 
 export const DeltaCard: React.FC<DeltaCardProps> = ({
@@ -14,8 +16,13 @@ export const DeltaCard: React.FC<DeltaCardProps> = ({
   reference,
   custom,
   icon: Icon,
+  unit = '%',
+  higherIsBetter = true,
 }) => {
-  const delta = custom - reference;
+  const delta = Number.isFinite(custom) && Number.isFinite(reference) ? custom - reference : null;
+  const improved = delta == null ? false : higherIsBetter ? delta >= 0 : delta <= 0;
+  const deltaLabel = unit === '%' ? 'pp' : 'h';
+  const format = (value: number) => Number.isFinite(value) ? value.toFixed(1) : '—';
   return (
     <div className="delta-card">
       <div className="delta-card-head">
@@ -23,18 +30,18 @@ export const DeltaCard: React.FC<DeltaCardProps> = ({
         <Icon size={14} />
       </div>
       <div className="delta-values">
-        <strong>{custom}%</strong>
-        <span className={delta >= 0 ? 'delta-positive' : 'delta-negative'}>
-          {delta >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-          {Math.abs(delta)} pts
+        <strong>{format(custom)}{unit}</strong>
+        <span className={improved ? 'delta-positive' : 'delta-negative'}>
+          {delta == null ? null : delta >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+          {delta == null ? 'unknown' : `${format(Math.abs(delta))} ${deltaLabel}`}
         </span>
       </div>
-      <div className="delta-track">
-        <i style={{ width: `${reference}%` }} />
-        <b style={{ width: `${custom}%` }} />
-      </div>
+      {unit === '%' && <div className="delta-track">
+        <i style={{ width: `${Math.max(0, Math.min(100, reference))}%` }} />
+        <b style={{ width: `${Math.max(0, Math.min(100, custom))}%` }} />
+      </div>}
       <small>
-        reference {reference}% · custom {custom}%
+        reference {format(reference)}{unit} · custom {format(custom)}{unit}
       </small>
     </div>
   );

@@ -1,6 +1,6 @@
 # Awilix data sources, attribution, and accuracy notes
 
-Last reviewed: 2026-11-09. This document describes the local preview build.
+Last reviewed: 2026-11-15. This document describes the local Awilix 2.0 build.
 
 ## Challenge and project scope
 
@@ -14,9 +14,19 @@ Reference: [NASA Space Apps legal terms](https://www.spaceappschallenge.org/lega
 
 | Item | Source and use | Provenance and limits |
 |---|---|---|
-| Hourly 2026 direction table | `public/data/mooninfo_2026.json`; application attributes it to [NASA SVS 5587](https://svs.gsfc.nasa.gov/5587/) and uses hourly subsolar/sub-Earth directions and Earth distance. | SHA-256: `098ec6434ba4fecb84e66485385816d465b7969f142864bcfc9ffc68311b4a86`. Covers 2026-01-01 00:00 through 2026-12-31 23:00 UTC. The row timestamp, order, coordinate ranges, distance, and phase are validated at load. The source extraction URL/recipe and a separate independent SPICE/Horizons reference comparison are not present in this copy; attribution and checksum do not prove ephemeris accuracy. |
+| Hourly 2026 direction table | `public/data/mooninfo_2026.json`; application attributes it to [NASA SVS 5587](https://svs.gsfc.nasa.gov/5587/) and uses hourly subsolar/sub-Earth directions and Earth distance. | SHA-256: `098ec6434ba4fecb84e66485385816d465b7969f142864bcfc9ffc68311b4a86`. Covers 2026-01-01 00:00 through 2026-12-31 23:00 UTC. Row timestamps, order, coordinate ranges, distance, and phase are validated at load. Representative direction calculations are independently compared with JPL Horizons DE441 as described below; this comparison does not independently validate the source extraction recipe or all mission conditions. |
 | Direction interpolation | Spherical interpolation on unit vectors between adjacent hourly subpoints. | Avoids longitude-wrap errors at ±180°. It does not add information between hourly records. |
 | Outside table coverage | `astronomy-engine` package, analytic lunar orientation fallback. | Approximate fallback; not a NASA DE421 or SPICE validation claim. The Sun distance in the hourly-table path is fixed to 1 AU. |
+
+## Scenario Lab calculation and independent check
+
+Scenario Lab now obtains its path and metrics from `src/workers/science.worker.js` → `src/lib/scenarioAnalysis.js`, not the legacy formula summary. The selected date begins at **00:00 UTC**. Base sampling is 10 minutes up to 48 hours, 30 minutes up to 7 days, and 60 minutes for longer windows; sign-changing horizon crossings are additionally bracket-refined to at most one second. Visibility durations are integrated across the returned path. Unknown intervals are excluded from availability denominators and are not counted as visible or as confirmed outages.
+
+The independent comparison is reproducible with `npm run validate:horizons`. It requests JPL Horizons observer-table apparent airless AZ/EL for the Sun and Earth center, from an observer at each of the six regional catalog coordinates (Mean Earth geodetic Moon coordinates, zero height), at each of three representative dates in 2026. It compares 30-minute samples with the bundled NASA SVS 5587 table plus the app's spherical interpolation and topocentric transform. The report is [`docs/validation/horizons-scenario-comparison.json`](../docs/validation/horizons-scenario-comparison.json); the compact UI summary is `public/data/horizons-validation-summary.json`. Across 1,764 comparisons, the maximum absolute azimuth/altitude differences are below 0.0007 degrees, against a declared 0.01-degree regression tolerance.
+
+That is a bounded ephemeris geometry cross-check, not an end-to-end validation of the 10-minute visibility-window integral, terrain horizon, electrical generation, or a communications link. Catalog sites are regional markers, not surveyed touchdown coordinates. Horizons validates selected dates only; dates outside the bundled 2026 table use the approximate fallback and are not covered by this check.
+
+Scenario Lab's **reference horizon** is a spherical body horizon with observer-height curvature and no local topographic obstruction. Its **terrain** option uses the selected local crop and is explicitly experimental: frame/datum registration, source raster identity, completeness, far-field terrain, and legacy NoData recovery are not fully verified. If a horizon direction has no valid terrain coverage, that interval is unknown and excluded rather than declared clear. Solar-array incidence is a geometric cosine factor (not watts); Earth-center visibility is not an antenna link or communications availability.
 
 ## Terrain
 

@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:science": "node --test tests/scenario-science.test.mjs",
+    "validate:horizons": "node scripts/validate-horizons.mjs"
   },
   "dependencies": {
     "astronomy-engine": "^2.1.19",

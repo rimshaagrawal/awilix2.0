@@ -19,9 +19,9 @@ export function enuToGrid(terrain,east,north){
 export function sampleTerrain(terrain,east,north){const p=enuToGrid(terrain,east,north);return bilinearGrid(terrain.rawElev,terrain.gridSize,p.x,p.y);}
 export function buildHorizon(terrain,heightM=2){
   const center=sampleTerrain(terrain,0,0);if(center===null)return {bins:[],status:'Observer elevation unavailable',heightM};
-  const spacing=Math.min(terrain.spacingXM,terrain.spacingYM),bins=[];
+  const spacing=Math.min(terrain.spacingXM,terrain.spacingYM),bins=[],baseHorizon=-Math.acos(R/(R+Math.max(0,heightM)))/D;
   for(let az=0;az<360;az+=2){
-    let horizon=0,rangeM=0,known=true;
+    let horizon=baseHorizon,rangeM=0,known=true;
     for(let distance=spacing/2;distance<100000;distance+=spacing/2){
       const east=distance*Math.sin(az*D),north=distance*Math.cos(az*D),p=enuToGrid(terrain,east,north);
       if(p.x<0||p.y<0||p.x>terrain.gridSize-1||p.y>terrain.gridSize-1)break;
