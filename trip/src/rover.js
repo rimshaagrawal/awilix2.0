@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { createRoverDynamics } from './rover-dynamics.js';
-import { SUSPENSION_LIMITS } from './vehicle-support.js';
 import { applyPaintFinish } from './surface-materials.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 export const ROVER_SCALE=.36;
-export const ROVER_COLLIDER={eyeHeight:2.5*ROVER_SCALE,radius:2.3*ROVER_SCALE,stepHeight:.3,vehicle:{scale:ROVER_SCALE}};
+export const ROVER_COLLIDER={eyeHeight:2.5*ROVER_SCALE,radius:2.3*ROVER_SCALE,stepHeight:.3};
 
 export function createRover(){
   const root=new THREE.Group(),body=new THREE.Group();root.add(body);root.scale.setScalar(ROVER_SCALE);root.name='Lunar expedition rover';
@@ -233,26 +232,15 @@ export function createRover(){
   root.traverse(object=>{if(object.isMesh&&object.material.userData?.satinPaint)paintMaterials.add(object.material);});
   for(const material of paintMaterials)applyPaintFinish(material);
   let heading=0;
-  let physicalSupport=null;
-  const wheelHomes=wheels.map(wheel=>wheel.position.clone());
   const armStart=new THREE.Vector3(),armEnd=new THREE.Vector3(),armUp=new THREE.Vector3(0,1,0);
-  function updateSuspensionArms(){
-    for(let i=0;i<wheels.length;i++){
-      const wheel=wheels[i],arm=suspensionArms[i];
-      armEnd.copy(wheel.position);armStart.set(wheelHomes[i].x*.55,.64,wheelHomes[i].z);
-      arm.position.copy(armStart).add(armEnd).multiplyScalar(.5);
-      const direction=armEnd.sub(armStart);
-      arm.scale.y=direction.length()/.55;arm.quaternion.setFromUnitVectors(armUp,direction.normalize());
-    }
-  }
   return {root,
-    get dynamics(){return physicalSupport??dynamics.state;},
-    resetDynamics(){physicalSupport=null;dynamics.reset();root.rotation.set(0,heading,0);body.rotation.set(0,0,0);body.position.y=0;for(let i=0;i<wheels.length;i++){wheels[i].position.copy(wheelHomes[i]);wheels[i].rotation.set(0,0,0);}},
+    dynamics:dynamics.state,
+    resetDynamics(){dynamics.reset();body.rotation.set(0,0,0);body.position.y=0;},
     getWheelContact(index,target){
       const wheel=wheels[index];
       // Tire spin does not change the suspension contact point.
       target.copy(wheel.position);target.y-=wheelRadius;body.localToWorld(target);
-      return physicalSupport?physicalSupport.wheels[index].contact:wheel.userData.supports.some(support=>dynamics.state.wheels[support].contact);
+      return wheel.userData.supports.some(support=>dynamics.state.wheels[support].contact);
     },
     faceTowards(target,dt){
       const desired=Math.atan2(root.position.x-target.x,root.position.z-target.z);
@@ -260,23 +248,27 @@ export function createRover(){
       root.rotation.y=heading;
       return Math.abs(Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading)));
     },
-    update(dt,position,velocity,throttle,grounded,sample,support){
+    update(dt,position,velocity,throttle,grounded,sample){
       root.position.copy(position);
-      physicalSupport=support??null;
       const speed=Math.hypot(velocity.x,velocity.z);
-      if(support)heading=support.heading;
-      else if(speed>.15){const desired=Math.atan2(-velocity.x,-velocity.z);heading+=Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading))*(1-Math.exp(-dt*7));}
+      if(speed>.15){const desired=Math.atan2(-velocity.x,-velocity.z);heading+=Math.atan2(Math.sin(desired-heading),Math.cos(desired-heading))*(1-Math.exp(-dt*7));}
       root.rotation.y=heading;
-      const pose=support??dynamics.update(dt,position,heading,velocity,grounded,throttle,sample);
+      const pose=dynamics.update(dt,position,heading,velocity,grounded,throttle,sample);
       body.rotation.set(pose.pitch,0,pose.roll);body.position.y=pose.heave;
       for(let i=0;i<wheels.length;i++){
         const supports=wheels[i].userData.supports;
         const t=(wheels[i].position.z+1.38)/2.76;
-        const offset=support?pose.wheels[i].offset:supports.length===1?pose.wheels[supports[0]].offset:
+        const offset=supports.length===1?pose.wheels[supports[0]].offset:
           THREE.MathUtils.lerp(pose.wheels[supports[0]].offset,pose.wheels[supports[1]].offset,t);
-        wheels[i].position.y=wheelRadius+THREE.MathUtils.clamp(offset,-SUSPENSION_LIMITS.droop,SUSPENSION_LIMITS.compression);
+        wheels[i].position.y=wheelRadius+offset;
+        const arm=suspensionArms[i],x=wheels[i].position.x;
+        const end=armEnd.set(x,wheels[i].position.y,wheels[i].position.z);
+        const start=armStart.set(x*.55,.64,wheels[i].position.z);
+        arm.position.copy(start).add(end).multiplyScalar(.5);
+        const direction=end.sub(start);
+        arm.scale.y=direction.length()/.55;
+        arm.quaternion.setFromUnitVectors(armUp,direction.normalize());
       }
-      updateSuspensionArms();
       const forwardSpeed=-velocity.x*Math.sin(heading)-velocity.z*Math.cos(heading);
       for(const wheel of wheels)wheel.rotation.x-=forwardSpeed*dt/(wheelRadius*ROVER_SCALE);
       flameMaterial.uniforms.time.value+=dt;flameMaterial.uniforms.power.value=throttle;

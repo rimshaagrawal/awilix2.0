@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { circleBoxContact, SURFACE_BOUNDS_RADIUS } from './collision-world.js';
-import { createVehicleSupport } from './vehicle-support.js';
 
 // Sample the same triangles rendered by a regular PlaneGeometry, avoiding
 // collision differences between the procedural height function and its mesh.
@@ -21,8 +20,6 @@ export function createPlayerPhysics(position, terrain, rocks=[], options={}) {
   const {eyeHeight=1.7,radius=.32,stepHeight=.4,boundsRadius=SURFACE_BOUNDS_RADIUS,maxSlope=1.1}=options;
   const gravity=9.81,jetpackAcceleration=22,limit=boundsRadius-radius;
   const velocity=new THREE.Vector3();
-  const vehicle=options.vehicle?createVehicleSupport({...options.vehicle,eyeHeight}):null;
-  const supportBoxes=[];
   let grounded=false,throttle=0,accumulator=0;
   const overlaps=(box,x,z)=>circleBoxContact(x,z,radius,box)!==null;
   function terrainFloor(x,z){
@@ -98,28 +95,13 @@ export function createPlayerPhysics(position, terrain, rocks=[], options={}) {
       for(const box of rocks)if(overlaps(box,position.x,position.z)&&position.y<=box.min.y+.001&&position.y+velocity.y*dt>=box.min.y)ceiling=Math.min(ceiling,box.min.y);
       if(ceiling<Infinity){position.y=ceiling-.001;velocity.y=0;grounded=false;return;}
     }
-    if(vehicle){
-      supportBoxes.length=0;
-      for(const box of rocks)if(position.x>=box.min.x-2&&position.x<=box.max.x+2&&position.z>=box.min.z-2&&position.z<=box.max.z+2)supportBoxes.push(box);
-      vehicle.step(dt,position,velocity,(x,z,reference)=>{
-        let support=terrain(x,z);
-        for(const box of supportBoxes)if(x>=box.min.x-.04&&x<=box.max.x+.04&&z>=box.min.z-.04&&z<=box.max.z+.04&&box.max.y<=reference+stepHeight)
-          support=Math.max(support,box.max.y);
-        return support;
-      },input.heading,Math.hypot(input.x??0,input.z??0)>.01);
-      resolveRocks();
-      const radiusFromOrigin=Math.hypot(position.x,position.z);
-      if(radiusFromOrigin>limit){position.x*=limit/radiusFromOrigin;position.z*=limit/radiusFromOrigin;}
-      grounded=vehicle.state.grounded;return;
-    }
     if(velocity.y<=0&&(nextFeet<=floor||(grounded&&feet-floor<=.25))){
       position.y=floor+eyeHeight;velocity.y=0;grounded=true;
     }else{position.y+=velocity.y*dt;grounded=false;}
   }
-  function reset(){velocity.set(0,0,0);grounded=false;throttle=0;accumulator=0;vehicle?.reset();}
+  function reset(){velocity.set(0,0,0);grounded=false;throttle=0;accumulator=0;}
   return {
     get grounded(){return grounded;},get throttle(){return throttle;},
-    get support(){return vehicle?.state;},
     get boundaryDistance(){return Math.max(0,limit-Math.hypot(position.x,position.z));},velocity,
     reset,
     clearInput(){throttle=0;velocity.x=0;velocity.z=0;},
