@@ -82,7 +82,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-shell">
-      <CustomCursor />
+      {activeView !== 'trip' && !tripOpen && <CustomCursor />}
       {/* Left Collapsible Navigation Sidebar */}
       <Sidebar
         activeView={activeView}
