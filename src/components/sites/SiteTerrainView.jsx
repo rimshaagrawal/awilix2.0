@@ -17,6 +17,7 @@ import {
   Pause, Sparkles, RefreshCw, Grid, Eye, Lightbulb, CheckCircle2
 } from 'lucide-react';
 import { OptionWheel } from '../reactbits/OptionWheel';
+import { WakeSlider } from '../reactbits/WakeSlider';
 
 // Global in-memory cache for instant 0ms site switching
 const terrainCache = new Map();
@@ -461,7 +462,10 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
 
       <div className="absolute top-24 right-4 z-10 bento-plate p-3 terrain-inspector">
         <label className="text-xs block">Surface layer <select aria-label="Terrain surface layer" value={surfaceMode} onChange={e=>setSurfaceMode(e.target.value)} className="bg-[#111820] border border-[#34434e] rounded p-1 ml-2"><option value="elevation">Elevation</option><option value="slope">Slope estimate</option><option value="texture">Legacy hillshade</option></select></label>
-        <label className="text-xs block mt-2">Visual exaggeration: {exaggeration}×<input aria-label="Terrain vertical exaggeration" type="range" min="1" max="5" step="0.5" value={exaggeration} onChange={e=>setExaggeration(Number(e.target.value))} className="w-full"/></label>
+        <div className="text-xs block mt-2">
+          <span className="flex justify-between"><span>Visual exaggeration</span><span className="font-mono text-[var(--coral)]">{exaggeration}×</span></span>
+          <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={28} restHeight={6} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
+        </div>
         <p className="text-[10px] text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
         <button className="btn-ghost text-xs mt-2" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
         <p className="text-[9px] text-[var(--ink-mute)] mt-1">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
@@ -499,13 +503,21 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           {String(currentHour).padStart(2, '0')}:00 UTC
         </span>
 
-        <input
-          type="range"
-          min="0"
-          max="23"
+        <WakeSlider
           value={currentHour}
-          onChange={(e) => setCurrentHour(Number(e.target.value))}
-          className="flex-1 accent-[var(--coral)] h-1.5 bg-[var(--bone)] rounded-lg cursor-pointer"
+          min={0}
+          max={23}
+          step={1}
+          onChange={setCurrentHour}
+          ariaLabel="Mission hour"
+          bars={24}
+          height={28}
+          restHeight={6}
+          gap={3}
+          fillColor="var(--coral)"
+          trackColor="rgba(238,241,247,0.12)"
+          crestColor="var(--mustard)"
+          className="flex-1"
         />
 
         {telemetry && (

@@ -18,6 +18,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { OptionWheel } from '@/components/reactbits/OptionWheel';
+import { WakeSlider } from '@/components/reactbits/WakeSlider';
 
 interface SiteTerrain3DProps {
   site: Site;
@@ -630,14 +631,20 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
               <span>Vertical Relief Exaggeration</span>
               <strong style={{ color: '#65d5d0' }}>{exaggeration.toFixed(1)}x</strong>
             </div>
-            <input
-              type="range"
-              min="1.0"
-              max="4.0"
-              step="0.5"
+            <WakeSlider
               value={exaggeration}
-              onChange={(e) => setExaggeration(Number(e.target.value))}
-              style={{ width: '100%', accentColor: '#65d5d0' }}
+              min={1}
+              max={4}
+              step={0.5}
+              onChange={setExaggeration}
+              ariaLabel="Vertical Relief Exaggeration"
+              bars={24}
+              height={32}
+              restHeight={7}
+              gap={3}
+              fillColor="#65d5d0"
+              trackColor="rgba(214, 228, 228, 0.12)"
+              crestColor="#f0a970"
             />
           </div>
 
@@ -735,17 +742,20 @@ export const SiteTerrain3D: React.FC<SiteTerrain3DProps> = ({
             {String(currentHour).padStart(2, '0')}:00 UTC
           </span>
 
-          <input
-            type="range"
-            min="0"
-            max="23"
+          <WakeSlider
             value={currentHour}
-            onChange={(e) => setCurrentHour(Number(e.target.value))}
-            style={{
-              flex: 1,
-              accentColor: '#f0a970',
-              cursor: 'pointer',
-            }}
+            min={0}
+            max={23}
+            step={1}
+            onChange={setCurrentHour}
+            ariaLabel="Mission hour"
+            bars={24}
+            height={28}
+            restHeight={6}
+            gap={3}
+            fillColor="#f0a970"
+            trackColor="rgba(214, 228, 228, 0.12)"
+            crestColor="#65d5d0"
           />
         </div>
 
