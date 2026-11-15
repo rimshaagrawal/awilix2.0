@@ -14,6 +14,7 @@ import type { Site, Scenario, View } from '@/types';
 import { sites } from '@/data/sites';
 import { DEFAULT_SCENARIO, getSummary } from '@/lib/scenarioCalculations';
 import { SectionTitle } from '@/components/common/SectionTitle';
+import { Magnet } from '@/components/reactbits/Magnet';
 import { RangeControl } from '@/components/common/RangeControl';
 import { DeltaCard } from '@/components/common/DeltaCard';
 import { ChartPanel } from '@/components/charts/ChartPanel';
@@ -149,9 +150,11 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
             onChange={(val) => onUpdateScenario('panelAzimuth', val)}
           />
 
-          <button className="quiet-button full-button" onClick={handleReset}>
+          <Magnet padding={35} magnetStrength={3} maxOffset={10}>
+            <button className="quiet-button full-button" onClick={handleReset}>
             Reset to reference <Clock3 size={14} />
           </button>
+          </Magnet>
         </div>
 
         {/* Scenario Results */}
@@ -211,9 +214,11 @@ export const ScenarioView: React.FC<ScenarioViewProps> = ({
               Changing solar panel azimuth and tilt adjusts power incidence relative to grazing solar elevation.
               Elevating the comm antenna directly increases Earth line-of-sight margin over nearby rim craters.
             </span>
-            <button className="text-button" onClick={() => onNavigate('analysis')}>
-              Open full analysis <ArrowUpRight size={13} />
-            </button>
+            <Magnet padding={35} magnetStrength={3} maxOffset={10}>
+              <button className="text-button" onClick={() => onNavigate('analysis')}>
+                Open full analysis <ArrowUpRight size={13} />
+              </button>
+            </Magnet>
           </div>
         </div>
       </div>

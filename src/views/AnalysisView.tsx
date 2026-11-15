@@ -357,9 +357,11 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
               </p>
               <div style={{ marginTop: 'auto', paddingTop: 12 }}>
                 <Magnet padding={35} magnetStrength={3} maxOffset={10}>
-                  <button className="text-button" onClick={() => onNavigate('scenario')}>
-                    Review scenario assumptions <ArrowUpRight size={13} />
-                  </button>
+                  <Magnet padding={35} magnetStrength={3} maxOffset={10}>
+                    <button className="text-button" onClick={() => onNavigate('scenario')}>
+                      Review scenario assumptions <ArrowUpRight size={13} />
+                    </button>
+                  </Magnet>
                 </Magnet>
               </div>
             </div>

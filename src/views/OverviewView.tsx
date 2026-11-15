@@ -155,9 +155,11 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 <span className="eyebrow">Candidate landing sites</span>
                 <h2>South pole shortlist</h2>
               </div>
-              <button className="text-button" onClick={() => onNavigate('sites')}>
-                View all sites <ArrowUpRight size={14} />
-              </button>
+              <Magnet padding={35} magnetStrength={3} maxOffset={10}>
+                <button className="text-button" onClick={() => onNavigate('sites')}>
+                  View all sites <ArrowUpRight size={14} />
+                </button>
+              </Magnet>
             </div>
 
             <div className="shortlist-list">
