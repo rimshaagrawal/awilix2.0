@@ -75,7 +75,7 @@ export function createSurface(element) {
   const rover=createRover();scene.add(rover.root);
   const roverPosition=new THREE.Vector3(ROVER_SPAWN.x,sampleFloor(ROVER_SPAWN.x,ROVER_SPAWN.z)+ROVER_COLLIDER.eyeHeight,ROVER_SPAWN.z),roverFeet=new THREE.Vector3();
   const wheelParticles=createWheelParticles(scene,rover,sampleFloor);
-  const physics=createPlayerPhysics(roverPosition,sampleFloor,rockColliders,{...ROVER_COLLIDER,maxSlope:.85});
+  const physics=createPlayerPhysics(roverPosition,sampleFloor,rockColliders,{...ROVER_COLLIDER,maxSlope:5.67});
   const boundaryGeometry=new THREE.BufferGeometry();
   boundaryGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(720*3),3));
   const boundary=new THREE.LineLoop(boundaryGeometry,new THREE.LineDashedMaterial({color:0x81acb7,dashSize:1.4,gapSize:1.1,transparent:true,opacity:.5}));
