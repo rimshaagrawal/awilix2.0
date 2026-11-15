@@ -172,6 +172,16 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     camera.position.set(0, 5.0, 7.5);
     cameraRef.current = camera;
 
+    // Shift the frustum slightly right so the terrain renders a bit left of
+    // center, leaving room for the settings panel docked on the right edge.
+    const applyViewOffset = () => {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (!w || !h) return;
+      camera.setViewOffset(w, h, Math.round(w * 0.09), 0, w, h);
+    };
+    applyViewOffset();
+
     // RENDERER
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -302,6 +312,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     const handleResize = () => {
       if (!container) return;
       camera.aspect = container.clientWidth / container.clientHeight;
+      applyViewOffset();
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     };
@@ -453,7 +464,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
           }`}
           title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
+          style={{ fontFamily: "'DM Mono', monospace" }}
         >
           <Lightbulb className={`w-3.5 h-3.5 ${lightingMode ? 'text-[var(--paper-dark)] fill-current' : 'text-[var(--coral)]'}`} />
           <span>{lightingMode ? 'Lighting: ON' : 'Lighting: OFF'}</span>
@@ -468,7 +479,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--coral)] border-[rgba(255,171,94,0.3)] shadow-lg shadow-[rgba(255,171,94,0.1)]'
           }`}
           title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
+          style={{ fontFamily: "'DM Mono', monospace" }}
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>{useInterpolation ? 'Bilinear display mesh' : 'Source grid'}</span>
@@ -501,18 +512,16 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         </button>
       </div>
 
-      <div className="absolute top-20 left-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'Manrope', sans-serif", display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className="absolute top-20 right-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'DM Mono', monospace", display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span className="font-medium">Surface layer</span>
           <OptionWheel
-            align="left"
+            align="right"
             selectedId={surfaceMode}
             onChange={setSurfaceMode}
             options={[
               { id: 'elevation', label: 'Elevation' },
               { id: 'slope', label: 'Slope' },
-              { id: 'thermal', label: 'Thermal' },
-              { id: 'ice', label: 'Ice' },
               { id: 'texture', label: 'Hillshade' },
             ]}
           />
@@ -520,7 +529,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span className="font-medium">Heatmap</span>
           <OptionWheel
-            align="left"
+            align="right"
             selectedId={heatmapType}
             onChange={setHeatmapType}
             options={[
