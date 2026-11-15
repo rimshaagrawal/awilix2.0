@@ -59,7 +59,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div className="mission-hero">
             <div className="hero-copy">
               <div className="hero-kicker">
-                <Orbit size={13} style={{ color: 'var(--accent-teal)' }} />
+                <Orbit size={13} style={{ color: 'var(--text-secondary)' }} />
                 <span>Lunar south pole · Mission window 04</span>
               </div>
               <h1 className="hero-heading">
