@@ -53,7 +53,7 @@ export function astraConfig(env = process.env) {
   };
 }
 
-async function chat(cfg, messages, { temperature = 0.2, timeoutMs = 20_000 } = {}) {
+async function chat(cfg, messages, { temperature = 0.2, timeoutMs = 60_000 } = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -104,7 +104,7 @@ export async function handleAstra(method, rawBody, cfg = astraConfig()) {
           .map((m) => ({ role: m.role, content: m.content.slice(0, 800) })),
         { role: 'user', content: question },
       ];
-      const out = await chat(cfg, messages, { temperature: 0.3 });
+      const out = await chat(cfg, messages, { temperature: 0.3, timeoutMs: 60_000 });
       return { status: 200, body: { text: out, model: cfg.model } };
     }
     return { status: 400, body: { error: 'mode must be "phrase" or "answer"' } };
