@@ -34,7 +34,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
     <AnimatedContent distance={45} direction="vertical">
       <div className="view-stack">
         <SectionTitle
-          eyebrow="Compare sites / 05"
+          eyebrow=""
           title="Trade-offs, made legible"
           animateTitle={true}
           description="Compare the current mission window without collapsing the science into a single unexplained score."
@@ -128,7 +128,6 @@ export const CompareView: React.FC<CompareViewProps> = ({
           <div className="panel compare-table">
             <div className="panel-heading">
               <div>
-                <span className="eyebrow">Site breakdown</span>
                 <h2>Candidate parameter breakdown</h2>
               </div>
             </div>
