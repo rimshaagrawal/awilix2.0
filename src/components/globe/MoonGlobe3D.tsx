@@ -102,15 +102,14 @@ export const MoonGlobe3D: React.FC<MoonGlobe3DProps> = ({
         maxCameraDist: 250000,
       };
     } else {
-      // Same physically-correct scale ratios as 1:1 mode. This keeps the
-      // apparent angular sizes of Earth and the Sun faithful from the Moon.
+      // Visual/proportional mode: keep relative size cues but bring bodies into view
       return {
         moonRadius: 1.0,
-        earthRadius: NASA.EARTH_R_RATIO,
-        sunRadius: NASA.SUN_R_RATIO,
-        earthDist: NASA.EARTH_DIST_RATIO,
-        sunDist: NASA.SUN_DIST_RATIO,
-        maxCameraDist: 250000,
+        earthRadius: 1.8,
+        sunRadius: 6.5,
+        earthDist: 12,
+        sunDist: 90,
+        maxCameraDist: 400,
       };
     }
   }, [scaleMode]);
