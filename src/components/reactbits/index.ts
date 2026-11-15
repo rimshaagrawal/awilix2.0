@@ -7,6 +7,7 @@ export { ScrollReveal } from './ScrollReveal';
 export { ScrollFloat } from './ScrollFloat';
 export { ScrollStack } from './ScrollStack';
 export { Magnet } from './Magnet';
+export { SpecularButton, type SpecularButtonProps, type SpecularButtonSize } from './SpecularButton';
 export { GlareHover } from './GlareHover';
 export { OptionWheel, type OptionWheelItem } from './OptionWheel';
 export { WakeSlider, type WakeSliderProps } from './WakeSlider';
