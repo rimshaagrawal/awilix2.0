@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowUpRight, Mountain, Shield } from 'lucide-react';
 import type { Site, Scenario } from '@/types';
 import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalculations';
+import iceData from '@/data/ice-prospectivity.json';
 import { GlareHover } from '@/components/reactbits/GlareHover';
 import { Magnet } from '@/components/reactbits/Magnet';
 
@@ -59,6 +60,9 @@ export const SiteCard: React.FC<SiteCardProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Shield size={13} />
             <span>{site.targetRegion} · {site.waterIcePotential} ice potential</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>PSR coverage: {(iceData as any)?.sites?.[site.id]?.psrPercent ?? 0}%</span>
           </div>
         </div>
 

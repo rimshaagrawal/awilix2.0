@@ -34,6 +34,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
   const sunMeshRef = useRef(null);
   const earthLightRef = useRef(null);
   const terrainMeshRef = useRef(null);
+  const heatmapMeshRef = useRef(null);
   const animFrameRef = useRef(null);
 
   // States
@@ -47,6 +48,8 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
   const [telemetry, setTelemetry] = useState(null);
   const [exaggeration, setExaggeration] = useState(1.0); // 1.0 = Real 1:1 Physical Aspect Ratio
   const [surfaceMode,setSurfaceMode]=useState('elevation');
+  const [heatmapOn,setHeatmapOn]=useState(false);
+  const [heatmapType,setHeatmapType]=useState('ice');
   const [terrainError,setTerrainError]=useState(null);
 
   useEffect(()=>{
@@ -342,12 +345,12 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
       const enu=gridToENU(terrainData,gx,gy);valid[idx]=Number.isFinite(z)?1:0;
       const physical=(Number.isFinite(z)?z:center)-center-(enu.east**2+enu.north**2)/(2*1737400);
       posAttr.setXYZ(idx,enu.east/1000,enu.north/1000,physical/1000*exaggeration);
-      let t=Number.isFinite(z)?(z-terrainData.minElevationM)/(terrainData.elevationSpanM||1):0;
+      let t=Number.isFinite(z)?(z-terrainData.minElevationM)/(terrainData.elevationSpanM||1):0;if(surfaceMode==='ice')t=Math.max(0,Math.min(1,1-t));
       if(surfaceMode==='slope'){
         const a=bilinearGrid(terrainData.rawElev,sourceSize,Math.max(0,gx-1),gy),b=bilinearGrid(terrainData.rawElev,sourceSize,Math.min(sourceSize-1,gx+1),gy),c=bilinearGrid(terrainData.rawElev,sourceSize,gx,Math.max(0,gy-1)),d=bilinearGrid(terrainData.rawElev,sourceSize,gx,Math.min(sourceSize-1,gy+1));
         if([a,b,c,d].every(Number.isFinite)){const dx=(b-a)/((Math.min(sourceSize-1,gx+1)-Math.max(0,gx-1))*terrainData.spacingXM),dy=(d-c)/((Math.min(sourceSize-1,gy+1)-Math.max(0,gy-1))*terrainData.spacingYM);t=Math.min(1,Math.atan(Math.hypot(dx,dy))*180/Math.PI/30);}else t=0;
       }
-      const color=new THREE.Color().lerpColors(new THREE.Color(surfaceMode==='slope'?'#7fbdca':'#364b5d'),new THREE.Color(surfaceMode==='slope'?'#e39d75':'#ead5ac'),Math.max(0,Math.min(1,t)));
+      const color=surfaceMode==='ice'?new THREE.Color().lerpColors(new THREE.Color('#dbeafe'),new THREE.Color('#1e3a8a'),Math.max(0,Math.min(1,t))):new THREE.Color().lerpColors(surfaceMode==='thermal'?new THREE.Color('#2a6f97'):new THREE.Color(surfaceMode==='slope'?'#7fbdca':'#364b5d'),surfaceMode==='thermal'?new THREE.Color('#e39d75'):new THREE.Color(surfaceMode==='slope'?'#e39d75':'#ead5ac'),Math.max(0,Math.min(1,t)));
       colors.set([color.r,color.g,color.b],idx*3);
     }
     // Missing elevation is a hole, never an artificial zero-height wall.
@@ -364,8 +367,31 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     const extent=Math.max(terrainData.widthKm,terrainData.heightKm);
     controlsRef.current.maxDistance=extent*8;
     if(cameraRef.current.userData.siteId!==site.id){cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);cameraRef.current.userData.siteId=site.id;}
-    return()=>{scene.remove(mesh);if(terrainMeshRef.current===mesh)terrainMeshRef.current=null;mesh.traverse(o=>{o.geometry?.dispose();if(o.material){o.material.map?.dispose();o.material.dispose();}});};
-  }, [terrainData, useInterpolation, wireframe, exaggeration, surfaceMode, site.id]);
+
+    // Optional heatmap overlay (ice probability or thermal) on top of terrain
+    if(heatmapOn && heatmapMeshRef.current){scene.remove(heatmapMeshRef.current);heatmapMeshRef.current.geometry?.dispose();heatmapMeshRef.current.material?.dispose();heatmapMeshRef.current=null;}
+    if(heatmapOn){
+      const hGeom=geometry.clone();
+      const hColors=new Float32Array(gridSize*gridSize*3);
+      for(let y=0;y<gridSize;y++)for(let x=0;x<gridSize;x++){
+        const idx=y*gridSize+x,gx=x/(gridSize-1)*(sourceSize-1),gy=y/(gridSize-1)*(sourceSize-1);
+        const z=useInterpolation?bilinearGrid(terrainData.rawElev,sourceSize,gx,gy):terrainData.rawElev[y*sourceSize+x];
+        const norm=Number.isFinite(z)?(z-terrainData.minElevationM)/(terrainData.elevationSpanM||1):0;
+        const prob=heatmapType==='ice'?Math.max(0,Math.min(1,1-norm)):Math.max(0,Math.min(1,norm));
+        const col=heatmapType==='ice'?new THREE.Color().lerpColors(new THREE.Color('#dbeafe'),new THREE.Color('#1e3a8a'),prob):new THREE.Color().lerpColors(new THREE.Color('#2a6f97'),new THREE.Color('#e39d75'),prob);
+        hColors.set([col.r,col.g,col.b],idx*3);
+      }
+      hGeom.setAttribute('color',new THREE.BufferAttribute(hColors,3));
+      const hMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.42,depthWrite:false,side:THREE.DoubleSide});
+      const hMesh=new THREE.Mesh(hGeom,hMat);
+      hMesh.rotation.x=-Math.PI/2;
+      hMesh.position.y=0.02;
+      scene.add(hMesh);
+      heatmapMeshRef.current=hMesh;
+    }
+
+    return()=>{scene.remove(mesh);if(terrainMeshRef.current===mesh)terrainMeshRef.current=null;mesh.traverse(o=>{o.geometry?.dispose();if(o.material){o.material.map?.dispose();o.material.dispose();}});if(heatmapMeshRef.current){scene.remove(heatmapMeshRef.current);heatmapMeshRef.current.geometry?.dispose();heatmapMeshRef.current.material?.dispose();heatmapMeshRef.current=null;}};
+  }, [terrainData, useInterpolation, wireframe, exaggeration, surfaceMode, heatmapOn, heatmapType, site.id]);
 
 
   return (
@@ -460,6 +486,19 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         >
           <Grid className="w-4 h-4" />
         </button>
+
+        {/* Heatmap overlay toggle */}
+        <button
+          onClick={() => setHeatmapOn(!heatmapOn)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-all ${
+            heatmapOn
+              ? 'bg-[var(--mustard)] text-[var(--paper-dark)] border-[var(--mustard)] shadow-lg'
+              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
+          }`}
+          title="Overlay a semi-transparent probability heatmap on the terrain"
+        >
+          <span>Heatmap {heatmapOn ? 'ON' : 'OFF'}</span>
+        </button>
       </div>
 
       <div className="absolute top-20 left-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'Manrope', sans-serif", display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -472,7 +511,21 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
             options={[
               { id: 'elevation', label: 'Elevation' },
               { id: 'slope', label: 'Slope' },
+              { id: 'thermal', label: 'Thermal' },
+              { id: 'ice', label: 'Ice' },
               { id: 'texture', label: 'Hillshade' },
+            ]}
+          />
+        </div>
+        <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span className="font-medium">Heatmap</span>
+          <OptionWheel
+            align="left"
+            selectedId={heatmapType}
+            onChange={setHeatmapType}
+            options={[
+              { id: 'ice', label: 'Ice' },
+              { id: 'thermal', label: 'Thermal' },
             ]}
           />
         </div>
@@ -483,7 +536,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           </span>
           <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={24} restHeight={5} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
         </div>
-        <p className="text-[10px] leading-snug text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
+        <p className="text-[10px] leading-snug text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='thermal'?'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.':surfaceMode==='ice'?'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
         <button className="btn-ghost text-xs font-semibold text-left" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
         <p className="text-[9px] leading-snug text-[var(--ink-mute)]">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
       </div>
