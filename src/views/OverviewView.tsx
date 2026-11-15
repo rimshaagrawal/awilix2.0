@@ -9,6 +9,7 @@ import {
   Globe2,
   Zap,
   Activity,
+  Orbit,
 } from 'lucide-react';
 import type { Scenario, View } from '@/types';
 import { sites } from '@/data/sites';
@@ -58,7 +59,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div className="mission-hero">
             <div className="hero-copy">
               <div className="hero-kicker">
-                Lunar south pole · Mission window 04
+                <Orbit size={13} style={{ color: 'var(--accent-teal)' }} />
+                <span>Lunar south pole · Mission window 04</span>
               </div>
               <h1>
                 Lunar landing site
