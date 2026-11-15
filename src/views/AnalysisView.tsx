@@ -351,7 +351,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
           </div>
         </div>
       </div>
-    </AnimatedContent >
+    </AnimatedContent>
   );
 };
 

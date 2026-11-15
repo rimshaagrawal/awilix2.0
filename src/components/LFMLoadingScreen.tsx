@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { Magnet } from '@/components/reactbits/Magnet';
 
 const MOON_FACTS = [
   'The Moon has no atmosphere, so shadows are pitch black.',
@@ -99,14 +100,16 @@ export function LFMLoadingScreen({
         </div>
 
         {onCancel ? (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="text-button text-xs inline-flex items-center gap-1.5"
-          >
-            <X className="w-3.5 h-3.5" />
-            <span>Cancel</span>
-          </button>
+          <Magnet padding={30} magnetStrength={3} maxOffset={8}>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-button text-xs inline-flex items-center gap-1.5"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Cancel</span>
+            </button>
+          </Magnet>
         ) : null}
       </div>
     </div>

@@ -154,12 +154,14 @@ export const CompareView: React.FC<CompareViewProps> = ({
                           {site.elevationReliefM.toLocaleString()} m
                         </td>
                         <td>
-                          <button
-                            className="text-button"
-                            onClick={() => onOpenSite(site.id)}
-                          >
-                            Analyze <ArrowUpRight size={13} />
-                          </button>
+                          <Magnet padding={30} magnetStrength={3} maxOffset={8}>
+                            <button
+                              className="text-button"
+                              onClick={() => onOpenSite(site.id)}
+                            >
+                              Analyze <ArrowUpRight size={13} />
+                            </button>
+                          </Magnet>
                         </td>
                       </tr>
                     );
