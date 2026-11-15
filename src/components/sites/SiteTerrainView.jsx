@@ -458,7 +458,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         {/* LIGHTING BUTTON (Inspection fill) */}
         <button
           onClick={() => setLightingMode(!lightingMode)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
             lightingMode
               ? 'bg-[var(--coral)] text-[var(--paper-dark)] border-[var(--coral)] shadow-lg shadow-[rgba(255,171,94,0.25)]'
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
@@ -473,7 +473,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         {/* Dual Surface Toggle Button (Raw DEM vs Continuous Surface) */}
         <button
           onClick={() => setUseInterpolation(!useInterpolation)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
             useInterpolation
               ? 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--mustard)] border-[rgba(143,211,232,0.3)] shadow-lg shadow-[rgba(143,211,232,0.1)]'
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--coral)] border-[rgba(255,171,94,0.3)] shadow-lg shadow-[rgba(255,171,94,0.1)]'
@@ -488,7 +488,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         {/* Wireframe Mesh Toggle */}
         <button
           onClick={() => setWireframe(!wireframe)}
-          className={`p-1.5 rounded-lg text-xs font-medium backdrop-blur-md border transition-all ${
+          className={`p-1.5 rounded-lg text-xs font-medium backdrop-blur-md border transition-colors ${
             wireframe
               ? 'bg-[var(--ink)] text-[var(--paper)] border-[var(--ink)]'
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-mute)]'
@@ -501,7 +501,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         {/* Heatmap overlay toggle */}
         <button
           onClick={() => setHeatmapOn(!heatmapOn)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
             heatmapOn
               ? 'bg-[var(--mustard)] text-[var(--paper-dark)] border-[var(--mustard)] shadow-lg'
               : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'

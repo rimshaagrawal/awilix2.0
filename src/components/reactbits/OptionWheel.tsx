@@ -71,7 +71,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
         aria-haspopup="listbox"
         disabled={disabled}
         onClick={() => setIsOpen((p) => !p)}
-        className="clickable flex items-center gap-2 transition-all duration-200 outline-none"
+        className="clickable flex items-center gap-2 transition-colors duration-200 outline-none"
         style={{
           height: 36,
           padding: isLeft ? '0 10px 0 8px' : '0 8px 0 10px',
