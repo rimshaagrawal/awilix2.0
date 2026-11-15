@@ -2725,22 +2725,23 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 .trip-title {
   margin: 18px 0 16px;
-  font-family: var(--font-dune);
+  font-family: var(--font-display);
   font-size: clamp(44px, 5.2vw, 74px);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.08;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  color: #ffffff;
 }
 
 .trip-title span {
-  color: var(--accent-teal);
-  font-family: var(--font-display);
-  font-size: clamp(18px, 2vw, 26px);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  display: block;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  display: inline;
 }
 
 .trip-lede {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Moon,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -42,8 +41,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
         <div className="brand">
-          <div className="brand-mark">
-            <Moon size={16} />
+          <div className="brand-mark" style={{ overflow: 'hidden', padding: 2 }}>
+            <img src="/favicon.svg" alt="Awilix" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} />
           </div>
           {sidebarOpen && (
             <div>
