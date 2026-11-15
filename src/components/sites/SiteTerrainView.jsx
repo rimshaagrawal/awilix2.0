@@ -382,7 +382,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         hColors.set([col.r,col.g,col.b],idx*3);
       }
       hGeom.setAttribute('color',new THREE.BufferAttribute(hColors,3));
-      const hMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.42,depthWrite:false,side:THREE.DoubleSide});
+      const hMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.6,depthWrite:false,side:THREE.DoubleSide});
       const hMesh=new THREE.Mesh(hGeom,hMat);
       hMesh.rotation.x=-Math.PI/2;
       hMesh.position.y=0.02;
@@ -497,13 +497,14 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           }`}
           title="Overlay a semi-transparent probability heatmap on the terrain"
         >
-          <span>Heatmap {heatmapOn ? 'ON' : 'OFF'}</span>
+          <span>Heatmap overlay {heatmapOn ? 'ON' : 'OFF'}</span>
         </button>
       </div>
 
       <div className="absolute top-24 right-4 z-10 bento-plate p-3 terrain-inspector">
         <label className="text-xs block">Surface layer <select aria-label="Terrain surface layer" value={surfaceMode} onChange={e=>setSurfaceMode(e.target.value)} className="bg-[#111820] border border-[#34434e] rounded p-1 ml-2"><option value="elevation">Elevation</option><option value="slope">Slope estimate</option><option value="thermal">Thermal stability (proxy)</option><option value="ice">Ice evidence (Zenodo proxy)</option><option value="texture">Legacy hillshade</option></select></label>
         <label className="text-xs block mt-2">Heatmap type <select aria-label="Heatmap type" value={heatmapType} onChange={e=>setHeatmapType(e.target.value)} className="bg-[#111820] border border-[#34434e] rounded p-1 ml-2"><option value="ice">Ice probability (blue)</option><option value="thermal">Thermal (blue→orange)</option></select></label>
+{heatmapOn && <div className="mt-2"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType==='ice'?'Ice probability':'Thermal (cold→warm)'}</div><div style={{height:8,borderRadius:4,background:heatmapType==='ice'?'linear-gradient(to right,#dbeafe,#1e3a8a)':'linear-gradient(to right,#2a6f97,#e39d75)'}}/></div>}
 <label className="text-xs block mt-2">Visual exaggeration: {exaggeration}×<input aria-label="Terrain vertical exaggeration" type="range" min="1" max="5" step="0.5" value={exaggeration} onChange={e=>setExaggeration(Number(e.target.value))} className="w-full"/></label>
         <p className="text-[10px] text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='thermal'?'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.':surfaceMode==='ice'?'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
         <button className="btn-ghost text-xs mt-2" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
