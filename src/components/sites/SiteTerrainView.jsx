@@ -23,7 +23,7 @@ import { SpecularButton } from '../reactbits/SpecularButton';
 // Global in-memory cache for instant 0ms site switching
 const terrainCache = new Map();
 
-export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRevision }) {
+export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRevision, hour, onHourChange }) {
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
@@ -39,7 +39,11 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
   const animFrameRef = useRef(null);
 
   // States
-  const [currentHour, setCurrentHour] = useState(12);
+  // Hour can be controlled externally (Astra panel / App state) or internally.
+  const isHourControlled = typeof hour === 'number' && typeof onHourChange === 'function';
+  const [hourState, setHourState] = useState(12);
+  const currentHour = isHourControlled ? hour : hourState;
+  const setCurrentHour = isHourControlled ? onHourChange : setHourState;
   const [isPlaying, setIsPlaying] = useState(false);
   const [lightingMode, setLightingMode] = useState(false); // Global inspect fill
   const [useInterpolation, setUseInterpolation] = useState(true); // Raw DEM vs Continuous
