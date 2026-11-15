@@ -94,7 +94,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-shell">
-      <CustomCursor />
+      <CustomCursor hidden={tripOpen} />
       {/* Left Collapsible Navigation Sidebar */}
       <Sidebar
         activeView={activeView}
