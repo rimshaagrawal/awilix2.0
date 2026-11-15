@@ -433,26 +433,32 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
       )}
 
       {terrainError&&<div className="science-warning" role="alert">{terrainError}. Return to the globe or choose another region.</div>}
-      {/* Top Left: Site Selector Dropdown */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-3">
-        <OptionWheel
-          align="left"
-          selectedId={site.id}
-          onChange={(id) => onSelectSite?.(id)}
-          options={sites.map((s) => ({
-            id: s.id,
-            label: s.name,
-            sublabel: coordinateText(s),
-          }))}
-        />
+      {/* ── Top Unified Controls Bar ─────────────────── */}
+      <div className="absolute top-3.5 left-3.5 right-3.5 z-20 flex items-center justify-between gap-3 pointer-events-none">
+        {/* Left: Site Selector Dropdown & Resolution Badge */}
+        <div className="flex items-center gap-2.5 min-w-0 pointer-events-auto">
+          <OptionWheel
+            align="left"
+            selectedId={site.id}
+            onChange={(id) => onSelectSite?.(id)}
+            options={sites.map((s) => ({
+              id: s.id,
+              label: s.name,
+              sublabel: coordinateText(s),
+            }))}
+          />
 
-        {/* 20 MPP Resolution Badge */}
-        <div className="hidden md:flex items-center gap-1.5 bento-plate px-3 py-1.5 text-xs font-mono bg-[var(--paper-warm)]/90 backdrop-blur-md text-[var(--ink-soft)]">
-          <CheckCircle2 className="w-3.5 h-3.5 text-[var(--emerald)]" />
-          <span>{terrainData?.metadata.nativeResolutionDescription??'Loading terrain metadata'}</span>
+          {/* 20 MPP Resolution Badge - neatly capped with tooltip so it never overlaps buttons */}
+          <div
+            className="hidden xl:flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs font-mono bg-[var(--surface-raised)]/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-secondary)] whitespace-nowrap"
+            title={terrainData?.metadata.nativeResolutionDescription ?? 'Polar 80 m DEM · 20 m shadow mask'}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-[var(--semantic-positive)] shrink-0" />
+            <span className="truncate max-w-[170px]">80m DEM · 20m mask</span>
+          </div>
         </div>
-      </div>
 
+<<<<<<< Updated upstream
       {/* Top Right: View Modes & Lighting Button */}
       <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center gap-2" data-guide="terrain-controls">
         {/* LIGHTING BUTTON (Inspection fill) */}
@@ -510,6 +516,65 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         >
           <span>Heatmap overlay {heatmapOn ? 'ON' : 'OFF'}</span>
         </button>
+=======
+        {/* Right: Uniformly Sized & Aligned Action Controls */}
+        <div className="flex items-center gap-2 shrink-0 pointer-events-auto" data-guide="terrain-controls">
+          {/* Lighting Button */}
+          <button
+            onClick={() => setLightingMode(!lightingMode)}
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${
+              lightingMode
+                ? 'bg-[var(--accent-solar)]/15 text-[var(--accent-solar)] border-[var(--accent-solar)]/40 shadow-sm'
+                : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+            }`}
+            title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
+          >
+            <Lightbulb className={`w-3.5 h-3.5 shrink-0 ${lightingMode ? 'text-[var(--accent-solar)] fill-current' : 'text-[var(--text-muted)]'}`} />
+            <span>Lighting: {lightingMode ? 'ON' : 'OFF'}</span>
+          </button>
+
+          {/* Dual Surface Toggle Button (Raw DEM vs Continuous Surface) */}
+          <button
+            onClick={() => setUseInterpolation(!useInterpolation)}
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${
+              useInterpolation
+                ? 'bg-[var(--accent-teal)]/15 text-[var(--accent-teal)] border-[var(--accent-teal)]/40 shadow-sm'
+                : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+            }`}
+            title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${useInterpolation ? 'text-[var(--accent-teal)]' : 'text-[var(--text-muted)]'}`} />
+            <span>{useInterpolation ? 'Bilinear mesh' : 'Source grid'}</span>
+          </button>
+
+          {/* Wireframe Mesh Toggle */}
+          <button
+            onClick={() => setWireframe(!wireframe)}
+            className={`flex items-center justify-center w-8 h-8 rounded-lg text-xs font-medium backdrop-blur-md border transition-colors cursor-pointer ${
+              wireframe
+                ? 'bg-[var(--accent-teal)]/20 text-[var(--accent-teal)] border-[var(--accent-teal)]/50'
+                : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+            }`}
+            title="Toggle Wireframe Grid"
+          >
+            <Grid className="w-3.5 h-3.5 shrink-0" />
+          </button>
+
+          {/* Heatmap overlay toggle */}
+          <button
+            onClick={() => setHeatmapOn(!heatmapOn)}
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${
+              heatmapOn
+                ? 'bg-[var(--accent-solar)]/15 text-[var(--accent-solar)] border-[var(--accent-solar)]/40 shadow-sm'
+                : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+            }`}
+            title="Overlay a semi-transparent probability heatmap on the terrain"
+          >
+            <Layers className={`w-3.5 h-3.5 shrink-0 ${heatmapOn ? 'text-[var(--accent-solar)]' : 'text-[var(--text-muted)]'}`} />
+            <span>Heatmap: {heatmapOn ? 'ON' : 'OFF'}</span>
+          </button>
+        </div>
+>>>>>>> Stashed changes
       </div>
 
       <div className="absolute top-20 right-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'DM Mono', monospace", display: 'flex', flexDirection: 'column', gap: 6 }}>
