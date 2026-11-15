@@ -533,19 +533,23 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
             ]}
           />
         </div>
-        <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <span className="font-medium">Heatmap</span>
-          <OptionWheel
-            align="left"
-            selectedId={heatmapType}
-            onChange={setHeatmapType}
-            options={[
-              { id: 'ice', label: 'Ice' },
-              { id: 'thermal', label: 'Thermal' },
-            ]}
-          />
-        </div>
-        {heatmapOn && <div className="mt-1"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType === 'ice' ? 'Ice probability' : 'Thermal (cold→warm)'}</div><div style={{ height: 8, borderRadius: 4, background: heatmapType === 'ice' ? 'linear-gradient(to right,#dbeafe,#1e3a8a)' : 'linear-gradient(to right,#2a6f97,#e39d75)' }} /></div>}
+        {heatmapOn && (
+          <>
+            <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span className="font-medium">Heatmap</span>
+              <OptionWheel
+                align="left"
+                selectedId={heatmapType}
+                onChange={setHeatmapType}
+                options={[
+                  { id: 'ice', label: 'Ice' },
+                  { id: 'thermal', label: 'Thermal' },
+                ]}
+              />
+            </div>
+            <div className="mt-1"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType === 'ice' ? 'Ice probability' : 'Thermal (cold→warm)'}</div><div style={{ height: 8, borderRadius: 4, background: heatmapType === 'ice' ? 'linear-gradient(to right,#dbeafe,#1e3a8a)' : 'linear-gradient(to right,#2a6f97,#e39d75)' }} /></div>
+          </>
+        )}
         <div className="text-xs" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <span className="flex justify-between items-center">
             <span className="font-medium">Visual exaggeration</span>
