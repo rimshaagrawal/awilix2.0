@@ -17,7 +17,6 @@ import { getSummary, formatCoordinate, SITE_COLORS } from '@/lib/scenarioCalcula
 import { MetricCard } from '@/components/common/MetricCard';
 import { MoonGlobe3D } from '@/components/globe/MoonGlobe3D';
 import { AnimatedContent } from '@/components/reactbits/AnimatedContent';
-import { GlareHover } from '@/components/reactbits/GlareHover';
 import { Magnet } from '@/components/reactbits/Magnet';
 
 interface OverviewViewProps {
@@ -49,14 +48,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   return (
     <AnimatedContent distance={45} direction="vertical">
       <div className="view-stack">
-        {/* Mission Hero Banner with 3D Globe & Glare Sheen */}
-        <GlareHover
-          glareColor="rgba(145, 198, 212, 0.16)"
-          glareSize={420}
-          glareOpacity={0.35}
-          style={{ borderRadius: '16px' }}
-        >
-          <div className="mission-hero">
+        {/* Mission Hero Banner with 3D Globe */}
+        <div className="mission-hero">
             <div className="hero-copy">
               <div className="hero-kicker">
                 <Orbit size={13} style={{ color: 'var(--accent-teal)' }} />
@@ -110,7 +103,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               </div>
             </div>
           </div>
-        </GlareHover>
 
         {/* 4 Top Metric Cards */}
         <div className="metrics-grid">
