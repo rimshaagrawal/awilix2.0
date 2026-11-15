@@ -61,6 +61,11 @@
 }
 .surface-hud button.hud-panel:active > span { opacity: .65; }
 
+#rover-sound { position: absolute; bottom: 22px; left: 22px; }
+#rover-sound[aria-pressed="true"] { color: var(--hud-muted); }
+#rover-physics-status { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); padding: 18px 22px 26px; max-width: min(440px, calc(100% - 44px)); text-align: center; font: 11px/1.6 var(--hud-mono); color: #e2bd89; }
+#rover-physics-status[hidden] { display: none; }
+
 .rover-coordinates {
   display: grid;
   gap: 5px;
@@ -181,6 +186,7 @@
 }
 
 @media (max-width: 650px) {
+  #rover-physics-status { bottom: 202px; width: calc(100% - 28px); max-width: 440px; }
   .surface-hud { display: grid; grid-template-columns: auto minmax(0, 1fr); align-content: start; align-items: start; gap: 8px; padding: 14px; }
   #back { position: relative; left: auto; top: auto; justify-self: start; }
   .rover-coordinates { position: relative; top: auto; right: auto; grid-column: 2; grid-row: 1; justify-self: end; min-width: 0; max-width: 100%; padding: 22px 18px 30px; font-size: 10px; }

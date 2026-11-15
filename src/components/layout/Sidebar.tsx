@@ -41,8 +41,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-collapsed'}`}>
         <div className="brand">
-          <div className="brand-mark" style={{ overflow: 'hidden', padding: 2 }}>
-            <img src="/favicon.svg" alt="Awilix" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 'inherit' }} />
+          <div className="brand-mark" style={{ overflow: 'hidden', padding: 2, background: '#0a0f1c' }}>
+            <img src="/awilix-logo.png" alt="Awilix — lunar mission browser" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', borderRadius: 'inherit' }} />
           </div>
           {sidebarOpen && (
             <div>

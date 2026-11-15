@@ -2,8 +2,11 @@ import * as THREE from 'three';
 import { createSurfaceHeight, updateTerrainGeometry } from './surface-terrain.js';
 import { createRover, ROVER_COLLIDER } from './rover.js';
 import { createSurfaceEffects } from './surface-effects.js';
+import { createRegolithMaps } from './regolith-texture.js';
 import { clearCameraPosition } from './chase-camera.js';
 import { createWheelParticles } from './wheel-particles.js';
+import { createRoverAudio } from './rover-audio.js';
+import { SURFACE_BOUNDS_RADIUS } from './collision-world.js';
 import { createMouseCapture } from './mouse-capture.js';
 import { createPlayerPhysics, createTerrainSampler } from './player-physics.js';
 import { createPhotoEncounter } from './photo-encounter.js';
@@ -15,6 +18,7 @@ import { MISSION_OBJECTS, createMissionObject, findMissionPlacement, missionScan
 // Soft, silver lunar relief with a subtle illustrative polar frost layer.
 export function createSurface(element) {
   const mouseCapture=createMouseCapture(element);
+  const roverAudio=createRoverAudio({baseUrl:import.meta.env.BASE_URL});
   let exploring=false;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
@@ -36,19 +40,8 @@ export function createSurface(element) {
   const geometry = new THREE.PlaneGeometry(440,440,terrainSegments,terrainSegments);
   geometry.rotateX(-Math.PI/2);
   updateTerrainGeometry(geometry,height);
-  const grain=document.createElement('canvas');grain.width=grain.height=512;
-  const context=grain.getContext('2d'),pixels=context.createImageData(512,512);
-  let noiseSeed=912;
-  for(let y=0;y<512;y++)for(let x=0;x<512;x++){
-    noiseSeed=(noiseSeed*1664525+1013904223)>>>0;
-    const value=190+(noiseSeed/4294967296-.5)*24;
-    const i=(y*512+x)*4;pixels.data[i]=value;pixels.data[i+1]=value;pixels.data[i+2]=value;pixels.data[i+3]=255;
-  }
-  context.putImageData(pixels,0,0);
-  const groundTexture=new THREE.CanvasTexture(grain);groundTexture.colorSpace=THREE.SRGBColorSpace;
-  groundTexture.wrapS=groundTexture.wrapT=THREE.RepeatWrapping;groundTexture.repeat.set(28,28);
-  groundTexture.anisotropy=4;
-  const ground=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({map:groundTexture,color:0xe5e2df,roughness:1,bumpMap:groundTexture,bumpScale:.07}));
+  const regolith=createRegolithMaps();
+  const ground=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({...regolith,color:0x85837f,roughness:1}));
   scene.add(ground);
   const iceGeometry=new THREE.PlaneGeometry(69,69,160,160);iceGeometry.rotateX(-Math.PI/2);
   updateTerrainGeometry(iceGeometry,height,.06);
@@ -58,8 +51,8 @@ export function createSurface(element) {
   float contour=pow(.5+.5*cos(warped*5.),14.); col+=vec3(.13,.25,.28)*contour;
   float alpha=(1.-smoothstep(27.,32.,r))*.69; gl_FragColor=vec4(col,alpha);}`});
   const iceMesh=new THREE.Mesh(iceGeometry,iceMaterial);scene.add(iceMesh);
-  scene.add(new THREE.AmbientLight(0x9daadc,.20));
-  const sunlight=new THREE.DirectionalLight(0xffdfc6,1.85);sunlight.position.set(-100,65,-45);scene.add(sunlight);
+  scene.add(new THREE.AmbientLight(0x9daadc,.08));
+  const sunlight=new THREE.DirectionalLight(0xfff1df,2.35);sunlight.position.set(-100,32,-45);scene.add(sunlight);
   // Distant rocky relief frames the airless lunar horizon.
   const rockGeometry=new THREE.DodecahedronGeometry(1,1);
   const rockMaterial=new THREE.MeshStandardMaterial({color:0xb6b5bb,roughness:1});
@@ -83,9 +76,22 @@ export function createSurface(element) {
   const roverPosition=new THREE.Vector3(ROVER_SPAWN.x,sampleFloor(ROVER_SPAWN.x,ROVER_SPAWN.z)+ROVER_COLLIDER.eyeHeight,ROVER_SPAWN.z),roverFeet=new THREE.Vector3();
   const wheelParticles=createWheelParticles(scene,rover,sampleFloor);
   const physics=createPlayerPhysics(roverPosition,sampleFloor,rockColliders,ROVER_COLLIDER);
+  const boundaryGeometry=new THREE.BufferGeometry();
+  boundaryGeometry.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(720*3),3));
+  const boundary=new THREE.LineLoop(boundaryGeometry,new THREE.LineDashedMaterial({color:0x81acb7,dashSize:1.4,gapSize:1.1,transparent:true,opacity:.5}));
+  boundary.name='Survey perimeter';scene.add(boundary);
+  function updateBoundary(){
+    const vertices=boundaryGeometry.attributes.position;
+    for(let i=0;i<vertices.count;i++){
+      const angle=i/vertices.count*Math.PI*2,x=Math.cos(angle)*SURFACE_BOUNDS_RADIUS,z=Math.sin(angle)*SURFACE_BOUNDS_RADIUS;
+      vertices.setXYZ(i,x,sampleFloor(x,z)+.09,z);
+    }
+    vertices.needsUpdate=true;boundaryGeometry.computeBoundingSphere();boundary.computeLineDistances();
+  }
+  updateBoundary();
   const flagEncounter=createPhotoEncounter({element,scene,camera,panel:americanFlag.scanPanel,width:americanFlag.width,height:americanFlag.height,position:roverPosition,rover,physics,sampleFloor,rocks:rockColliders,eyeHeight:ROVER_COLLIDER.eyeHeight,
     promptText:'Scan flag',resultHtml:flagScanContent(import.meta.env.BASE_URL),setupCard:attachFlagScanMedia,
-    getReturnView,
+    getReturnView,scanAudio:roverAudio,
     clearInput(){keys.clear();dragging=false;physics.clearInput();},releaseMouse(){mouseCapture.release();}
   });
   const missionObjects=MISSION_OBJECTS.map(spec=>{
@@ -95,7 +101,7 @@ export function createSurface(element) {
     const scan=createPhotoEncounter({
       element,scene,camera,panel:object.scanPanel,width:object.width,height:object.height,position:roverPosition,rover,physics,
       sampleFloor,rocks:rockColliders,eyeHeight:ROVER_COLLIDER.eyeHeight,promptText:`Scan site · ${spec.site}`,
-      resultHtml:'<div class="mission-result"></div>',getReturnView,
+      resultHtml:'<div class="mission-result"></div>',getReturnView,scanAudio:roverAudio,
       setupCard(card){content=card.querySelector('.mission-result');card.addEventListener('keydown',event=>event.stopPropagation());},
       clearInput(){keys.clear();dragging=false;physics.clearInput();},releaseMouse(){mouseCapture.release();}
     });
@@ -144,6 +150,7 @@ export function createSurface(element) {
   function look(dx,dy){angles.y-=dx*.003;angles.x=THREE.MathUtils.clamp(angles.x-dy*.003,-.85,.12);}
   const down=e=>{
     if(!active||encounter.busy||encounter.presenting)return;
+    void roverAudio.unlock();
     if(e.pointerType==='touch') {dragging=true;lastX=e.clientX;lastY=e.clientY;}
     else mouseCapture.begin();
   };
@@ -161,9 +168,14 @@ export function createSurface(element) {
     if(!active)return;
     if(e.code==='KeyK'){e.preventDefault();if(!e.repeat)encounter.start();return;}
     if(encounter.busy)return;
-    if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight'].includes(e.code)){e.preventDefault();encounter.resume();keys.add(e.code);}
+    if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight'].includes(e.code)){e.preventDefault();void roverAudio.unlock();encounter.resume();keys.add(e.code);}
   });
-  window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();dragging=false;physics.clearInput();mouseCapture.release();});
+  window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{keys.clear();dragging=false;physics.clearInput();mouseCapture.release();roverAudio.setFocused(false);});
+  window.addEventListener('focus',()=>roverAudio.setFocused(!document.hidden));
+  document.addEventListener('visibilitychange',()=>{
+    roverAudio.setFocused(!document.hidden&&document.hasFocus());
+    if(document.hidden){keys.clear();dragging=false;physics.clearInput();}
+  });
   document.addEventListener('pointerlockchange',()=>{keys.clear();dragging=false;physics.clearInput();});
   const direction=new THREE.Vector3(),forward=new THREE.Vector3(),right=new THREE.Vector3();
   let surfaceTime=0;
@@ -175,12 +187,14 @@ export function createSurface(element) {
     encounter.setActive(active);
     const nextId=region.id;
     if(nextId===regionId)return;
+    physics.reset();rover.resetDynamics();keys.clear();dragging=false;wheelParticles.reset();
     regionId=nextId;
     naturalHeight=createSurfaceHeight({centralCrater:region.centralCrater,siteId:region.id});
     stationGroundY=naturalHeight(ROVER_SPAWN.x,ROVER_SPAWN.z);
     station.root.position.y=stationGroundY;
     updateTerrainGeometry(geometry,height);
     updateTerrainGeometry(iceGeometry,height,.06);
+    updateBoundary();
     for(let i=0;i<rocks.length;i++){
       const rock=rocks[i];
       rock.position.y=height(rock.position.x,rock.position.z)+rock.scale.z*.2;
@@ -202,13 +216,15 @@ export function createSurface(element) {
     roverPosition.set(ROVER_SPAWN.x,sampleFloor(ROVER_SPAWN.x,ROVER_SPAWN.z)+ROVER_COLLIDER.eyeHeight,ROVER_SPAWN.z);
   }
   return {scene,camera,down,setRegion,
+    getPhysicsStatus(){return {boundaryDistance:physics.boundaryDistance};},
     // The map's second horizontal axis is world Z; world Y is elevation.
     getMapPosition(){return {x:roverPosition.x,y:roverPosition.z};},
     render(renderer){effects.render(renderer);},
     animate(dt){effects.tick(dt);surfaceTime+=dt;if(americanFlag.root.visible)americanFlag.update(dt);if(missionTarget)missionTarget.object.update(surfaceTime);},
-    beginCapture(){exploring=true;mouseCapture.begin();},
-    setActive(value){active=value;encounter.setActive(value);keys.clear();dragging=false;physics.reset();rover.resetDynamics();wheelParticles.reset();if(value){angles.x=-.12;angles.y=0;updateRover(0);followCamera(0,true);}if(!value){exploring=false;mouseCapture.end();}},
-    setKey(key,value){if(value&&!encounter.busy){encounter.resume();keys.add(key);}else keys.delete(key);},
+    beginCapture(){exploring=true;void roverAudio.unlock();mouseCapture.begin();},
+    toggleSound(){roverAudio.setMuted(!roverAudio.muted);return roverAudio.muted;},
+    setActive(value){active=value;roverAudio.setActive(value);encounter.setActive(value);keys.clear();dragging=false;physics.reset();rover.resetDynamics();wheelParticles.reset();if(value){angles.x=-.12;angles.y=0;updateRover(0);followCamera(0,true);}if(!value){exploring=false;mouseCapture.end();}},
+    setKey(key,value){if(!active)return;if(value&&!encounter.busy){void roverAudio.unlock();encounter.resume();keys.add(key);}else keys.delete(key);},
     dive(progress,pole){
       const t=THREE.MathUtils.clamp(progress,0,1);
       const ease=t*t*(3-2*t);
@@ -232,8 +248,10 @@ export function createSurface(element) {
     },
     resize(w,h){camera.aspect=w/h;camera.updateProjectionMatrix();effects.resize(w,h,Math.min(devicePixelRatio,2));wheelParticles.setPixelRatio(devicePixelRatio);},
     update(dt){
+      if(!active)return;
       selectEncounter();
       if(encounter.update(dt)){
+        roverAudio.stop();
         wheelParticles.update(dt,new THREE.Vector3(),false);
         // Preserve the driving orbit while the encounter controls the camera.
         return;
@@ -247,7 +265,7 @@ export function createSurface(element) {
       direction.addScaledVector(forward,f).addScaledVector(right,r);
       if(direction.lengthSq()>1)direction.normalize();
       physics.update(dt,{x:direction.x,z:direction.z,sprint:keys.has('ShiftLeft')||keys.has('ShiftRight'),jetpack:keys.has('Space')});
-      updateRover(dt);wheelParticles.update(dt,physics.velocity,physics.grounded);followCamera(dt);
+      updateRover(dt);roverAudio.update(physics.velocity,physics.grounded,physics.throttle);wheelParticles.update(dt,physics.velocity,physics.grounded);followCamera(dt);
     }
   };
 }

@@ -2,6 +2,8 @@
 html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
 #viewport { position: fixed; inset: 0; touch-action: none; }
 canvas { display: block; width: 100%; height: 100%; }
+.lens-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 46%, transparent 24%, #00000030 52%, #00000094 78%, #000000e6 100%); }
+.lens-vignette::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 12% 7%, #ffe5c512, transparent 34%), radial-gradient(ellipse 42% 1.5% at 12% 7%, #fff1d90c, transparent 100%); }
 #error { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(90%, 360px); padding: 20px; border-radius: 8px; background: #151b21; color: #edbdb5; font: 14px/1.6 system-ui, sans-serif; }
 .surface-hud { position: absolute; inset: 0; pointer-events: none; font: 11px/1.6 system-ui, sans-serif; color: #b2c0c7; }
 .surface-hud[hidden] { display: none; }
