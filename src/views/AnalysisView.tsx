@@ -237,7 +237,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
                     </div>
                   </div>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                    Ice prospectivity reconstruction from the NASA-IBM Lunar Foundation Model. AI reconstruction of the expert model by Coyan et al. (2025).
+                    Ice prospectivity reconstruction from the NASA-IBM Lunar Foundation Model. AI reconstruction of the expert model by Coyan et al. (2025). Cross-checked against the Connecting Ridge 5m dataset (CC-BY-4.0) for ice prospectivity consistency.
                   </p>
                 </div>
               );

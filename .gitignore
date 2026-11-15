@@ -24,3 +24,5 @@ dist-ssr
 .env
 handoff/
 handoff-3d/
+brag-output*/
+tmp/arch_readme.pdf
