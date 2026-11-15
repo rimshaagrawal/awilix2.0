@@ -8,6 +8,7 @@ import {
   BarChart3,
   SlidersHorizontal,
   Sparkles,
+  Rocket,
 } from 'lucide-react';
 
 export const DEFAULT_SCENARIO: Scenario = {
@@ -23,6 +24,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   { id: 'overview', label: 'Mission Overview', icon: Command },
   { id: 'sites', label: 'Candidate Sites', icon: Radar },
   { id: 'globe', label: 'Lunar Globe', icon: Globe2 },
+  { id: 'trip', label: 'Trip to the Moon', icon: Rocket },
   { id: 'terrain', label: '3D Terrain', icon: Mountain },
   { id: 'analysis', label: 'Site Analysis', icon: LineChart },
   { id: 'compare', label: 'Compare Sites', icon: BarChart3 },
