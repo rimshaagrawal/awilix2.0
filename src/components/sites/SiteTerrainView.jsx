@@ -453,8 +453,8 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           <button
             onClick={() => setLightingMode(!lightingMode)}
             className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${lightingMode
-                ? 'bg-[var(--accent-solar)]/15 text-[var(--accent-solar)] border-[var(--accent-solar)]/40 shadow-sm'
-                : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+              ? 'bg-[var(--accent-solar)]/15 text-[var(--accent-solar)] border-[var(--accent-solar)]/40 shadow-sm'
+              : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
               }`}
             title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
           >
@@ -466,8 +466,8 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           <button
             onClick={() => setUseInterpolation(!useInterpolation)}
             className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${useInterpolation
-                ? 'bg-[var(--accent-teal)]/15 text-[var(--accent-teal)] border-[var(--accent-teal)]/40 shadow-sm'
-                : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+              ? 'bg-[var(--accent-teal)]/15 text-[var(--accent-teal)] border-[var(--accent-teal)]/40 shadow-sm'
+              : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
               }`}
             title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
           >
@@ -479,8 +479,8 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           <button
             onClick={() => setWireframe(!wireframe)}
             className={`flex items-center justify-center w-8 h-8 rounded-lg text-xs font-medium backdrop-blur-md border transition-colors cursor-pointer ${wireframe
-                ? 'bg-[var(--accent-teal)]/20 text-[var(--accent-teal)] border-[var(--accent-teal)]/50'
-                : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+              ? 'bg-[var(--accent-teal)]/20 text-[var(--accent-teal)] border-[var(--accent-teal)]/50'
+              : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
               }`}
             title="Toggle Wireframe Grid"
           >
@@ -491,8 +491,8 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           <button
             onClick={() => setHeatmapOn(!heatmapOn)}
             className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${heatmapOn
-                ? 'bg-[var(--accent-solar)]/15 text-[var(--accent-solar)] border-[var(--accent-solar)]/40 shadow-sm'
-                : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
+              ? 'bg-[var(--accent-solar)]/15 text-[var(--accent-solar)] border-[var(--accent-solar)]/40 shadow-sm'
+              : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
               }`}
             title="Overlay a semi-transparent probability heatmap on the terrain"
           >
