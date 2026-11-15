@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { computePositions } from '@/lib/ephemeris.js';
-import {bilinearGrid,gridToENU,sampleTerrain} from '@/lib/terrainScience.js';
+import { bilinearGrid, gridToENU, sampleTerrain } from '@/lib/terrainScience.js';
 import { coordinateText } from '@/lib/mascotKnowledge.js';
 import sites from '@/data/sites.json';
 import {
@@ -47,17 +47,17 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
   const [loading, setLoading] = useState(!terrainCache.has(site.id));
   const [telemetry, setTelemetry] = useState(null);
   const [exaggeration, setExaggeration] = useState(1.0); // 1.0 = Real 1:1 Physical Aspect Ratio
-  const [surfaceMode,setSurfaceMode]=useState('elevation');
-  const [heatmapOn,setHeatmapOn]=useState(false);
-  const [heatmapType,setHeatmapType]=useState('ice');
-  const [terrainError,setTerrainError]=useState(null);
+  const [surfaceMode, setSurfaceMode] = useState('elevation');
+  const [heatmapOn, setHeatmapOn] = useState(false);
+  const [heatmapType, setHeatmapType] = useState('ice');
+  const [terrainError, setTerrainError] = useState(null);
 
-  useEffect(()=>{
-    let alive=true;setTerrainError(null);setLoading(true);setTerrainData(null);
-    if(!terrainCache.has(site.id))terrainCache.set(site.id,fetch(`/science-terrain/${site.id}.json`).then(r=>{if(!r.ok)throw Error(`Terrain HTTP ${r.status}`);return r.json();}).catch(e=>{terrainCache.delete(site.id);throw e;}));
-    terrainCache.get(site.id).then(data=>{if(alive){setTerrainData(data);setLoading(false);}}).catch(e=>{if(alive){setTerrainError(e.message);setLoading(false);}});
-    return()=>{alive=false;};
-  },[site.id]);
+  useEffect(() => {
+    let alive = true; setTerrainError(null); setLoading(true); setTerrainData(null);
+    if (!terrainCache.has(site.id)) terrainCache.set(site.id, fetch(`/science-terrain/${site.id}.json`).then(r => { if (!r.ok) throw Error(`Terrain HTTP ${r.status}`); return r.json(); }).catch(e => { terrainCache.delete(site.id); throw e; }));
+    terrainCache.get(site.id).then(data => { if (alive) { setTerrainData(data); setLoading(false); } }).catch(e => { if (alive) { setTerrainError(e.message); setLoading(false); } });
+    return () => { alive = false; };
+  }, [site.id]);
 
   // Handle Lighting Mode toggle
   useEffect(() => {
@@ -171,16 +171,6 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     );
     camera.position.set(0, 5.0, 7.5);
     cameraRef.current = camera;
-
-    // Shift the frustum slightly right so the terrain renders a bit left of
-    // center, leaving room for the settings panel docked on the right edge.
-    const applyViewOffset = () => {
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      if (!w || !h) return;
-      camera.setViewOffset(w, h, Math.round(w * 0.09), 0, w, h);
-    };
-    applyViewOffset();
 
     // RENDERER
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -312,7 +302,6 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     const handleResize = () => {
       if (!container) return;
       camera.aspect = container.clientWidth / container.clientHeight;
-      applyViewOffset();
       camera.updateProjectionMatrix();
       renderer.setSize(container.clientWidth, container.clientHeight);
     };
@@ -345,63 +334,63 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
       terrainMeshRef.current = null;
     }
 
-    if(terrainData.id!==site.id)return;
-    const sourceSize=terrainData.gridSize,gridSize=useInterpolation?256:sourceSize;
-    const geometry=new THREE.PlaneGeometry(1,1,gridSize-1,gridSize-1),posAttr=geometry.attributes.position;
-    const center=sampleTerrain(terrainData,0,0)??terrainData.minElevationM;
-    const valid=new Uint8Array(gridSize*gridSize),colors=new Float32Array(gridSize*gridSize*3);
-    for(let y=0;y<gridSize;y++)for(let x=0;x<gridSize;x++){
-      const idx=y*gridSize+x,gx=x/(gridSize-1)*(sourceSize-1),gy=y/(gridSize-1)*(sourceSize-1);
-      const z=useInterpolation?bilinearGrid(terrainData.rawElev,sourceSize,gx,gy):terrainData.rawElev[y*sourceSize+x];
-      const enu=gridToENU(terrainData,gx,gy);valid[idx]=Number.isFinite(z)?1:0;
-      const physical=(Number.isFinite(z)?z:center)-center-(enu.east**2+enu.north**2)/(2*1737400);
-      posAttr.setXYZ(idx,enu.east/1000,enu.north/1000,physical/1000*exaggeration);
-      let t=Number.isFinite(z)?(z-terrainData.minElevationM)/(terrainData.elevationSpanM||1):0;if(surfaceMode==='ice')t=Math.max(0,Math.min(1,1-t));
-      if(surfaceMode==='slope'){
-        const a=bilinearGrid(terrainData.rawElev,sourceSize,Math.max(0,gx-1),gy),b=bilinearGrid(terrainData.rawElev,sourceSize,Math.min(sourceSize-1,gx+1),gy),c=bilinearGrid(terrainData.rawElev,sourceSize,gx,Math.max(0,gy-1)),d=bilinearGrid(terrainData.rawElev,sourceSize,gx,Math.min(sourceSize-1,gy+1));
-        if([a,b,c,d].every(Number.isFinite)){const dx=(b-a)/((Math.min(sourceSize-1,gx+1)-Math.max(0,gx-1))*terrainData.spacingXM),dy=(d-c)/((Math.min(sourceSize-1,gy+1)-Math.max(0,gy-1))*terrainData.spacingYM);t=Math.min(1,Math.atan(Math.hypot(dx,dy))*180/Math.PI/30);}else t=0;
+    if (terrainData.id !== site.id) return;
+    const sourceSize = terrainData.gridSize, gridSize = useInterpolation ? 256 : sourceSize;
+    const geometry = new THREE.PlaneGeometry(1, 1, gridSize - 1, gridSize - 1), posAttr = geometry.attributes.position;
+    const center = sampleTerrain(terrainData, 0, 0) ?? terrainData.minElevationM;
+    const valid = new Uint8Array(gridSize * gridSize), colors = new Float32Array(gridSize * gridSize * 3);
+    for (let y = 0; y < gridSize; y++)for (let x = 0; x < gridSize; x++) {
+      const idx = y * gridSize + x, gx = x / (gridSize - 1) * (sourceSize - 1), gy = y / (gridSize - 1) * (sourceSize - 1);
+      const z = useInterpolation ? bilinearGrid(terrainData.rawElev, sourceSize, gx, gy) : terrainData.rawElev[y * sourceSize + x];
+      const enu = gridToENU(terrainData, gx, gy); valid[idx] = Number.isFinite(z) ? 1 : 0;
+      const physical = (Number.isFinite(z) ? z : center) - center - (enu.east ** 2 + enu.north ** 2) / (2 * 1737400);
+      posAttr.setXYZ(idx, enu.east / 1000, enu.north / 1000, physical / 1000 * exaggeration);
+      let t = Number.isFinite(z) ? (z - terrainData.minElevationM) / (terrainData.elevationSpanM || 1) : 0; if (surfaceMode === 'ice') t = Math.max(0, Math.min(1, 1 - t));
+      if (surfaceMode === 'slope') {
+        const a = bilinearGrid(terrainData.rawElev, sourceSize, Math.max(0, gx - 1), gy), b = bilinearGrid(terrainData.rawElev, sourceSize, Math.min(sourceSize - 1, gx + 1), gy), c = bilinearGrid(terrainData.rawElev, sourceSize, gx, Math.max(0, gy - 1)), d = bilinearGrid(terrainData.rawElev, sourceSize, gx, Math.min(sourceSize - 1, gy + 1));
+        if ([a, b, c, d].every(Number.isFinite)) { const dx = (b - a) / ((Math.min(sourceSize - 1, gx + 1) - Math.max(0, gx - 1)) * terrainData.spacingXM), dy = (d - c) / ((Math.min(sourceSize - 1, gy + 1) - Math.max(0, gy - 1)) * terrainData.spacingYM); t = Math.min(1, Math.atan(Math.hypot(dx, dy)) * 180 / Math.PI / 30); } else t = 0;
       }
-      const color=surfaceMode==='ice'?new THREE.Color().lerpColors(new THREE.Color('#dbeafe'),new THREE.Color('#1e3a8a'),Math.max(0,Math.min(1,t))):new THREE.Color().lerpColors(surfaceMode==='thermal'?new THREE.Color('#2a6f97'):new THREE.Color(surfaceMode==='slope'?'#7fbdca':'#364b5d'),surfaceMode==='thermal'?new THREE.Color('#e39d75'):new THREE.Color(surfaceMode==='slope'?'#e39d75':'#ead5ac'),Math.max(0,Math.min(1,t)));
-      colors.set([color.r,color.g,color.b],idx*3);
+      const color = surfaceMode === 'ice' ? new THREE.Color().lerpColors(new THREE.Color('#dbeafe'), new THREE.Color('#1e3a8a'), Math.max(0, Math.min(1, t))) : new THREE.Color().lerpColors(surfaceMode === 'thermal' ? new THREE.Color('#2a6f97') : new THREE.Color(surfaceMode === 'slope' ? '#7fbdca' : '#364b5d'), surfaceMode === 'thermal' ? new THREE.Color('#e39d75') : new THREE.Color(surfaceMode === 'slope' ? '#e39d75' : '#ead5ac'), Math.max(0, Math.min(1, t)));
+      colors.set([color.r, color.g, color.b], idx * 3);
     }
     // Missing elevation is a hole, never an artificial zero-height wall.
-    const indices=geometry.index.array,kept=[];
-    for(let i=0;i<indices.length;i+=3)if(valid[indices[i]]&&valid[indices[i+1]]&&valid[indices[i+2]])kept.push(indices[i],indices[i+1],indices[i+2]);
-    geometry.setIndex(kept);geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));geometry.computeVertexNormals();
-    const textureMap=surfaceMode==='texture'?new THREE.TextureLoader().load(terrainData.textureUrl):null;
-    if(textureMap)textureMap.colorSpace=THREE.SRGBColorSpace;
-    const material=new THREE.MeshStandardMaterial({map:textureMap,vertexColors:!textureMap,roughness:.92,metalness:.02,wireframe,flatShading:!useInterpolation,side:THREE.DoubleSide});
-    const mesh=new THREE.Mesh(geometry,material);mesh.rotation.x=-Math.PI/2;mesh.castShadow=true;mesh.receiveShadow=true;scene.add(mesh);terrainMeshRef.current=mesh;
-    const lander=new THREE.Group();lander.rotation.x=Math.PI/2;
-    lander.add(new THREE.Mesh(new THREE.CylinderGeometry(.08,.12,.08,8),new THREE.MeshStandardMaterial({color:0xeac18b})));
-    const antenna=new THREE.Mesh(new THREE.CylinderGeometry(.01,.01,.25,8),new THREE.MeshBasicMaterial({color:0x91c6d4}));antenna.position.y=.125;lander.add(antenna);lander.position.set(0,0,.04);mesh.add(lander);
-    const extent=Math.max(terrainData.widthKm,terrainData.heightKm);
-    controlsRef.current.maxDistance=extent*8;
-    if(cameraRef.current.userData.siteId!==site.id){cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);cameraRef.current.userData.siteId=site.id;}
+    const indices = geometry.index.array, kept = [];
+    for (let i = 0; i < indices.length; i += 3)if (valid[indices[i]] && valid[indices[i + 1]] && valid[indices[i + 2]]) kept.push(indices[i], indices[i + 1], indices[i + 2]);
+    geometry.setIndex(kept); geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); geometry.computeVertexNormals();
+    const textureMap = surfaceMode === 'texture' ? new THREE.TextureLoader().load(terrainData.textureUrl) : null;
+    if (textureMap) textureMap.colorSpace = THREE.SRGBColorSpace;
+    const material = new THREE.MeshStandardMaterial({ map: textureMap, vertexColors: !textureMap, roughness: .92, metalness: .02, wireframe, flatShading: !useInterpolation, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(geometry, material); mesh.rotation.x = -Math.PI / 2; mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); terrainMeshRef.current = mesh;
+    const lander = new THREE.Group(); lander.rotation.x = Math.PI / 2;
+    lander.add(new THREE.Mesh(new THREE.CylinderGeometry(.08, .12, .08, 8), new THREE.MeshStandardMaterial({ color: 0xeac18b })));
+    const antenna = new THREE.Mesh(new THREE.CylinderGeometry(.01, .01, .25, 8), new THREE.MeshBasicMaterial({ color: 0x91c6d4 })); antenna.position.y = .125; lander.add(antenna); lander.position.set(0, 0, .04); mesh.add(lander);
+    const extent = Math.max(terrainData.widthKm, terrainData.heightKm);
+    controlsRef.current.maxDistance = extent * 8;
+    if (cameraRef.current.userData.siteId !== site.id) { cameraRef.current.position.set(0, extent * .6, extent * .9); controlsRef.current.target.set(0, 0, 0); cameraRef.current.userData.siteId = site.id; }
 
     // Optional heatmap overlay (ice probability or thermal) on top of terrain
-    if(heatmapOn && heatmapMeshRef.current){scene.remove(heatmapMeshRef.current);heatmapMeshRef.current.geometry?.dispose();heatmapMeshRef.current.material?.dispose();heatmapMeshRef.current=null;}
-    if(heatmapOn){
-      const hGeom=geometry.clone();
-      const hColors=new Float32Array(gridSize*gridSize*3);
-      for(let y=0;y<gridSize;y++)for(let x=0;x<gridSize;x++){
-        const idx=y*gridSize+x,gx=x/(gridSize-1)*(sourceSize-1),gy=y/(gridSize-1)*(sourceSize-1);
-        const z=useInterpolation?bilinearGrid(terrainData.rawElev,sourceSize,gx,gy):terrainData.rawElev[y*sourceSize+x];
-        const norm=Number.isFinite(z)?(z-terrainData.minElevationM)/(terrainData.elevationSpanM||1):0;
-        const prob=heatmapType==='ice'?Math.max(0,Math.min(1,1-norm)):Math.max(0,Math.min(1,norm));
-        const col=heatmapType==='ice'?new THREE.Color().lerpColors(new THREE.Color('#dbeafe'),new THREE.Color('#1e3a8a'),prob):new THREE.Color().lerpColors(new THREE.Color('#2a6f97'),new THREE.Color('#e39d75'),prob);
-        hColors.set([col.r,col.g,col.b],idx*3);
+    if (heatmapOn && heatmapMeshRef.current) { scene.remove(heatmapMeshRef.current); heatmapMeshRef.current.geometry?.dispose(); heatmapMeshRef.current.material?.dispose(); heatmapMeshRef.current = null; }
+    if (heatmapOn) {
+      const hGeom = geometry.clone();
+      const hColors = new Float32Array(gridSize * gridSize * 3);
+      for (let y = 0; y < gridSize; y++)for (let x = 0; x < gridSize; x++) {
+        const idx = y * gridSize + x, gx = x / (gridSize - 1) * (sourceSize - 1), gy = y / (gridSize - 1) * (sourceSize - 1);
+        const z = useInterpolation ? bilinearGrid(terrainData.rawElev, sourceSize, gx, gy) : terrainData.rawElev[y * sourceSize + x];
+        const norm = Number.isFinite(z) ? (z - terrainData.minElevationM) / (terrainData.elevationSpanM || 1) : 0;
+        const prob = heatmapType === 'ice' ? Math.max(0, Math.min(1, 1 - norm)) : Math.max(0, Math.min(1, norm));
+        const col = heatmapType === 'ice' ? new THREE.Color().lerpColors(new THREE.Color('#dbeafe'), new THREE.Color('#1e3a8a'), prob) : new THREE.Color().lerpColors(new THREE.Color('#2a6f97'), new THREE.Color('#e39d75'), prob);
+        hColors.set([col.r, col.g, col.b], idx * 3);
       }
-      hGeom.setAttribute('color',new THREE.BufferAttribute(hColors,3));
-      const hMat=new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:0.6,depthWrite:false,side:THREE.DoubleSide});
-      const hMesh=new THREE.Mesh(hGeom,hMat);
-      hMesh.rotation.x=-Math.PI/2;
-      hMesh.position.y=0.02;
+      hGeom.setAttribute('color', new THREE.BufferAttribute(hColors, 3));
+      const hMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide });
+      const hMesh = new THREE.Mesh(hGeom, hMat);
+      hMesh.rotation.x = -Math.PI / 2;
+      hMesh.position.y = 0.02;
       scene.add(hMesh);
-      heatmapMeshRef.current=hMesh;
+      heatmapMeshRef.current = hMesh;
     }
 
-    return()=>{scene.remove(mesh);if(terrainMeshRef.current===mesh)terrainMeshRef.current=null;mesh.traverse(o=>{o.geometry?.dispose();if(o.material){o.material.map?.dispose();o.material.dispose();}});if(heatmapMeshRef.current){scene.remove(heatmapMeshRef.current);heatmapMeshRef.current.geometry?.dispose();heatmapMeshRef.current.material?.dispose();heatmapMeshRef.current=null;}};
+    return () => { scene.remove(mesh); if (terrainMeshRef.current === mesh) terrainMeshRef.current = null; mesh.traverse(o => { o.geometry?.dispose(); if (o.material) { o.material.map?.dispose(); o.material.dispose(); } }); if (heatmapMeshRef.current) { scene.remove(heatmapMeshRef.current); heatmapMeshRef.current.geometry?.dispose(); heatmapMeshRef.current.material?.dispose(); heatmapMeshRef.current = null; } };
   }, [terrainData, useInterpolation, wireframe, exaggeration, surfaceMode, heatmapOn, heatmapType, site.id]);
 
 
@@ -415,15 +404,15 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#060910]/85 backdrop-blur-md animate-fade-in pointer-events-none" style={{ paddingLeft: '12%' }}>
           <div className="relative mb-3">
             <div className="w-12 h-12 rounded-full border-2 border-[var(--coral)] border-t-transparent animate-spin" />
-            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-[var(--coral)] font-semibold">
+            <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono text-[var(--coral)] font-bold">
               DEM
             </div>
           </div>
-          <div className="text-xs font-mono font-semibold text-[var(--ink)]">
+          <div className="text-xs font-mono font-bold text-[var(--ink)] tracking-widest uppercase">
             Loading masked terrain crop
           </div>
           <div className="text-[11px] font-mono text-[var(--mustard)] mt-1 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)]" />
+            <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)] animate-ping" />
             <span>{site.name} · ({coordinateText(site)})</span>
           </div>
           <div className="text-[10px] font-mono text-[var(--ink-faint)] mt-1.5">
@@ -432,7 +421,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         </div>
       )}
 
-      {terrainError&&<div className="science-warning" role="alert">{terrainError}. Return to the globe or choose another region.</div>}
+      {terrainError && <div className="science-warning" role="alert">{terrainError}. Return to the globe or choose another region.</div>}
       {/* ── Top Unified Controls Bar ─────────────────── */}
       <div className="absolute top-3.5 left-3.5 right-3.5 z-20 flex items-center justify-between gap-3 pointer-events-none">
         {/* Left: Site Selector Dropdown & Resolution Badge */}
@@ -458,75 +447,15 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           </div>
         </div>
 
-<<<<<<< Updated upstream
-      {/* Top Right: View Modes & Lighting Button */}
-      <div className="absolute top-4 right-4 z-10 flex flex-wrap items-center gap-2" data-guide="terrain-controls">
-        {/* LIGHTING BUTTON (Inspection fill) */}
-        <button
-          onClick={() => setLightingMode(!lightingMode)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
-            lightingMode
-              ? 'bg-[var(--coral)] text-[var(--paper-dark)] border-[var(--coral)] shadow-lg'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
-          }`}
-          title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
-          style={{ fontFamily: "'DM Mono', monospace" }}
-        >
-          <Lightbulb className={`w-3.5 h-3.5 ${lightingMode ? 'text-[var(--paper-dark)] fill-current' : 'text-[var(--coral)]'}`} />
-          <span>{lightingMode ? 'Lighting: ON' : 'Lighting: OFF'}</span>
-        </button>
-
-        {/* Dual Surface Toggle Button (Raw DEM vs Continuous Surface) */}
-        <button
-          onClick={() => setUseInterpolation(!useInterpolation)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
-            useInterpolation
-              ? 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--mustard)] border-[rgba(143,211,232,0.3)] shadow-lg'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--coral)] border-[rgba(255,171,94,0.3)] shadow-lg'
-          }`}
-          title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
-          style={{ fontFamily: "'DM Mono', monospace" }}
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>{useInterpolation ? 'Bilinear display mesh' : 'Source grid'}</span>
-        </button>
-
-        {/* Wireframe Mesh Toggle */}
-        <button
-          onClick={() => setWireframe(!wireframe)}
-          className={`p-1.5 rounded-lg text-xs font-medium backdrop-blur-md border transition-colors ${
-            wireframe
-              ? 'bg-[var(--ink)] text-[var(--paper)] border-[var(--ink)]'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-mute)]'
-          }`}
-          title="Toggle Wireframe Grid"
-        >
-          <Grid className="w-4 h-4" />
-        </button>
-
-        {/* Heatmap overlay toggle */}
-        <button
-          onClick={() => setHeatmapOn(!heatmapOn)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-md border transition-colors ${
-            heatmapOn
-              ? 'bg-[var(--mustard)] text-[var(--paper-dark)] border-[var(--mustard)] shadow-lg'
-              : 'btn-ghost bg-[var(--paper-warm)]/90 text-[var(--ink-soft)]'
-          }`}
-          title="Overlay a semi-transparent probability heatmap on the terrain"
-        >
-          <span>Heatmap overlay {heatmapOn ? 'ON' : 'OFF'}</span>
-        </button>
-=======
         {/* Right: Uniformly Sized & Aligned Action Controls */}
         <div className="flex items-center gap-2 shrink-0 pointer-events-auto" data-guide="terrain-controls">
           {/* Lighting Button */}
           <button
             onClick={() => setLightingMode(!lightingMode)}
-            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${
-              lightingMode
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${lightingMode
                 ? 'bg-[var(--accent-solar)]/15 text-[var(--accent-solar)] border-[var(--accent-solar)]/40 shadow-sm'
                 : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
-            }`}
+              }`}
             title="Lights up all terrain features so you can view permanently shadowed crater floors clearly"
           >
             <Lightbulb className={`w-3.5 h-3.5 shrink-0 ${lightingMode ? 'text-[var(--accent-solar)] fill-current' : 'text-[var(--text-muted)]'}`} />
@@ -536,11 +465,10 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           {/* Dual Surface Toggle Button (Raw DEM vs Continuous Surface) */}
           <button
             onClick={() => setUseInterpolation(!useInterpolation)}
-            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${
-              useInterpolation
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${useInterpolation
                 ? 'bg-[var(--accent-teal)]/15 text-[var(--accent-teal)] border-[var(--accent-teal)]/40 shadow-sm'
                 : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
-            }`}
+              }`}
             title="Switch between the bundled source grid and a bilinear display mesh; subdivision adds no measured detail"
           >
             <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${useInterpolation ? 'text-[var(--accent-teal)]' : 'text-[var(--text-muted)]'}`} />
@@ -550,11 +478,10 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           {/* Wireframe Mesh Toggle */}
           <button
             onClick={() => setWireframe(!wireframe)}
-            className={`flex items-center justify-center w-8 h-8 rounded-lg text-xs font-medium backdrop-blur-md border transition-colors cursor-pointer ${
-              wireframe
+            className={`flex items-center justify-center w-8 h-8 rounded-lg text-xs font-medium backdrop-blur-md border transition-colors cursor-pointer ${wireframe
                 ? 'bg-[var(--accent-teal)]/20 text-[var(--accent-teal)] border-[var(--accent-teal)]/50'
                 : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
-            }`}
+              }`}
             title="Toggle Wireframe Grid"
           >
             <Grid className="w-3.5 h-3.5 shrink-0" />
@@ -563,30 +490,30 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           {/* Heatmap overlay toggle */}
           <button
             onClick={() => setHeatmapOn(!heatmapOn)}
-            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${
-              heatmapOn
+            className={`flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-mono font-medium backdrop-blur-md border transition-colors cursor-pointer ${heatmapOn
                 ? 'bg-[var(--accent-solar)]/15 text-[var(--accent-solar)] border-[var(--accent-solar)]/40 shadow-sm'
                 : 'bg-[var(--surface-raised)]/90 text-[var(--text-secondary)] border-[var(--border-subtle)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
-            }`}
+              }`}
             title="Overlay a semi-transparent probability heatmap on the terrain"
           >
             <Layers className={`w-3.5 h-3.5 shrink-0 ${heatmapOn ? 'text-[var(--accent-solar)]' : 'text-[var(--text-muted)]'}`} />
             <span>Heatmap: {heatmapOn ? 'ON' : 'OFF'}</span>
           </button>
         </div>
->>>>>>> Stashed changes
       </div>
 
-      <div className="absolute top-20 right-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'DM Mono', monospace", display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className="absolute top-20 left-4 z-10 bento-plate p-2.5 terrain-inspector" style={{ fontFamily: "'Manrope', sans-serif", display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span className="font-medium">Surface layer</span>
           <OptionWheel
-            align="right"
+            align="left"
             selectedId={surfaceMode}
             onChange={setSurfaceMode}
             options={[
               { id: 'elevation', label: 'Elevation' },
               { id: 'slope', label: 'Slope' },
+              { id: 'thermal', label: 'Thermal' },
+              { id: 'ice', label: 'Ice' },
               { id: 'texture', label: 'Hillshade' },
             ]}
           />
@@ -594,7 +521,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
           <span className="font-medium">Heatmap</span>
           <OptionWheel
-            align="right"
+            align="left"
             selectedId={heatmapType}
             onChange={setHeatmapType}
             options={[
@@ -603,7 +530,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
             ]}
           />
         </div>
-        {heatmapOn && <div className="mt-1"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType==='ice'?'Ice probability':'Thermal (cold→warm)'}</div><div style={{height:8,borderRadius:4,background:heatmapType==='ice'?'linear-gradient(to right,#dbeafe,#1e3a8a)':'linear-gradient(to right,#2a6f97,#e39d75)'}}/></div>}
+        {heatmapOn && <div className="mt-1"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType === 'ice' ? 'Ice probability' : 'Thermal (cold→warm)'}</div><div style={{ height: 8, borderRadius: 4, background: heatmapType === 'ice' ? 'linear-gradient(to right,#dbeafe,#1e3a8a)' : 'linear-gradient(to right,#2a6f97,#e39d75)' }} /></div>}
         <div className="text-xs" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <span className="flex justify-between items-center">
             <span className="font-medium">Visual exaggeration</span>
@@ -611,15 +538,15 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           </span>
           <WakeSlider ariaLabel="Terrain vertical exaggeration" value={exaggeration} min={1} max={5} step={0.5} onChange={setExaggeration} bars={24} height={24} restHeight={5} gap={3} fillColor="var(--coral)" trackColor="rgba(238,241,247,0.12)" crestColor="var(--mustard)" />
         </div>
-        <p className="text-[10px] leading-snug text-[var(--ink-mute)]">{surfaceMode==='slope'?'Cyan 0° → peach ≥30°. Source-limited estimate.':surfaceMode==='thermal'?'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.':surfaceMode==='ice'?'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.':surfaceMode==='texture'?'Baked illumination; use elevation for dynamic lighting.':'Elevation color: low slate → high ivory.'}</p>
-        <button className="btn-ghost text-xs font-semibold text-left" onClick={()=>{const extent=Math.max(terrainData?.widthKm??10,terrainData?.heightKm??10);cameraRef.current.position.set(0,extent*.6,extent*.9);controlsRef.current.target.set(0,0,0);}}>Reset camera</button>
-        <p className="text-[9px] leading-snug text-[var(--ink-mute)]">ENU north arrow · 1 scene unit = 1 km.<br/>Exaggeration affects visuals only.</p>
+        <p className="text-[10px] leading-snug text-[var(--ink-mute)]">{surfaceMode === 'slope' ? 'Cyan 0° → peach ≥30°. Source-limited estimate.' : surfaceMode === 'thermal' ? 'Blue (cold/shadowed) → orange (warm/sunlit). Elevation proxy; Diviner data pending.' : surfaceMode === 'ice' ? 'Light blue (low) → dark blue (high ice probability). Zenodo H-evidence proxy; real data pending.' : surfaceMode === 'texture' ? 'Baked illumination; use elevation for dynamic lighting.' : 'Elevation color: low slate → high ivory.'}</p>
+        <button className="btn-ghost text-xs font-semibold text-left" onClick={() => { const extent = Math.max(terrainData?.widthKm ?? 10, terrainData?.heightKm ?? 10); cameraRef.current.position.set(0, extent * .6, extent * .9); controlsRef.current.target.set(0, 0, 0); }}>Reset camera</button>
+        <p className="text-[9px] leading-snug text-[var(--ink-mute)]">ENU north arrow · 1 scene unit = 1 km.<br />Exaggeration affects visuals only.</p>
       </div>
       {/* Bottom Left: Physical Terrain Metrics */}
       <div className="absolute bottom-16 left-4 z-10 bento-plate p-3.5 max-w-xs text-xs space-y-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono uppercase text-[var(--ink-faint)]">Elevation Relief</span>
-          <span className="font-mono font-semibold text-[var(--emerald)]">
+          <span className="font-mono font-bold text-[var(--emerald)]">
             {terrainData ? `${terrainData.elevationSpanM.toLocaleString()} m` : 'Loading...'}
           </span>
         </div>
@@ -630,7 +557,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
         <div className="pt-1.5 border-t border-[var(--line-soft)] flex items-center justify-between text-[10px] text-[var(--ink-faint)] font-mono">
           <span>Scale & Grid:</span>
           <span className="text-[var(--coral)]">
-            {terrainData?`${terrainData.widthKm.toFixed(2)} × ${terrainData.heightKm.toFixed(2)} km`:'…'}
+            {terrainData ? `${terrainData.widthKm.toFixed(2)} × ${terrainData.heightKm.toFixed(2)} km` : '…'}
           </span>
         </div>
       </div>
@@ -639,7 +566,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
       <div className="absolute bottom-3 left-4 right-4 z-20 flex items-center gap-3 bento-plate px-4 py-2 bg-[var(--paper-warm)]/95 backdrop-blur-md">
         <button
           onClick={() => setIsPlaying(!isPlaying)}
-          className="btn-ghost text-xs font-mono font-semibold px-2.5 py-1 text-[var(--coral)] border border-[rgba(255,171,94,0.3)] hover:bg-[rgba(255,171,94,0.1)]"
+          className="btn-ghost text-xs font-mono font-bold px-2.5 py-1 text-[var(--coral)] border border-[rgba(255,171,94,0.3)] hover:bg-[rgba(255,171,94,0.1)]"
         >
           {isPlaying ? 'PAUSE' : 'PLAY'}
         </button>
