@@ -269,7 +269,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   margin: 6px 0 6px;
   color: var(--text-primary);
   font: 600 20px var(--font-sans);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -505,7 +505,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   background: var(--text-primary);
   font-size: 12px;
   font-weight: 600;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .primary-button:hover {
@@ -562,7 +561,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   margin: 4px 0 0;
   color: var(--text-primary);
   font-size: 16px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   font-weight: 600;
 }
 
@@ -616,7 +615,6 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   line-height: 1.14;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  text-shadow: 0 0 36px rgba(94, 196, 190, 0.22);
 }
 
 .hero-title-sub {
@@ -1045,7 +1043,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-primary);
   font-size: 22px;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .selected-readout > p {
@@ -1292,7 +1290,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .site-card-heading p {
@@ -1413,7 +1411,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .chart-legend {
@@ -1722,7 +1720,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   margin: 8px 0 8px;
   color: var(--text-primary);
   font-size: 16px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   font-weight: 600;
 }
 
@@ -2048,7 +2046,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .scenario-result-hero h2 {
   margin: 6px 0 4px;
   font-size: 20px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   color: var(--text-primary);
 }
 
@@ -2079,7 +2077,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .delta-ring strong {
   color: var(--text-primary);
   font: 600 20px var(--font-sans);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2127,7 +2125,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .delta-values strong {
   color: var(--text-primary);
   font-size: 20px;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2210,11 +2208,10 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   color: var(--text-primary);
   font-family: var(--font-display);
   font-size: 36px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.15;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  text-shadow: 0 0 32px rgba(94, 196, 190, 0.16);
 }
 
 .astra-hero p {
@@ -2623,7 +2620,7 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 .astra-why { width: 100%; padding: 10px 12px; border-left: 2px solid var(--accent-teal); background: var(--surface-deep); border-radius: 0 var(--radius-control) var(--radius-control) 0; }
 .astra-why ul { margin: 0; padding-left: 16px; display: grid; gap: 5px; color: var(--text-secondary); font-size: 11.5px; line-height: 1.5; }
 .astra-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-subtle); }
-.astra-sources > span { color: var(--text-muted); font: 500 10px var(--font-mono); text-transform: uppercase; letter-spacing: .06em; margin-right: 2px; }
+.astra-sources > span { color: var(--text-muted); font: 500 10px var(--font-mono); margin-right: 2px; }
 .astra-sources a, .astra-sources i { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border: 1px solid var(--border-subtle); border-radius: 999px; color: var(--text-secondary); font: 400 10.5px var(--font-sans); font-style: normal; text-decoration: none; }
 .astra-sources a:hover { color: var(--text-primary); border-color: var(--border-strong); }
 
@@ -2658,9 +2655,9 @@ button:focus-visible, input:focus-visible, select:focus-visible {
 
 .astra-prompts button:disabled { opacity: .5; }
 
-.astra-highlight { position: fixed; z-index: 30; pointer-events: none; border: 2px solid var(--accent-teal); border-radius: 10px; box-shadow: 0 0 0 4px rgba(94, 196, 190, .18), 0 0 24px rgba(94, 196, 190, .35); animation: astra-pulse 1.6s ease-in-out infinite; transition: top .15s ease, left .15s ease, width .15s ease, height .15s ease; }
+.astra-highlight { position: fixed; z-index: 30; pointer-events: none; border: 2px solid var(--accent-teal); border-radius: 10px; box-shadow: 0 0 0 4px rgba(94, 196, 190, .18); animation: astra-pulse 1.6s ease-in-out infinite; transition: top .15s ease, left .15s ease, width .15s ease, height .15s ease; }
 .astra-highlight-label { position: absolute; left: -2px; top: -24px; padding: 2px 8px; border-radius: 6px 6px 6px 0; background: var(--accent-teal); color: #07080d; font: 600 10.5px var(--font-sans); white-space: nowrap; max-width: 60vw; overflow: hidden; text-overflow: ellipsis; }
-@keyframes astra-pulse { 50% { box-shadow: 0 0 0 7px rgba(94, 196, 190, .1), 0 0 30px rgba(94, 196, 190, .25); } }
+@keyframes astra-pulse { 50% { box-shadow: 0 0 0 7px rgba(94, 196, 190, .1); } }
 
 .astra-inspect-banner { position: fixed; z-index: 45; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 14px; border: 1px solid var(--accent-teal); border-radius: 999px; background: var(--surface-deep); color: var(--text-primary); font: 500 12px var(--font-sans); box-shadow: 0 8px 24px rgba(0, 0, 0, .5); max-width: calc(100vw - 24px); }
 .astra-inspect-banner button { padding: 3px 10px; border: 1px solid var(--border-strong); border-radius: 999px; background: transparent; color: var(--text-secondary); font: 500 11px var(--font-sans); cursor: pointer; }
@@ -2812,7 +2809,7 @@ body.astra-inspecting [data-astra]:hover { outline: 2px dashed var(--accent-teal
 .trip-title { margin: 18px 0 16px; font-family: var(--font-display); font-size: clamp(44px, 5.2vw, 74px); font-weight: 600; line-height: 1.08; letter-spacing: 0.02em; text-transform: uppercase; color: #ffffff; }
 .trip-lede { max-width: 560px; margin: 0; color: var(--text-secondary); font-size: 15px; line-height: 1.65; }
 .trip-actions { display: flex; align-items: center; gap: 16px; margin-top: 28px; flex-wrap: wrap; }
-.trip-start { min-height: 48px; padding: 0 28px; border: 0; border-radius: var(--radius-control); background: var(--text-primary); color: #07080d; font-size: 14px; font-weight: 700; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 12px 34px rgba(238, 240, 245, 0.16); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.trip-start { min-height: 48px; padding: 0 28px; border: 0; border-radius: var(--radius-control); background: var(--text-primary); color: #07080d; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 12px 34px rgba(238, 240, 245, 0.16); transition: transform 0.15s ease, box-shadow 0.15s ease; }
 .trip-start:hover { transform: translateY(-1px); box-shadow: 0 16px 40px rgba(238, 240, 245, 0.22); }
 .trip-esc { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; }
 .trip-esc kbd { display: inline-grid; place-items: center; min-width: 26px; height: 22px; padding: 0 6px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--surface-raised); color: var(--text-secondary); font: 600 11px var(--font-mono); }
@@ -2825,10 +2822,10 @@ body.astra-inspecting [data-astra]:hover { outline: 2px dashed var(--accent-teal
 .trip-poster-orbit { position: absolute; left: 50%; top: 50%; border: 1px solid rgba(94, 196, 190, 0.28); border-radius: 50%; transform: translate(-50%, -50%); }
 .trip-poster-orbit-outer { width: min(320px, 72%); aspect-ratio: 1; }
 .trip-poster-orbit-inner { width: min(220px, 50%); aspect-ratio: 1; border-style: dashed; border-color: rgba(234, 193, 139, 0.22); }
-.trip-poster-moon { position: absolute; left: 50%; top: 50%; width: min(170px, 38%); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: url('/textures/lroc_color_2k.jpg') center / cover; box-shadow: inset -26px -18px 52px rgba(0, 0, 0, 0.62), 0 0 58px rgba(94, 196, 190, 0.18); animation: trip-moon-float 9s ease-in-out infinite; }
+.trip-poster-moon { position: absolute; left: 50%; top: 50%; width: min(170px, 38%); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: url('/textures/lroc_color_2k.jpg') center / cover; box-shadow: inset -26px -18px 52px rgba(0, 0, 0, 0.62); animation: trip-moon-float 9s ease-in-out infinite; }
 .trip-poster-moon::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(110deg, transparent 45%, rgba(0, 0, 0, 0.58) 76%); }
 .trip-poster-satellite { position: absolute; left: 50%; top: 50%; width: min(320px, 72%); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; animation: trip-satellite 12s linear infinite; }
-.trip-poster-satellite::before { content: ''; position: absolute; left: 50%; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: #eac18b; box-shadow: 0 0 18px rgba(234, 193, 139, 0.75); }
+.trip-poster-satellite::before { content: ''; position: absolute; left: 50%; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: #eac18b; }
 .trip-poster-caption { position: absolute; left: 20px; bottom: 18px; color: var(--text-muted); font: 500 11px var(--font-mono); letter-spacing: 0.12em; }
 @keyframes trip-moon-float { 0%, 100% { transform: translate(-50%, -50%) translateY(0); } 50% { transform: translate(-50%, -50%) translateY(-10px); } }
 @keyframes trip-satellite { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }

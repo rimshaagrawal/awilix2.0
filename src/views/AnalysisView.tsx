@@ -220,20 +220,20 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({
                 <div style={{ display: 'grid', gap: 12 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                     <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>AI Prospectivity</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4, color }}>{pct}%</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>AI Prospectivity</div>
+                      <div style={{ fontSize: 22, fontWeight: 600, marginTop: 4, color }}>{pct}%</div>
                     </div>
                     <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Expert (Coyan)</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>{Math.round(d.expertProspectivity * 100)}%</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Expert (Coyan)</div>
+                      <div style={{ fontSize: 22, fontWeight: 600, marginTop: 4 }}>{Math.round(d.expertProspectivity * 100)}%</div>
                     </div>
                     <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>PSR Coverage</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4, color: 'var(--accent-solar)' }}>{d.psrPercent}%</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>PSR Coverage</div>
+                      <div style={{ fontSize: 22, fontWeight: 600, marginTop: 4, color: 'var(--accent-solar)' }}>{d.psrPercent}%</div>
                     </div>
                     <div style={{ background: 'var(--surface-raised)', borderRadius: 10, padding: 12, textAlign: 'center' }}>
-                      <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Max Temp</div>
-                      <div style={{ fontSize: 22, fontWeight: 800, marginTop: 4 }}>{d.maxTempK} K</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Max Temp</div>
+                      <div style={{ fontSize: 22, fontWeight: 600, marginTop: 4 }}>{d.maxTempK} K</div>
                     </div>
                   </div>
                   <p style={{ fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.5 }}>

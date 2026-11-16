@@ -23,7 +23,7 @@ import { SpecularButton } from '../reactbits/SpecularButton';
 // Global in-memory cache for instant 0ms site switching
 const terrainCache = new Map();
 
-export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRevision }) {
+export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRevision, hour, onHourChange }) {
   const containerRef = useRef(null);
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
@@ -39,13 +39,19 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
   const animFrameRef = useRef(null);
 
   // States
-  const [currentHour, setCurrentHour] = useState(12);
+  // Hour can be controlled externally (Astra panel / App state) or internally.
+  const isHourControlled = typeof hour === 'number' && typeof onHourChange === 'function';
+  const [hourState, setHourState] = useState(12);
+  const currentHour = isHourControlled ? hour : hourState;
+  const setCurrentHour = isHourControlled ? onHourChange : setHourState;
   const [isPlaying, setIsPlaying] = useState(false);
   const [lightingMode, setLightingMode] = useState(false); // Global inspect fill
   const [useInterpolation, setUseInterpolation] = useState(true); // Raw DEM vs Continuous
   const [wireframe, setWireframe] = useState(false);
-  const [terrainData, setTerrainData] = useState(terrainCache.get(site.id) || null);
-  const [loading, setLoading] = useState(!terrainCache.has(site.id));
+  // terrainCache stores fetch promises, not resolved terrain objects. Starting
+  // state from that cache can render a Promise as terrainData on route revisit.
+  const [terrainData, setTerrainData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [telemetry, setTelemetry] = useState(null);
   const [exaggeration, setExaggeration] = useState(1.0); // 1.0 = Real 1:1 Physical Aspect Ratio
   const [surfaceMode, setSurfaceMode] = useState('elevation');
@@ -300,16 +306,24 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
     };
     animate();
 
-    const handleResize = () => {
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
+    // Route transitions and sidebar changes can resize this container without
+    // a window resize event. Observe the element and measure after first layout.
+    const resizeRenderer = () => {
+      const { width, height } = container.getBoundingClientRect();
+      if (width < 1 || height < 1) return;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(Math.round(width), Math.round(height));
     };
-    window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(resizeRenderer);
+    resizeObserver.observe(container);
+    window.addEventListener('resize', resizeRenderer);
+    const initialResizeFrame = requestAnimationFrame(resizeRenderer);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', resizeRenderer);
+      resizeObserver.disconnect();
+      cancelAnimationFrame(initialResizeFrame);
       cancelAnimationFrame(animFrameRef.current);
       controls.dispose();
       renderer.dispose();
@@ -409,11 +423,11 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
               DEM
             </div>
           </div>
-          <div className="text-xs font-mono font-bold text-[var(--ink)] tracking-widest uppercase">
+          <div className="text-xs font-mono font-bold text-[var(--ink)]">
             Loading masked terrain crop
           </div>
           <div className="text-[11px] font-mono text-[var(--mustard)] mt-1 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)] animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-[var(--laser-crimson)]" />
             <span>{site.name} · ({coordinateText(site)})</span>
           </div>
           <div className="text-[10px] font-mono text-[var(--ink-faint)] mt-1.5">
@@ -441,7 +455,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
           {/* 20 MPP Resolution Badge - neatly capped with tooltip so it never overlaps buttons */}
           <div
             className="hidden xl:flex items-center gap-1.5 px-2.5 h-8 rounded-lg text-xs font-mono bg-[var(--surface-raised)]/90 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-secondary)] whitespace-nowrap"
-            title={terrainData?.metadata.nativeResolutionDescription ?? 'Polar 80 m DEM · 20 m shadow mask'}
+            title={terrainData?.metadata?.nativeResolutionDescription ?? 'Polar 80 m DEM · 20 m shadow mask'}
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-[var(--semantic-positive)] shrink-0" />
             <span className="truncate max-w-[170px]">80m DEM · 20m mask</span>
@@ -519,19 +533,23 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
             ]}
           />
         </div>
-        <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <span className="font-medium">Heatmap</span>
-          <OptionWheel
-            align="left"
-            selectedId={heatmapType}
-            onChange={setHeatmapType}
-            options={[
-              { id: 'ice', label: 'Ice' },
-              { id: 'thermal', label: 'Thermal' },
-            ]}
-          />
-        </div>
-        {heatmapOn && <div className="mt-1"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType === 'ice' ? 'Ice probability' : 'Thermal (cold→warm)'}</div><div style={{ height: 8, borderRadius: 4, background: heatmapType === 'ice' ? 'linear-gradient(to right,#dbeafe,#1e3a8a)' : 'linear-gradient(to right,#2a6f97,#e39d75)' }} /></div>}
+        {heatmapOn && (
+          <>
+            <div className="text-xs" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <span className="font-medium">Heatmap</span>
+              <OptionWheel
+                align="left"
+                selectedId={heatmapType}
+                onChange={setHeatmapType}
+                options={[
+                  { id: 'ice', label: 'Ice' },
+                  { id: 'thermal', label: 'Thermal' },
+                ]}
+              />
+            </div>
+            <div className="mt-1"><div className="text-[10px] text-[var(--ink-mute)] mb-1">{heatmapType === 'ice' ? 'Ice probability' : 'Thermal (cold→warm)'}</div><div style={{ height: 8, borderRadius: 4, background: heatmapType === 'ice' ? 'linear-gradient(to right,#dbeafe,#1e3a8a)' : 'linear-gradient(to right,#2a6f97,#e39d75)' }} /></div>
+          </>
+        )}
         <div className="text-xs" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <span className="flex justify-between items-center">
             <span className="font-medium">Visual exaggeration</span>
@@ -558,7 +576,7 @@ export default function SiteTerrainView({ site, date, onSelectSite, ephemerisRev
       {/* Bottom Left: Physical Terrain Metrics */}
       <div className="absolute bottom-16 left-4 z-10 bento-plate p-3.5 max-w-xs text-xs space-y-2 bg-[var(--paper-warm)]/90 backdrop-blur-md">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-mono uppercase text-[var(--ink-faint)]">Elevation Relief</span>
+          <span className="text-[10px] font-mono text-[var(--ink-faint)]">Elevation Relief</span>
           <span className="font-mono font-bold text-[var(--emerald)]">
             {terrainData ? `${terrainData.elevationSpanM.toLocaleString()} m` : 'Loading...'}
           </span>

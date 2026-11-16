@@ -232,19 +232,19 @@ export function SiteDetailView({ site, timeWindow = '24h', setTimeWindow, onVisi
               <div className="space-y-3">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
-                    <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">AI Prospectivity</div>
+                    <div className="text-[10px] font-mono text-[var(--ink-faint)]">AI Prospectivity</div>
                     <div className="text-2xl font-semibold font-mono mt-1" style={{ color }}>{pct}%</div>
                   </div>
                   <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
-                    <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">Expert (Coyan)</div>
+                    <div className="text-[10px] font-mono text-[var(--ink-faint)]">Expert (Coyan)</div>
                     <div className="text-2xl font-semibold font-mono text-[var(--ink)] mt-1">{Math.round(d.expertProspectivity * 100)}%</div>
                   </div>
                   <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
-                    <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">PSR Coverage</div>
+                    <div className="text-[10px] font-mono text-[var(--ink-faint)]">PSR Coverage</div>
                     <div className="text-2xl font-semibold font-mono text-[var(--mustard)] mt-1">{d.psrPercent}%</div>
                   </div>
                   <div className="bg-[var(--paper-dark)] rounded-xl p-3 text-center">
-                    <div className="text-[10px] font-mono text-[var(--ink-faint)] uppercase">Max Temp</div>
+                    <div className="text-[10px] font-mono text-[var(--ink-faint)]">Max Temp</div>
                     <div className="text-2xl font-semibold font-mono text-[var(--ink)] mt-1">{d.maxTempK} K</div>
                   </div>
                 </div>

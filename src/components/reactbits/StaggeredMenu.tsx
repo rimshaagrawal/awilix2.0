@@ -199,7 +199,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
               fontFamily: "'DM Mono', monospace",
               letterSpacing: '0.12em',
               color: '#f0a970',
-              fontWeight: 700,
+              fontWeight: 600,
             }}
           >
             {title}
@@ -257,7 +257,7 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
                     style={{
                       fontSize: '10px',
                       color: isActive ? '#f0a970' : '#455a64',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       minWidth: '18px',
                     }}
                   >

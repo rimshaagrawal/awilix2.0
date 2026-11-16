@@ -1,0 +1,57 @@
+{
+  "shackleton-rim": {
+    "id": "shackleton-rim",
+    "url": "https://science.nasa.gov/wp-content/uploads/2024/01/em-ota.jpg",
+    "source": "https://science.nasa.gov/mission/lro/lola/",
+    "alt": "LOLA optical assembly hardware beside a diagram of the instrument design",
+    "caption": "LOLA hardware and optical design",
+    "credit": "NASA",
+    "src": "images/missions/shackleton-rim.jpg",
+    "width": 1000,
+    "height": 390
+  },
+  "malapert-a": {
+    "id": "malapert-a",
+    "url": "https://www.nasa.gov/wp-content/uploads/2024/02/im-moon-image.jpg",
+    "source": "https://www.nasa.gov/centers-and-facilities/marshall/the-marshall-star-for-february-28-2024/",
+    "alt": "Odysseus camera view of Schomberger crater during lunar descent, with lander legs at the right edge",
+    "caption": "Odysseus during lunar descent",
+    "credit": "Intuitive Machines",
+    "src": "images/missions/malapert-a.jpg",
+    "width": 1000,
+    "height": 750
+  },
+  "mons-mouton": {
+    "id": "mons-mouton",
+    "url": "https://www.nasa.gov/wp-content/uploads/2025/03/im-2-lander-on-moon.png",
+    "source": "https://www.nasa.gov/news-release/nasa-receives-some-data-before-intuitive-machines-ends-lunar-mission/",
+    "alt": "Athena lander legs and the deployed PRIME-1 drill on the lunar surface after touchdown",
+    "caption": "Athena on the lunar surface",
+    "credit": "Intuitive Machines",
+    "src": "images/missions/mons-mouton.jpg",
+    "width": 751,
+    "height": 1000
+  },
+  "nobile-rim": {
+    "id": "nobile-rim",
+    "url": "https://lroc.im-ldi.com/assets/NAC_3-0a69bb96e2b6a9d0d3f8975242124cf9990807146e7df761a677129e352c580b.jpg",
+    "source": "https://lroc.im-ldi.com/about/specs",
+    "alt": "LROC Narrow Angle Camera instrument photographed before flight",
+    "caption": "LROC Narrow Angle Camera",
+    "credit": "NASA / GSFC / Arizona State University",
+    "src": "images/missions/nobile-rim.jpg",
+    "width": 733,
+    "height": 733
+  },
+  "connecting-ridge": {
+    "id": "connecting-ridge",
+    "url": "https://www.nasa.gov/wp-content/uploads/2019/06/lro-orbiting-moon.jpg",
+    "source": "https://www.nasa.gov/missions/nasa-reflects-on-legacy-of-lro-as-moon-orbiting-mission-reaches-10-year-anniversary/",
+    "alt": "Artist’s concept of the Lunar Reconnaissance Orbiter above the Moon",
+    "caption": "LRO in lunar orbit · artist’s concept",
+    "credit": "NASA / Goddard / SVS",
+    "src": "images/missions/connecting-ridge.jpg",
+    "width": 990,
+    "height": 1000
+  }
+}
