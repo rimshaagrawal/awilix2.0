@@ -166,7 +166,7 @@
 .scan-eyebrow::before { content: ''; width: 5px; height: 5px; background: #90b2ad; box-shadow: 0 0 9px #779e9633; }
 .creature-card h2 { color: #e1e7ea; }
 .close-scan { top: 13px; right: 16px; display: grid; place-items: center; width: 28px; height: 28px; color: #94aeb8; font: 22px/1 var(--hud-mono); }
-.creature-card:has(.flag-scan-content) { padding: 32px 26px 27px; overflow: visible; }
+.creature-card:has(.flag-scan-content) { padding: 32px 26px 27px; overflow: hidden; }
 .flag-scan-content { max-height: calc(100dvh - 202px); overflow-y: auto; overflow-x: hidden; padding: 0 4px 3px 0; scrollbar-width: thin; scrollbar-color: #506873 #090f15; overscroll-behavior: contain; }
 .mission-meta { font-size: 9px; }
 .mission-photos img { border-radius: 0; border-color: #50667140; }
@@ -203,6 +203,11 @@
   .flag-scan-content { max-height: calc(100dvh - 198px); }
 }
 
+@media (min-width: 561px) and (max-width: 650px) {
+  .creature-card:has(.mission-scan-content) { max-height: calc(100dvh - 120px); }
+  .mission-scan-content { max-height: calc(100dvh - 172px); }
+}
+
 @media (max-height: 420px) {
   .waypoint-tooltip { padding: 24px 24px 30px; }
   .waypoint-content { gap: 5px; max-height: calc(100dvh - 86px); }
@@ -211,7 +216,9 @@
 
 @media (max-height: 520px) and (min-width: 651px) {
   .creature-card, .creature-card:has(.flag-scan-content) { top: 16px; max-height: calc(100dvh - 32px); }
+  .creature-card:has(.mission-scan-content) { max-height: calc(100dvh - 32px); }
   .flag-scan-content { max-height: calc(100dvh - 110px); }
+  .mission-scan-content { max-height: calc(100dvh - 84px); }
 }
 
 @media (hover: none) and (pointer: coarse) {

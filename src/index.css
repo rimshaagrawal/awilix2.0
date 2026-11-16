@@ -1027,6 +1027,19 @@ button:focus-visible, input:focus-visible, select:focus-visible {
   flex-direction: column;
 }
 
+/* Keep the tracked-site card readable on shorter screens: cap it to the
+   viewport and let its contents scroll instead of being clipped by the page. */
+@media (min-width: 851px) {
+  .selected-readout {
+    max-height: calc(100dvh - 260px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-gutter: stable;
+  }
+}
+
 .selected-readout h2 {
   margin: 16px 0 6px;
   color: var(--text-primary);
