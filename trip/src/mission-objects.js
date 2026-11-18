@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { SOUTH_POLAR_SITES, SOUTH_POLE } from './regions.js';
 import { siteScanContent } from './site-scan-content.js';
-import scanImages from '../../public/images/missions/sources.json' with {type:'json'};
+import scanImages from './missions-sources.json' with {type:'json'};
 
 // These are educational exhibits, not surveyed positions or abandoned hardware.
 export const MISSION_OBJECTS=[

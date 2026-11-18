@@ -48,6 +48,6 @@ export function createPhraser(config = {}) {
     get name() { return model ? `openai:${model}` : 'model'; },
     get enabled() { return !disabled; },
     rephrase: (text, { timeoutMs = 8000 } = {}) => guard({ mode: 'phrase', text }, timeoutMs),
-    answer: (question, context, history = [], { timeoutMs = 20000 } = {}) => guard({ mode: 'answer', question, context, history }, timeoutMs),
+    answer: (question, context, history = [], { timeoutMs = 60000 } = {}) => guard({ mode: 'answer', question, context, history }, timeoutMs),
   };
 }

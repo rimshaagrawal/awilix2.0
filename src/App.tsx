@@ -17,7 +17,6 @@ import { AstraView } from '@/views/AstraView';
 import { TripView } from '@/views/TripView';
 import SiteTerrainView from '@/components/sites/SiteTerrainView';
 import { TripSimulationOverlay } from '@/components/trip/TripSimulationOverlay';
-import SiteTerrainView from '@/components/sites/SiteTerrainView';
 
 export const App: React.FC = () => {
   const [activeView, setActiveView] = useState<View>('overview');

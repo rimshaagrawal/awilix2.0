@@ -84,7 +84,7 @@ const tools = createAstraTools({
 
 // Model backend at /api/astra (server/astra-llm.js). Set VITE_ASTRA_MODEL=off to force deterministic-only.
 const env = (import.meta as any).env ?? {};
-const phraser = createPhraser({ url: env.VITE_ASTRA_API_URL, disabled: env.VITE_ASTRA_MODEL === 'off' });
+const phraser = createPhraser({ url: env.VITE_ASTRA_API_URL || 'https://awilix.onrender.com/api/astra', disabled: env.VITE_ASTRA_MODEL === 'off' });
 
 const agent = createAstraAgent({ tools, phraser });
 
@@ -100,7 +100,7 @@ export const astra = {
 /** Asks the backend whether a model is configured (GET /api/astra). */
 export async function probeAstraBackend(): Promise<{ enabled: boolean; model: string | null }> {
   try {
-    const r = await fetch(env.VITE_ASTRA_API_URL || '/api/astra');
+    const r = await fetch(env.VITE_ASTRA_API_URL || 'https://awilix.onrender.com/api/astra');
     if (!r.ok) return { enabled: false, model: null };
     return await r.json();
   } catch { return { enabled: false, model: null }; }

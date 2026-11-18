@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: awilix-astra-backend
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/openai
+      - key: OPENAI_MODEL
+        value: gemini-3.8-flash
+      - key: ASTRA_CORS_ORIGIN
+        sync: false
