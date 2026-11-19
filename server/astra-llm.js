@@ -54,22 +54,35 @@ export function astraConfig(env = {}) {
 }
 
 async function chat(cfg, messages, { temperature = 0.2, timeoutMs = 60_000 } = {}) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetch(`${cfg.baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.apiKey}` },
-      body: JSON.stringify({ model: cfg.model, temperature, max_tokens: 350, messages }),
-      signal: ctrl.signal,
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw Object.assign(new Error(json?.error?.message || `Model HTTP ${res.status}`), { status: 502 });
-    const out = json?.choices?.[0]?.message?.content;
-    return typeof out === 'string' ? out.trim() : '';
-  } finally {
-    clearTimeout(timer);
+  const maxRetries = 3;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+    try {
+      const res = await fetch(`${cfg.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.apiKey}` },
+        body: JSON.stringify({ model: cfg.model, temperature, max_tokens: 350, messages }),
+        signal: ctrl.signal,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 503 && attempt < maxRetries) {
+          clearTimeout(timer);
+          const delay = (attempt + 1) * 2000;
+          console.error('RETRY', attempt, 'delay', delay);
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
+        throw Object.assign(new Error(json?.error?.message || `Model HTTP ${res.status}`), { status: 502 });
+      }
+      const out = json?.choices?.[0]?.message?.content;
+      return typeof out === 'string' ? out.trim() : '';
+    } finally {
+      clearTimeout(timer);
+    }
   }
+  throw new Error('Model unavailable after retries');
 }
 
 /** Returns { status, body } so both the Vite middleware and Vercel can use it. */
