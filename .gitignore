@@ -32,4 +32,8 @@ public/models/Moon_NASA_LRO_8k_Topo_Small.glb
 public/terrain/ldem_16_uint.tif
 public/terrain/ldem_16_uint.png
 
-# trip simulation assets are served from root public/\ntrip/public/
+# trip simulation assets are served from root public/
+trip/public/
+
+# source snapshot archives (extracted; never commit these)
+*.zip
